@@ -21,10 +21,11 @@ cp .env.example .env   # then put your key in ANTHROPIC_API_KEY
 npm run dev            # http://localhost:3000
 ```
 
-Open <http://localhost:3000> in a browser for the **demo UI** (module picker +
-input + live streaming output, **rendered as Markdown** so headings, bold, lists,
-and tables display properly — and it renders incrementally as it streams). The
-JSON/SSE API lives under `/api`.
+Open <http://localhost:3000> in a browser for the **demo UI** — a "밤의 서재"
+(navy / gold / cream) themed page with a landing/intro screen and module gallery,
+plus a generator view (module picker + input + live streaming output, **rendered
+as Markdown** so headings, bold, lists, and tables display properly, with tidy
+loading / error / empty states). The JSON/SSE API lives under `/api`.
 
 The page imports `marked` (Markdown → HTML) and `DOMPurify` (sanitization) from
 `public/vendor/` — local copies, no CDN. After bumping their versions in
@@ -65,7 +66,9 @@ Lists the available generation modules.
     { "id": "ppt", "name": "발표자료(PPT) 개요 생성", "description": "..." },
     { "id": "study-notes", "name": "학습 정리 노트", "description": "..." },
     { "id": "worksheet", "name": "학습지 생성", "description": "..." },
-    { "id": "quiz", "name": "퀴즈 생성", "description": "..." }
+    { "id": "quiz", "name": "퀴즈 생성", "description": "..." },
+    { "id": "lesson-plan", "name": "수업지도안 생성", "description": "..." },
+    { "id": "resume", "name": "자기소개서 작성", "description": "..." }
   ]
 }
 ```

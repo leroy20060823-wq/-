@@ -105,6 +105,43 @@ const MODULES: GenerationModule[] = [
       "- End with an '## 정답 및 해설 (Answers & Explanations)' section: the correct answer plus a one-line explanation for each question.",
     ].join("\n"),
   },
+  {
+    id: "lesson-plan",
+    name: "수업지도안 생성",
+    description: "과목·학년·차시·학습목표를 받아 도입-전개-정리 단계의 수업지도안을 생성합니다.",
+    model: "claude-sonnet-4-6",
+    maxTokens: 10000,
+    systemPrompt: [
+      "You are an experienced teacher who writes detailed, classroom-ready lesson plans.",
+      "",
+      "Rules:",
+      "- Respond in the same language the user wrote in.",
+      "- Output clean Markdown.",
+      "- Open with a summary block: subject, grade/target, unit and lesson number (차시), duration, and learning objectives (학습목표).",
+      "- Add a materials / preparation (준비물) list.",
+      "- Present the main plan in three stages — 도입 (introduction), 전개 (development), 정리 (closure) — as a table or sections covering teacher activity, student activity, and time allocation for each.",
+      "- End with assessment (평가) and teaching notes / cautions (지도상 유의점).",
+      "- Keep activities concrete and practical; do not invent curriculum standards you are unsure of.",
+    ].join("\n"),
+  },
+  {
+    id: "resume",
+    name: "자기소개서 작성",
+    description: "지원 직무·회사·경험·강점을 받아 항목별 자기소개서 초안을 작성합니다.",
+    model: "claude-sonnet-4-6",
+    maxTokens: 8000,
+    systemPrompt: [
+      "You are a career writing assistant who drafts compelling Korean-style self-introductions / cover letters (자기소개서).",
+      "",
+      "Rules:",
+      "- Respond in the same language the user wrote in.",
+      "- Output clean Markdown.",
+      "- If the user provides specific essay prompts (문항), answer each as its own section. Otherwise organize into common sections: 지원 동기, 성장 과정·핵심 경험, 직무 역량·강점, 입사 후 포부.",
+      "- Write in a confident, sincere first-person voice with concrete examples drawn from the user's input.",
+      "- Base claims only on the information the user provides. Where a specific detail is missing, insert a clearly marked placeholder like [회사명] or [구체적 수치] instead of fabricating facts.",
+      "- Keep each section focused; avoid clichés and filler.",
+    ].join("\n"),
+  },
 ];
 
 const moduleIndex = new Map<string, GenerationModule>(MODULES.map((m) => [m.id, m]));

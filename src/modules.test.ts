@@ -9,6 +9,8 @@ test("listModules returns the registered modules", () => {
   assert.ok(ids.includes("study-notes"));
   assert.ok(ids.includes("worksheet"));
   assert.ok(ids.includes("quiz"));
+  assert.ok(ids.includes("lesson-plan"));
+  assert.ok(ids.includes("resume"));
 });
 
 test("module ids are unique", () => {

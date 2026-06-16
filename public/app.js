@@ -1,9 +1,14 @@
 import { marked } from "./vendor/marked.esm.js";
 import DOMPurify from "./vendor/purify.es.mjs";
 
-// GFM gives us tables; keep single newlines as soft breaks off (these are
-// document-style outputs where blank lines separate paragraphs).
 marked.use({ gfm: true, breaks: false });
+
+const viewHome = document.getElementById("view-home");
+const viewApp = document.getElementById("view-app");
+const navLinks = document.querySelectorAll(".nav a[data-nav]");
+
+const cardsEl = document.getElementById("module-cards");
+const cardsStatus = document.getElementById("cards-status");
 
 const form = document.getElementById("form");
 const moduleSelect = document.getElementById("module");
@@ -12,6 +17,7 @@ const inputEl = document.getElementById("input");
 const submitBtn = document.getElementById("submit");
 const stopBtn = document.getElementById("stop");
 const statusEl = document.getElementById("status");
+const loadingEl = document.getElementById("loading");
 const outputEl = document.getElementById("output");
 const errorEl = document.getElementById("error");
 const copyBtn = document.getElementById("copy");
@@ -19,10 +25,35 @@ const copyBtn = document.getElementById("copy");
 let modules = [];
 let controller = null;
 
-// Streaming render state: `raw` is the accumulated Markdown source; we re-render
-// it to HTML at most once per animation frame to stay smooth during streaming.
+// Streaming render state: `raw` is accumulated Markdown source, re-rendered to
+// HTML at most once per animation frame for smoothness.
 let raw = "";
 let renderScheduled = false;
+
+function escapeHtml(s) {
+  return s.replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+  );
+}
+
+/* ---------- View routing (hash-based) ---------- */
+
+function applyRoute() {
+  const isApp = location.hash === "#generate";
+  viewHome.hidden = isApp;
+  viewApp.hidden = !isApp;
+  navLinks.forEach((a) => {
+    const isAppLink = a.getAttribute("data-nav") === "app";
+    a.classList.toggle("active", isAppLink === isApp);
+  });
+  window.scrollTo(0, 0);
+  if (isApp) inputEl.focus();
+}
+
+window.addEventListener("hashchange", applyRoute);
+
+/* ---------- Status helpers ---------- */
 
 function setStatus(text) {
   statusEl.textContent = text ?? "";
@@ -31,6 +62,8 @@ function setStatus(text) {
 function showError(message) {
   errorEl.textContent = message;
   errorEl.hidden = false;
+  loadingEl.hidden = true;
+  outputEl.hidden = raw.length === 0;
 }
 
 function clearError() {
@@ -38,10 +71,10 @@ function clearError() {
   errorEl.hidden = true;
 }
 
+/* ---------- Rendering ---------- */
+
 function renderNow() {
-  const html = marked.parse(raw);
-  // Sanitize before injecting: output is model-generated from user input.
-  outputEl.innerHTML = DOMPurify.sanitize(html);
+  outputEl.innerHTML = DOMPurify.sanitize(marked.parse(raw));
   outputEl.scrollTop = outputEl.scrollHeight;
 }
 
@@ -57,12 +90,27 @@ function scheduleRender() {
 function resetOutput() {
   raw = "";
   outputEl.innerHTML = "";
+  outputEl.hidden = true;
   copyBtn.hidden = true;
 }
+
+/* ---------- Modules ---------- */
 
 function updateModuleDesc() {
   const current = modules.find((m) => m.id === moduleSelect.value);
   moduleDesc.textContent = current?.description ?? "";
+}
+
+function renderCards() {
+  cardsEl.innerHTML = modules
+    .map(
+      (m) =>
+        `<button type="button" class="card" data-module="${escapeHtml(m.id)}">` +
+        `<span class="card-name">${escapeHtml(m.name)}</span>` +
+        `<span class="card-desc">${escapeHtml(m.description)}</span></button>`,
+    )
+    .join("");
+  cardsStatus.hidden = true;
 }
 
 async function loadModules() {
@@ -71,6 +119,7 @@ async function loadModules() {
     if (!res.ok) throw new Error(`모듈 목록을 불러오지 못했습니다 (HTTP ${res.status})`);
     const data = await res.json();
     modules = data.modules ?? [];
+
     moduleSelect.innerHTML = "";
     for (const m of modules) {
       const opt = document.createElement("option");
@@ -79,11 +128,14 @@ async function loadModules() {
       moduleSelect.appendChild(opt);
     }
     updateModuleDesc();
+    renderCards();
   } catch (err) {
-    showError(err instanceof Error ? err.message : String(err));
+    cardsStatus.textContent = err instanceof Error ? err.message : String(err);
     submitBtn.disabled = true;
   }
 }
+
+/* ---------- Generation ---------- */
 
 function setGenerating(isGenerating) {
   submitBtn.disabled = isGenerating;
@@ -92,8 +144,8 @@ function setGenerating(isGenerating) {
   stopBtn.hidden = !isGenerating;
 }
 
-// Parse the SSE-style POST stream: events are separated by a blank line, and the
-// payload sits on a `data: ` line as JSON.
+// Parse the SSE-style POST stream: events separated by a blank line, payload on
+// a `data: ` line as JSON.
 async function readStream(res, onEvent) {
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
@@ -119,6 +171,13 @@ async function readStream(res, onEvent) {
   }
 }
 
+function revealOutputOnce() {
+  if (outputEl.hidden) {
+    outputEl.hidden = false;
+    loadingEl.hidden = true;
+  }
+}
+
 async function generate(event) {
   event.preventDefault();
   clearError();
@@ -133,6 +192,7 @@ async function generate(event) {
 
   setGenerating(true);
   setStatus("생성 중…");
+  loadingEl.hidden = false;
   controller = new AbortController();
 
   try {
@@ -152,11 +212,13 @@ async function generate(event) {
     let finished = false;
     await readStream(res, (evt) => {
       if (evt.type === "delta") {
+        revealOutputOnce();
         raw += evt.text;
         scheduleRender();
       } else if (evt.type === "done") {
         finished = true;
-        renderNow(); // flush any pending frame so the final state is complete
+        revealOutputOnce();
+        renderNow();
         const { inputTokens, outputTokens } = evt.usage ?? {};
         setStatus(`완료 · ${evt.model} · 입력 ${inputTokens} / 출력 ${outputTokens} 토큰`);
         copyBtn.hidden = raw.length === 0;
@@ -168,13 +230,17 @@ async function generate(event) {
     });
 
     if (!finished) {
-      // Stream ended without a done/error event (e.g. user aborted mid-stream).
+      // Stream ended without a done/error event (e.g. aborted mid-stream).
+      revealOutputOnce();
       renderNow();
+      loadingEl.hidden = true;
       copyBtn.hidden = raw.length === 0;
     }
   } catch (err) {
     if (err.name === "AbortError") {
+      revealOutputOnce();
       renderNow();
+      loadingEl.hidden = true;
       copyBtn.hidden = raw.length === 0;
       setStatus("중지됨");
     } else {
@@ -187,13 +253,23 @@ async function generate(event) {
   }
 }
 
+/* ---------- Wiring ---------- */
+
 form.addEventListener("submit", generate);
 moduleSelect.addEventListener("change", updateModuleDesc);
 stopBtn.addEventListener("click", () => controller?.abort());
+
+cardsEl.addEventListener("click", (e) => {
+  const card = e.target.closest("[data-module]");
+  if (!card) return;
+  moduleSelect.value = card.dataset.module;
+  updateModuleDesc();
+  location.hash = "#generate";
+});
+
 copyBtn.addEventListener("click", async () => {
   try {
-    // Copy the Markdown source, which is more useful than the rendered HTML.
-    await navigator.clipboard.writeText(raw);
+    await navigator.clipboard.writeText(raw); // copy the Markdown source
     copyBtn.textContent = "복사됨";
     setTimeout(() => (copyBtn.textContent = "복사"), 1500);
   } catch {
@@ -201,4 +277,5 @@ copyBtn.addEventListener("click", async () => {
   }
 });
 
+applyRoute();
 loadModules();
