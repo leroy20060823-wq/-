@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#F7F4EC" />
+  <circle cx="40" cy="40" r="260" fill="#7BA05B" opacity="0.16" />
+  <circle cx="1180" cy="60" r="300" fill="#6F95C9" opacity="0.18" />
+  <circle cx="1160" cy="640" r="320" fill="#C2613A" opacity="0.10" />
+  <text x="100" y="250" font-size="40" fill="#7BA05B" font-family="system-ui, sans-serif" font-weight="600">AI, 어렵지 않아요</text>
+  <text x="100" y="350" font-size="92" fill="#2A2722" font-family="system-ui, sans-serif" font-weight="800">모든 영역의 실무를</text>
+  <text x="100" y="460" font-size="92" fill="#C2613A" font-family="system-ui, sans-serif" font-weight="800">한 번에</text>
+  <text x="100" y="540" font-size="34" fill="#6B675E" font-family="system-ui, sans-serif">질문에 답만 하면, 결과물이 완성됩니다 · 올인원 AI</text>
+</svg>

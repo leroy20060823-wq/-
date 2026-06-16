@@ -523,8 +523,19 @@ textarea {
 .actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   margin-top: 18px;
+}
+
+/* Keyboard focus visibility */
+:focus-visible {
+  outline: 2px solid var(--clay);
+  outline-offset: 2px;
+}
+
+.card:focus-visible {
+  border-color: var(--clay);
 }
 
 .status {
@@ -775,5 +786,20 @@ textarea {
   }
   main {
     padding: 8px 18px 56px;
+  }
+  .hero {
+    padding: 36px 0 28px;
+  }
+  .cards {
+    grid-template-columns: 1fr;
+  }
+  .card-panel {
+    padding: 18px;
+  }
+  .opt select,
+  .opt input,
+  .opt input[type="number"] {
+    width: 100%;
+    min-width: 0;
   }
 }
