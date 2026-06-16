@@ -27,6 +27,8 @@ const copyBtn = document.getElementById("copy");
 let modules = [];
 let controller = null;
 
+const defaultInputPlaceholder = inputEl.getAttribute("placeholder") ?? "";
+
 // Streaming render state: `raw` is accumulated Markdown source, re-rendered to
 // HTML at most once per animation frame for smoothness.
 let raw = "";
@@ -144,6 +146,7 @@ function updateModuleDesc() {
   const current = modules.find((m) => m.id === moduleSelect.value);
   modulePurpose.textContent = current?.purpose ?? "";
   moduleDesc.textContent = current?.description ?? "";
+  inputEl.placeholder = current?.inputPlaceholder || defaultInputPlaceholder;
   renderOptions(current);
 }
 

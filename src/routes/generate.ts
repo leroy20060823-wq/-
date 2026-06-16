@@ -17,12 +17,13 @@ function asyncHandler(
 
 router.get("/modules", (_req, res) => {
   res.json({
-    modules: listModules().map(({ id, name, description, purpose, options }) => ({
+    modules: listModules().map(({ id, name, description, purpose, options, inputPlaceholder }) => ({
       id,
       name,
       description,
       purpose,
       options: options ?? [],
+      inputPlaceholder: inputPlaceholder ?? null,
     })),
   });
 });
