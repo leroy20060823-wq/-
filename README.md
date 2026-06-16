@@ -21,11 +21,13 @@ cp .env.example .env   # then put your key in ANTHROPIC_API_KEY
 npm run dev            # http://localhost:3000
 ```
 
-Open <http://localhost:3000> in a browser for the **demo UI** — a "밤의 서재"
-(navy / gold / cream) themed page with a landing/intro screen and module gallery,
-plus a generator view (module picker + input + live streaming output, **rendered
-as Markdown** so headings, bold, lists, and tables display properly, with tidy
-loading / error / empty states). The JSON/SSE API lives under `/api`.
+Open <http://localhost:3000> in a browser for the **demo UI** — a warm
+cream + watercolor (sage / sky) themed page with an autumn-clay accent, a
+landing/hero with a prompt bar, and a module gallery of pastel cards, plus a
+generator view (module picker + input + live streaming output, **rendered as
+Markdown** so headings, bold, lists, and tables display properly, with tidy
+loading / error / empty states). The whole palette lives in CSS variables in
+`public/styles.css` (`:root`). The JSON/SSE API lives under `/api`.
 
 The page imports `marked` (Markdown → HTML) and `DOMPurify` (sanitization) from
 `public/vendor/` — local copies, no CDN. After bumping their versions in

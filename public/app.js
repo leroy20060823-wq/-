@@ -3,9 +3,42 @@ import DOMPurify from "./vendor/purify.es.mjs";
 
 marked.use({ gfm: true, breaks: false });
 
+/* ---------- Per-module card theme (pastel tile + clay/sage/sky accent) ---------- */
+// Lucide icons (MIT) — stroke uses currentColor (set to the module accent).
+const ICONS = {
+  exam: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>',
+  ppt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></svg>',
+  vocabulary: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>',
+  "lesson-plan": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>',
+  resume: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>',
+  "cover-letter": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
+  worksheet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.4 2.6a2 2 0 0 1 2.8 2.8L12 14.6 8 16l1.4-4z"/></svg>',
+  quiz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>',
+  "study-notes": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h4"/><path d="M2 12h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/></svg>',
+};
+const DEFAULT_ICON =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.94 14.06a4 4 0 1 1 5.66-5.66"/><path d="m12 2 1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5z"/></svg>';
+
+// tile = pastel background, accent = icon/clay color, tagline = card copy.
+const THEME = {
+  exam: { tile: "#FBEDE4", accent: "#C2613A", tagline: "자료 올리면 문제 자동 생성" },
+  ppt: { tile: "#FBF1DD", accent: "#C0913C", tagline: "주제만 입력하면 슬라이드로" },
+  vocabulary: { tile: "#EAF1F8", accent: "#6F8FB8", tagline: "모르는 단어, 쉽게 풀이" },
+  "lesson-plan": { tile: "#E6F0E2", accent: "#5F8B4A", tagline: "수업 흐름 자동 구성" },
+  resume: { tile: "#E8F0FA", accent: "#5E86C0", tagline: "면접관이 읽고 싶은 글로" },
+  "cover-letter": { tile: "#E8F0FA", accent: "#5E86C0", tagline: "면접관이 읽고 싶은 글로" },
+  worksheet: { tile: "#EAF2E1", accent: "#6E9B52", tagline: "" },
+  quiz: { tile: "#F7E9E5", accent: "#B56A4E", tagline: "" },
+  "study-notes": { tile: "#FBF1DD", accent: "#C0913C", tagline: "" },
+};
+const DEFAULT_THEME = { tile: "#EFEADD", accent: "#C2613A" };
+
+/* ---------- Elements ---------- */
 const viewHome = document.getElementById("view-home");
 const viewApp = document.getElementById("view-app");
-const navLinks = document.querySelectorAll(".nav a[data-nav]");
+
+const heroForm = document.getElementById("hero-form");
+const heroInput = document.getElementById("hero-input");
 
 const cardsEl = document.getElementById("module-cards");
 const cardsStatus = document.getElementById("cards-status");
@@ -26,11 +59,9 @@ const copyBtn = document.getElementById("copy");
 
 let modules = [];
 let controller = null;
-
 const defaultInputPlaceholder = inputEl.getAttribute("placeholder") ?? "";
 
-// Streaming render state: `raw` is accumulated Markdown source, re-rendered to
-// HTML at most once per animation frame for smoothness.
+// Streaming render state.
 let raw = "";
 let renderScheduled = false;
 
@@ -42,23 +73,16 @@ function escapeHtml(s) {
 }
 
 /* ---------- View routing (hash-based) ---------- */
-
 function applyRoute() {
   const isApp = location.hash === "#generate";
   viewHome.hidden = isApp;
   viewApp.hidden = !isApp;
-  navLinks.forEach((a) => {
-    const isAppLink = a.getAttribute("data-nav") === "app";
-    a.classList.toggle("active", isAppLink === isApp);
-  });
   window.scrollTo(0, 0);
   if (isApp) inputEl.focus();
 }
-
 window.addEventListener("hashchange", applyRoute);
 
 /* ---------- Status helpers ---------- */
-
 function setStatus(text) {
   statusEl.textContent = text ?? "";
 }
@@ -76,7 +100,6 @@ function clearError() {
 }
 
 /* ---------- Rendering ---------- */
-
 function renderNow() {
   outputEl.innerHTML = DOMPurify.sanitize(marked.parse(raw));
   outputEl.scrollTop = outputEl.scrollHeight;
@@ -98,8 +121,7 @@ function resetOutput() {
   copyBtn.hidden = true;
 }
 
-/* ---------- Modules ---------- */
-
+/* ---------- Options ---------- */
 function renderOptionControl(opt) {
   const label = `<span class="opt-label">${escapeHtml(opt.label)}</span>`;
   if (opt.type === "select") {
@@ -142,6 +164,7 @@ function gatherOptions() {
   return values;
 }
 
+/* ---------- Modules ---------- */
 function updateModuleDesc() {
   const current = modules.find((m) => m.id === moduleSelect.value);
   modulePurpose.textContent = current?.purpose ?? "";
@@ -152,13 +175,18 @@ function updateModuleDesc() {
 
 function renderCards() {
   cardsEl.innerHTML = modules
-    .map(
-      (m) =>
+    .map((m) => {
+      const theme = THEME[m.id] ?? DEFAULT_THEME;
+      const icon = ICONS[m.id] ?? DEFAULT_ICON;
+      const tagline = THEME[m.id]?.tagline || m.purpose || m.description || "";
+      return (
         `<button type="button" class="card" data-module="${escapeHtml(m.id)}">` +
-        (m.purpose ? `<span class="card-tag">${escapeHtml(m.purpose)}</span>` : "") +
+        `<span class="card-icon" style="background:${theme.tile};color:${theme.accent}">${icon}</span>` +
         `<span class="card-name">${escapeHtml(m.name)}</span>` +
-        `<span class="card-desc">${escapeHtml(m.description)}</span></button>`,
-    )
+        `<span class="card-desc">${escapeHtml(tagline)}</span>` +
+        `</button>`
+      );
+    })
     .join("");
   cardsStatus.hidden = true;
 }
@@ -186,7 +214,6 @@ async function loadModules() {
 }
 
 /* ---------- Generation ---------- */
-
 function setGenerating(isGenerating) {
   submitBtn.disabled = isGenerating;
   moduleSelect.disabled = isGenerating;
@@ -194,8 +221,6 @@ function setGenerating(isGenerating) {
   stopBtn.hidden = !isGenerating;
 }
 
-// Parse the SSE-style POST stream: events separated by a blank line, payload on
-// a `data: ` line as JSON.
 async function readStream(res, onEvent) {
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
@@ -253,7 +278,6 @@ async function generate(event) {
       signal: controller.signal,
     });
 
-    // Validation failures come back as a normal JSON error, not a stream.
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       throw new Error(data.error ?? `요청 실패 (HTTP ${res.status})`);
@@ -280,7 +304,6 @@ async function generate(event) {
     });
 
     if (!finished) {
-      // Stream ended without a done/error event (e.g. aborted mid-stream).
       revealOutputOnce();
       renderNow();
       loadingEl.hidden = true;
@@ -304,10 +327,17 @@ async function generate(event) {
 }
 
 /* ---------- Wiring ---------- */
-
 form.addEventListener("submit", generate);
 moduleSelect.addEventListener("change", updateModuleDesc);
 stopBtn.addEventListener("click", () => controller?.abort());
+
+// Hero search bar → carry the prompt into the generator.
+heroForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = heroInput.value.trim();
+  if (text) inputEl.value = text;
+  location.hash = "#generate";
+});
 
 cardsEl.addEventListener("click", (e) => {
   const card = e.target.closest("[data-module]");
@@ -319,7 +349,7 @@ cardsEl.addEventListener("click", (e) => {
 
 copyBtn.addEventListener("click", async () => {
   try {
-    await navigator.clipboard.writeText(raw); // copy the Markdown source
+    await navigator.clipboard.writeText(raw);
     copyBtn.textContent = "복사됨";
     setTimeout(() => (copyBtn.textContent = "복사"), 1500);
   } catch {
