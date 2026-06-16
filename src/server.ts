@@ -17,7 +17,7 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.static(publicDir));
 
 app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
+  res.json({ status: "ok", generation: config.hasApiKey ? "enabled" : "disabled" });
 });
 
 app.use("/api", router);

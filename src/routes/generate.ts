@@ -6,6 +6,16 @@ import { parseGenerateRequest, type GenerateBody } from "../validation.js";
 
 export const router = Router();
 
+// Shared gate: generation needs a server-side API key. Without it the UI and
+// /api/modules still work, but generation returns 401.
+function ensureApiKey(res: Response): boolean {
+  if (config.hasApiKey) return true;
+  res
+    .status(401)
+    .json({ error: "생성이 비활성화되어 있습니다. 서버에 ANTHROPIC_API_KEY가 설정되지 않았습니다." });
+  return false;
+}
+
 // Forward rejected promises to the Express error handler (works on v4 and v5).
 function asyncHandler(
   fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>,
@@ -31,6 +41,7 @@ router.get("/modules", (_req, res) => {
 router.post(
   "/generate",
   asyncHandler(async (req, res) => {
+    if (!ensureApiKey(res)) return;
     const parsed = parseGenerateRequest((req.body ?? {}) as GenerateBody, config.allowedModels);
     if (!parsed.ok) {
       res.status(400).json({ error: parsed.error });
@@ -44,6 +55,7 @@ router.post(
 router.post(
   "/generate/stream",
   asyncHandler(async (req, res) => {
+    if (!ensureApiKey(res)) return;
     const parsed = parseGenerateRequest((req.body ?? {}) as GenerateBody, config.allowedModels);
     if (!parsed.ok) {
       res.status(400).json({ error: parsed.error });

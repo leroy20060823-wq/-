@@ -177,6 +177,33 @@ src/
   server.ts            # Express app entry + static hosting
 ```
 
+## Deploy (Render free tier)
+
+The repo ships a `render.yaml` blueprint, a `Procfile`, and a pinned
+`.node-version`. The app reads `process.env.PORT` (the host injects it — nothing
+is hardcoded), and the API key is optional: **without `ANTHROPIC_API_KEY` the site
+still serves the UI; generation returns 401.**
+
+Render dashboard steps:
+
+1. Push this branch to GitHub (already done).
+2. Render → **New +** → **Blueprint** → connect the GitHub repo and pick the
+   branch. Render detects `render.yaml`.
+3. Review the service (build `npm ci --include=dev && npm run build`, start
+   `npm start`, health check `/health`) → **Apply**.
+4. Open the service → **Environment** → set `ANTHROPIC_API_KEY` to your real key →
+   **Save** (triggers a redeploy). Skip this to ship a UI-only preview.
+5. Wait for the build, then open the `…onrender.com` URL.
+
+Notes: free web services **spin down when idle** (first request after a pause
+cold-starts in ~30s). To deploy without the blueprint, create a Node **Web
+Service**, set Build = `npm ci --include=dev && npm run build`, Start = `npm start`,
+and add the env vars manually.
+
+**Railway** works the same way via Nixpacks (no blueprint needed): New Project →
+Deploy from GitHub repo → it runs `npm run build` then `npm start` and injects
+`PORT`. Add `ANTHROPIC_API_KEY` under the service **Variables**.
+
 ## Security notes
 
 - The frontend must call these backend endpoints — it must never receive the API key.
