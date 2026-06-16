@@ -17,7 +17,12 @@ function asyncHandler(
 
 router.get("/modules", (_req, res) => {
   res.json({
-    modules: listModules().map(({ id, name, description }) => ({ id, name, description })),
+    modules: listModules().map(({ id, name, description, options }) => ({
+      id,
+      name,
+      description,
+      options: options ?? [],
+    })),
   });
 });
 

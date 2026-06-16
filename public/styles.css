@@ -319,7 +319,8 @@ button:disabled {
 }
 
 select,
-textarea {
+textarea,
+input {
   width: 100%;
   padding: 11px 13px;
   font: inherit;
@@ -335,10 +336,46 @@ select option {
 }
 
 select:focus,
-textarea:focus {
+textarea:focus,
+input:focus {
   outline: none;
   border-color: var(--gold);
   box-shadow: 0 0 0 3px rgba(200, 162, 76, 0.18);
+}
+
+/* Per-module option controls */
+.options-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.options-row:empty {
+  display: none;
+  margin: 0;
+}
+
+.opt {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.opt-label {
+  font-size: 0.78rem;
+  color: var(--cream-dim);
+}
+
+.opt select,
+.opt input {
+  width: auto;
+  min-width: 130px;
+  padding: 8px 11px;
+}
+
+.opt input[type="number"] {
+  width: 120px;
 }
 
 textarea {

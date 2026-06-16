@@ -13,6 +13,7 @@ const cardsStatus = document.getElementById("cards-status");
 const form = document.getElementById("form");
 const moduleSelect = document.getElementById("module");
 const moduleDesc = document.getElementById("module-desc");
+const moduleOptionsEl = document.getElementById("module-options");
 const inputEl = document.getElementById("input");
 const submitBtn = document.getElementById("submit");
 const stopBtn = document.getElementById("stop");
@@ -96,9 +97,52 @@ function resetOutput() {
 
 /* ---------- Modules ---------- */
 
+function renderOptionControl(opt) {
+  const label = `<span class="opt-label">${escapeHtml(opt.label)}</span>`;
+  if (opt.type === "select") {
+    const options = (opt.choices ?? [])
+      .map((c) => {
+        const value = escapeHtml(c.value);
+        const text = escapeHtml(c.label ?? c.value);
+        const selected = opt.default === c.value ? " selected" : "";
+        return `<option value="${value}"${selected}>${text}</option>`;
+      })
+      .join("");
+    return `<label class="opt">${label}<select data-opt-key="${escapeHtml(opt.key)}">${options}</select></label>`;
+  }
+  const type = opt.type === "number" ? "number" : "text";
+  const attrs = [
+    `type="${type}"`,
+    `data-opt-key="${escapeHtml(opt.key)}"`,
+    opt.default !== undefined ? `value="${escapeHtml(String(opt.default))}"` : "",
+    opt.min !== undefined ? `min="${opt.min}"` : "",
+    opt.max !== undefined ? `max="${opt.max}"` : "",
+    opt.placeholder ? `placeholder="${escapeHtml(opt.placeholder)}"` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  return `<label class="opt">${label}<input ${attrs} /></label>`;
+}
+
+function renderOptions(module) {
+  const opts = module?.options ?? [];
+  moduleOptionsEl.innerHTML = opts.map(renderOptionControl).join("");
+}
+
+function gatherOptions() {
+  const values = {};
+  moduleOptionsEl.querySelectorAll("[data-opt-key]").forEach((el) => {
+    const key = el.dataset.optKey;
+    const value = el.value;
+    if (value !== "" && value != null) values[key] = value;
+  });
+  return values;
+}
+
 function updateModuleDesc() {
   const current = modules.find((m) => m.id === moduleSelect.value);
   moduleDesc.textContent = current?.description ?? "";
+  renderOptions(current);
 }
 
 function renderCards() {
@@ -199,7 +243,7 @@ async function generate(event) {
     const res = await fetch("/api/generate/stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ module, input }),
+      body: JSON.stringify({ module, input, options: gatherOptions() }),
       signal: controller.signal,
     });
 

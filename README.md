@@ -57,7 +57,9 @@ they always point at the current version.
 Liveness check → `{ "status": "ok" }`.
 
 ### `GET /api/modules`
-Lists the available generation modules.
+Lists the available generation modules. Each module also includes an `options`
+array describing its selectable inputs (difficulty, count, length, …) which the
+demo UI renders as dropdowns / number / text fields.
 
 ```json
 {
@@ -79,13 +81,16 @@ One-shot generation. Body:
 ```json
 {
   "module": "exam",
-  "input": "고등학교 2학년 미적분 단원평가, 객관식 10문제, 중상 난이도",
+  "input": "고등학교 2학년 미적분 단원평가",
+  "options": { "difficulty": "상", "count": 10 },
   "model": "claude-sonnet-4-6"
 }
 ```
 
-`module` and `input` are required; `model` is an optional per-request override
-(must be one of `ALLOWED_MODELS`, otherwise the request is rejected with 400).
+`module` and `input` are required. `options` is an optional object of the module's
+declared option values (see `GET /api/modules`); the server validates and clamps
+them, then appends them to the prompt as a `[요청 조건]` block. `model` is an
+optional per-request override (must be one of `ALLOWED_MODELS`, otherwise 400).
 Response:
 
 ```json
@@ -124,14 +129,28 @@ Add an entry to `MODULES` in [`src/modules.ts`](src/modules.ts):
   id: "worksheet",
   name: "학습지 생성",
   description: "주제를 받아 연습 문제 학습지를 생성합니다.",
-  model: "claude-haiku-4-5",   // optional override
-  maxTokens: 6000,             // optional override
+  model: "claude-haiku-4-5",   // optional model override
+  maxTokens: 6000,             // optional token override
+  options: [                   // optional — user-selectable inputs
+    { key: "difficulty", label: "난이도", type: "select",
+      choices: [{ value: "하" }, { value: "중" }, { value: "상" }], default: "중" },
+    { key: "count", label: "문항 수", type: "number", default: 10, min: 1, max: 50 },
+  ],
+  referenceExample: "...",     // optional — few-shot style/quality sample (see below)
   systemPrompt: "You are ...",
 }
 ```
 
-No other changes are needed — it shows up in `GET /api/modules` and is usable from
-both generation endpoints immediately.
+No other changes are needed — it shows up in `GET /api/modules` (with its options)
+and is usable from both generation endpoints immediately.
+
+### Few-shot style/quality examples
+
+Each module can carry a `referenceExample` — a sample of the expected output. When
+set, it's injected into the system prompt under a "참고 예시 (스타일·품질 기준)"
+section so the model matches that style and quality (it's told to match the level,
+not copy the content). Paste a real, high-quality sample per module to raise output
+quality. Leave it unset to omit the section entirely.
 
 ## Project layout
 

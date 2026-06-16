@@ -6,6 +6,8 @@ import type { GenerationModule } from "../modules.js";
 export interface GenerateOptions {
   module: GenerationModule;
   input: string;
+  /** Normalized user-selected option values (e.g. { difficulty: "중", count: 10 }). */
+  optionValues?: Record<string, string | number>;
   /** Optional caller override; takes precedence over the module's model. */
   model?: string;
 }
@@ -25,24 +27,45 @@ function resolveModel(options: GenerateOptions): string {
   return options.model ?? options.module.model ?? config.defaultModel;
 }
 
-function resolveMaxTokens(module: GenerationModule): number {
-  return module.maxTokens ?? config.defaultMaxTokens;
+// System prompt + optional few-shot style/quality reference.
+function buildSystemPrompt(module: GenerationModule): string {
+  if (!module.referenceExample) return module.systemPrompt;
+  return [
+    module.systemPrompt,
+    "",
+    "## 참고 예시 (스타일·품질 기준)",
+    "다음은 기대하는 결과물의 스타일과 품질 수준을 보여주는 예시입니다. 내용을 그대로 베끼지 말고, 형식·구성·완성도를 이 수준으로 맞추세요.",
+    "",
+    module.referenceExample,
+  ].join("\n");
+}
+
+// User input + a "[요청 조건]" block built from the selected option values, so the
+// model's behavior stays in the user turn (keeps the system prompt cache-stable).
+function buildUserContent(options: GenerateOptions): string {
+  const values = options.optionValues ?? {};
+  const lines: string[] = [];
+  for (const opt of options.module.options ?? []) {
+    const value = values[opt.key];
+    if (value === undefined || value === "") continue;
+    lines.push(`- ${opt.label}: ${value}`);
+  }
+  if (lines.length === 0) return options.input;
+  return `${options.input}\n\n---\n[요청 조건]\n${lines.join("\n")}`;
 }
 
 /**
- * One-shot generation. Sends [module system prompt + user input] to Claude and
- * returns the full text. Use this for shorter artifacts; for long outputs prefer
- * generateStream so the connection doesn't sit idle.
+ * One-shot generation. Sends [system prompt (+ reference) ] and [user input
+ * (+ 요청 조건)] to Claude and returns the full text.
  */
 export async function generate(options: GenerateOptions): Promise<GenerateResult> {
   const response = await anthropic.messages.create({
     model: resolveModel(options),
-    max_tokens: resolveMaxTokens(options.module),
-    system: options.module.systemPrompt,
-    messages: [{ role: "user", content: options.input }],
+    max_tokens: options.module.maxTokens ?? config.defaultMaxTokens,
+    system: buildSystemPrompt(options.module),
+    messages: [{ role: "user", content: buildUserContent(options) }],
   });
 
-  // content is a list of typed blocks; keep only the text blocks.
   const content = response.content
     .filter((block): block is Anthropic.TextBlock => block.type === "text")
     .map((block) => block.text)
@@ -63,18 +86,17 @@ export type StreamEvent =
   | { type: "done"; model: string; usage: Usage };
 
 /**
- * Streaming generation. Yields incremental text deltas as they arrive, then a
- * final "done" event with the model and token usage. Preferred for long artifacts
- * (exams, decks) where a single non-streaming call could exceed the HTTP timeout.
+ * Streaming generation. Yields incremental text deltas, then a final "done"
+ * event with the model and token usage.
  */
 export async function* generateStream(
   options: GenerateOptions,
 ): AsyncGenerator<StreamEvent> {
   const stream = anthropic.messages.stream({
     model: resolveModel(options),
-    max_tokens: resolveMaxTokens(options.module),
-    system: options.module.systemPrompt,
-    messages: [{ role: "user", content: options.input }],
+    max_tokens: options.module.maxTokens ?? config.defaultMaxTokens,
+    system: buildSystemPrompt(options.module),
+    messages: [{ role: "user", content: buildUserContent(options) }],
   });
 
   for await (const event of stream) {
