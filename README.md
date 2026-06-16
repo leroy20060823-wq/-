@@ -1,0 +1,138 @@
+# Claude Generation Platform (backend)
+
+A backend that generates artifacts — exam papers (시험지), slide-deck outlines (PPT),
+study notes, and more — by calling the Claude API. Each artifact type is a **module**
+with its own system prompt; the user supplies free-form input, and the server sends
+`[module system prompt + user input]` to `messages.create()` and returns the result.
+
+The Anthropic SDK runs **only on the server**. The API key lives in `.env` and is
+never exposed to the browser.
+
+## Stack
+
+- Node.js (>= 18.18), TypeScript, Express
+- `@anthropic-ai/sdk`
+
+## Setup
+
+```bash
+npm install
+cp .env.example .env   # then put your key in ANTHROPIC_API_KEY
+npm run dev            # http://localhost:3000
+```
+
+Other scripts: `npm run typecheck`, `npm run build` (emits to `dist/`), `npm start`
+(runs the build).
+
+## Environment variables
+
+| Variable             | Required | Default            | Notes                                            |
+| -------------------- | -------- | ------------------ | ------------------------------------------------ |
+| `ANTHROPIC_API_KEY`  | yes      | —                  | Server-side only. Validated at startup.          |
+| `PORT`               | no       | `3000`             |                                                  |
+| `DEFAULT_MODEL`      | no       | `claude-haiku-4-5` | Used when a module doesn't pin its own model.    |
+| `DEFAULT_MAX_TOKENS` | no       | `8000`             | Used when a module doesn't pin its own budget.   |
+
+### Models & cost
+
+To keep cost down, the default model is **Haiku** (`claude-haiku-4-5`). Modules that
+need higher quality pin **Sonnet** (`claude-sonnet-4-6`) — currently `exam` and `ppt`.
+A request may also override the model per call (see below). Model IDs use aliases so
+they always point at the current version.
+
+## API
+
+### `GET /health`
+Liveness check → `{ "status": "ok" }`.
+
+### `GET /api/modules`
+Lists the available generation modules.
+
+```json
+{
+  "modules": [
+    { "id": "exam", "name": "시험지 생성", "description": "..." },
+    { "id": "ppt", "name": "발표자료(PPT) 개요 생성", "description": "..." },
+    { "id": "study-notes", "name": "학습 정리 노트", "description": "..." }
+  ]
+}
+```
+
+### `POST /api/generate`
+One-shot generation. Body:
+
+```json
+{
+  "module": "exam",
+  "input": "고등학교 2학년 미적분 단원평가, 객관식 10문제, 중상 난이도",
+  "model": "claude-sonnet-4-6"
+}
+```
+
+`module` and `input` are required; `model` is an optional per-request override.
+Response:
+
+```json
+{
+  "module": "exam",
+  "content": "# ...markdown...",
+  "model": "claude-sonnet-4-6",
+  "usage": { "inputTokens": 123, "outputTokens": 4567 }
+}
+```
+
+```bash
+curl -s http://localhost:3000/api/generate \
+  -H "Content-Type: application/json" \
+  -d '{"module":"ppt","input":"신입사원 온보딩 발표, 10분 분량"}'
+```
+
+### `POST /api/generate/stream`
+Same body as `/api/generate`, but streams the output as Server-Sent Events — preferred
+for long artifacts. Each event is a JSON line:
+
+```
+data: {"type":"delta","text":"..."}
+data: {"type":"delta","text":"..."}
+data: {"type":"done","model":"claude-sonnet-4-6","usage":{"inputTokens":123,"outputTokens":4567}}
+```
+
+Errors mid-stream arrive as `data: {"type":"error","error":"..."}`.
+
+## Adding a module
+
+Add an entry to `MODULES` in [`src/modules.ts`](src/modules.ts):
+
+```ts
+{
+  id: "worksheet",
+  name: "학습지 생성",
+  description: "주제를 받아 연습 문제 학습지를 생성합니다.",
+  model: "claude-haiku-4-5",   // optional override
+  maxTokens: 6000,             // optional override
+  systemPrompt: "You are ...",
+}
+```
+
+No other changes are needed — it shows up in `GET /api/modules` and is usable from
+both generation endpoints immediately.
+
+## Project layout
+
+```
+src/
+  config.ts            # env loading + validation
+  anthropic.ts         # shared Anthropic client
+  modules.ts           # module registry (system prompts live here)
+  services/generator.ts# generate() + generateStream()
+  routes/generate.ts   # /api/modules, /api/generate, /api/generate/stream
+  server.ts            # Express app entry
+```
+
+## Security notes
+
+- The frontend must call these backend endpoints — it must never receive the API key.
+- `.env` is git-ignored; never commit real keys.
+- `input` comes from end users and becomes the user-turn content. System prompts are
+  fixed server-side and are not user-overridable, which keeps each module's behavior
+  contained.
