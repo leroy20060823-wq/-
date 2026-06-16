@@ -7,6 +7,10 @@ import { router } from "./routes/generate.js";
 
 const app = express();
 
+// Behind a hosting proxy (Render/Railway), trust the first proxy hop so req.ip
+// reflects the real client for rate limiting.
+app.set("trust proxy", 1);
+
 // Resolves to <project root>/public whether running from dist/ (build) or src/ (tsx).
 const publicDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
 

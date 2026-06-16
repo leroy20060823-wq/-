@@ -3,8 +3,21 @@ import { config } from "../config.js";
 import { listModules } from "../modules.js";
 import { generate, generateStream } from "../services/generator.js";
 import { parseGenerateRequest, type GenerateBody } from "../validation.js";
+import { createRateLimiter } from "../rateLimit.js";
 
 export const router = Router();
+
+// Per-IP abuse protection for the generation endpoints.
+const perMinute = createRateLimiter({
+  windowMs: 60_000,
+  max: config.rateLimitPerMin,
+  message: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
+});
+const perDay = createRateLimiter({
+  windowMs: 24 * 60 * 60_000,
+  max: config.rateLimitPerDay,
+  message: "오늘 사용량 한도를 초과했습니다. 내일 다시 이용해 주세요.",
+});
 
 // Shared gate: generation needs a server-side API key. Without it the UI and
 // /api/modules still work, but generation returns 401.
@@ -43,9 +56,15 @@ router.get("/modules", (_req, res) => {
 
 router.post(
   "/generate",
+  perMinute,
+  perDay,
   asyncHandler(async (req, res) => {
     if (!ensureApiKey(res)) return;
-    const parsed = parseGenerateRequest((req.body ?? {}) as GenerateBody, config.allowedModels);
+    const parsed = parseGenerateRequest(
+      (req.body ?? {}) as GenerateBody,
+      config.allowedModels,
+      config.maxInputChars,
+    );
     if (!parsed.ok) {
       res.status(400).json({ error: parsed.error });
       return;
@@ -57,9 +76,15 @@ router.post(
 
 router.post(
   "/generate/stream",
+  perMinute,
+  perDay,
   asyncHandler(async (req, res) => {
     if (!ensureApiKey(res)) return;
-    const parsed = parseGenerateRequest((req.body ?? {}) as GenerateBody, config.allowedModels);
+    const parsed = parseGenerateRequest(
+      (req.body ?? {}) as GenerateBody,
+      config.allowedModels,
+      config.maxInputChars,
+    );
     if (!parsed.ok) {
       res.status(400).json({ error: parsed.error });
       return;

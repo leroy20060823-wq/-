@@ -60,6 +60,16 @@ test("ignores non-string fields", () => {
   assert.equal(result.ok, false);
 });
 
+test("rejects input longer than maxInputChars", () => {
+  const result = parseGenerateRequest(
+    { module: "exam", input: "x".repeat(50) },
+    ALLOWED,
+    20,
+  );
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.match(result.error, /너무 깁니다/);
+});
+
 test("normalizes valid option values (coerces numbers, keeps valid selects)", () => {
   const exam = getModule("exam")!;
   const values = normalizeOptionValues(exam, { difficulty: "중", count: "10" });

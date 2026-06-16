@@ -56,6 +56,7 @@ export function normalizeOptionValues(
 export function parseGenerateRequest(
   body: GenerateBody,
   allowedModels: readonly string[],
+  maxInputChars = 8000,
 ): ParseResult {
   const moduleId = typeof body.module === "string" ? body.module.trim() : "";
   const input = typeof body.input === "string" ? body.input.trim() : "";
@@ -66,6 +67,9 @@ export function parseGenerateRequest(
 
   if (!moduleId) return { ok: false, error: "`module` is required." };
   if (!input) return { ok: false, error: "`input` is required." };
+  if (input.length > maxInputChars) {
+    return { ok: false, error: `입력이 너무 깁니다 (최대 ${maxInputChars}자).` };
+  }
 
   const module = getModule(moduleId);
   if (!module) return { ok: false, error: `Unknown module: ${moduleId}` };

@@ -31,4 +31,8 @@ export const config = {
   defaultModel: process.env.DEFAULT_MODEL ?? "claude-haiku-4-5",
   defaultMaxTokens: intFromEnv("DEFAULT_MAX_TOKENS", 8000),
   allowedModels: listFromEnv("ALLOWED_MODELS", ["claude-haiku-4-5", "claude-sonnet-4-6"]),
+  // Abuse protection (per client IP). Tune via env on deploy.
+  rateLimitPerMin: intFromEnv("RATE_LIMIT_PER_MIN", 10),
+  rateLimitPerDay: intFromEnv("RATE_LIMIT_PER_DAY", 100),
+  maxInputChars: intFromEnv("MAX_INPUT_CHARS", 8000),
 };
