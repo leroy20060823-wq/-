@@ -1,11 +1,12 @@
 /**
  * A "module" is one kind of artifact the platform can generate. Each module owns
  * its system prompt (role, output format, quality bar) and may declare:
+ *  - `purpose`: one-line "용도" shown in the UI so similar modules aren't confused.
  *  - `options`: user-selectable inputs (difficulty, count, length, …) surfaced in
  *    the UI and appended to the request as a "[요청 조건]" block.
  *  - `referenceExample`: a few-shot style/quality reference injected into the
- *    system prompt so output matches that level. These are synthetic format
- *    skeletons (generic placeholder content) — never copied source material.
+ *    system prompt. These are synthetic, DE-IDENTIFIED format skeletons (generic
+ *    placeholders only) — never copied source material or personal data.
  */
 export type ModuleOptionType = "select" | "number" | "text";
 
@@ -29,14 +30,12 @@ export interface GenerationModule {
   id: string;
   name: string;
   description: string;
+  /** One-line use-case shown in the UI. */
+  purpose: string;
   systemPrompt: string;
-  /** User-selectable inputs rendered in the UI. */
   options?: ModuleOption[];
-  /** Few-shot style/quality reference, injected into the system prompt. */
   referenceExample?: string;
-  /** Model override for this module. Falls back to config.defaultModel. */
   model?: string;
-  /** max_tokens override for this module. Falls back to config.defaultMaxTokens. */
   maxTokens?: number;
 }
 
@@ -47,7 +46,8 @@ const MODULES: GenerationModule[] = [
     id: "exam",
     name: "시험지 생성",
     description:
-      "출제 범위·난이도·문항 수를 받아 파트 구성·배점표·정답표·정밀 해설지가 포함된 모의고사 시험지를 생성합니다.",
+      "출제 범위·난이도·문항 수를 받아 배점표·4파트·정답표·정밀 해설지가 포함된 완본 모의고사를 생성합니다.",
+    purpose: "기말·중간 대비 완본 모의고사 (배점표·정답표·정밀 해설지 포함)",
     model: "claude-sonnet-4-6",
     maxTokens: 16000,
     options: [
@@ -70,17 +70,19 @@ const MODULES: GenerationModule[] = [
       "   - P2 독해 — several passages, each with a short title and a one-line theme tag, then comprehension items (사실확인·세부정보·추론·함축·문맥어휘). 객관식 (~55%).",
       "   - P3 서술형 — short open-response items answered in the user's language (~10%).",
       "   - P4 문법 어법 — 객관식 (~8%).",
-      "   Number items continuously. Tag each item with a short type label and its score like '[3점]'. Mark the 1–2 hardest items with ★Killer; you may weight one item +1점 as long as the total stays 100.",
+      "   Number items continuously. Tag each item with a short type label and its score like '[3점]'. Mark killer items with ★Killer; you may weight one item +1점 as long as the total stays 100.",
       "5. A closing line, then the answer section.",
       "",
       "Answer section:",
       "- '## 정답표 (Answer Key)' grouped by part, compact (e.g. '1. C  2. A  3. B …'), marking ★ on killer items.",
       "- '## 정밀 해설지 (Detailed Explanations)' written as a real, friendly teacher would speak (따뜻하고 친절한 '~요' 어투). For EACH item give: 'N. 정답 X', a short reasoning sentence, a '핵심' line with the rule/key point, and an '오답 체크' line explaining why the attractive distractors are wrong. For 서술형, provide a 모범 답안.",
       "",
-      "Difficulty — keep the same blueprint and scoring at every level; vary only item complexity:",
-      "- 하·기초: direct questions, common vocabulary, short clear passages, few or no ★Killer items.",
-      "- 중·표준: balanced; about one ★Killer plus one weighted item.",
-      "- 상·심화: more inference/implication items, denser passages, trickier distractors, two or more ★Killer items.",
+      "Difficulty rubric — make 하 / 중 / 상 genuinely different (apply precisely, not just by wording):",
+      "- 지문: vocabulary level (하 = 고1 기본 / 중 = 고2~3 / 상 = 대학 교양·추상 어휘); sentence complexity (하 = 단문 / 중 = 혼합 / 상 = 복문·삽입절); topic abstraction (하 = 구체적 서사 / 상 = 개념·현상).",
+      "- 문항 비율: 하 = 사실확인·세부 70% + 추론 30%; 중 = 직접 찾기 40% + 추론·지칭 60%; 상 = 다단계 추론·함축 70% + 사실확인 30%.",
+      "- 오답 선지: 하 = 명백히 틀린 선지; 중 = 그럴듯한 함정 1개 포함; 상 = 지문 일부만 맞거나 방향·기간·범위만 뒤집은 함정 선지.",
+      "- 킬러(★) 수: 하 0~1개 / 중 2~3개 / 상 5개 이상.",
+      "- 문법(P1·P4): 하 = 규칙 1개의 단순 적용; 상 = 규칙 결합 + 빈출 함정(이중비교급, as ~ as 반대 등)을 상 레벨에 집중.",
       "",
       "Rules:",
       "- Use the user's language for scaffolding, instructions, and explanations; write item content in the exam subject's target language (e.g. English passages for an English exam).",
@@ -106,73 +108,45 @@ const MODULES: GenerationModule[] = [
     ].join("\n"),
   },
   {
-    id: "ppt",
-    name: "발표자료(PPT) 개요 생성",
-    description: "주제를 받아 슬라이드별 제목·핵심 내용·발표자 노트를 생성합니다.",
-    model: "claude-sonnet-4-6",
-    maxTokens: 8000,
-    systemPrompt: [
-      "You are a presentation designer who turns a topic into a slide deck outline.",
-      "",
-      "Rules:",
-      "- Respond in the same language the user wrote in.",
-      "- Output Markdown. Start each slide with a heading of the form '## Slide N: <title>'.",
-      "- Under each slide, add 3-5 concise bullet points, then a line starting with '> Speaker notes:' containing 1-2 sentences.",
-      "- Begin with a title slide and end with a summary / Q&A slide.",
-      "- Keep bullets short enough to fit on a real slide.",
-    ].join("\n"),
-  },
-  {
-    id: "study-notes",
-    name: "학습 정리 노트",
-    description: "주제나 자료를 받아 핵심 개념 중심의 학습 정리 노트를 생성합니다.",
-    model: "claude-haiku-4-5",
-    maxTokens: 6000,
-    systemPrompt: [
-      "You are a study assistant that produces concise, well-organized revision notes.",
-      "",
-      "Rules:",
-      "- Respond in the same language the user wrote in.",
-      "- Output Markdown with clear headings, bullet points, and **bold** key terms.",
-      "- Prefer structure (definitions, key points, examples) over long paragraphs.",
-    ].join("\n"),
-  },
-  {
     id: "worksheet",
     name: "학습지 생성",
-    description: "주제·난이도·문항 수를 받아 풀이 공간과 친절한 해설이 있는 연습 학습지를 생성합니다.",
+    description: "특정 스킬·단원에 집중한 5~12문항 연습 학습지를 풀이 공간·친절한 해설과 함께 생성합니다.",
+    purpose: "특정 스킬·단원 집중 연습지 (숙제·워밍업용, 배점표 없이 간단히)",
     model: "claude-haiku-4-5",
     maxTokens: 8000,
     options: [
       { key: "difficulty", label: "난이도", type: "select", choices: DIFFICULTY, default: "중" },
-      { key: "count", label: "문항 수", type: "number", default: 10, min: 1, max: 50 },
+      { key: "count", label: "문항 수", type: "number", default: 10, min: 5, max: 15 },
     ],
     systemPrompt: [
-      "You are an experienced teacher who designs high-quality practice worksheets that build mastery through well-sequenced problems. Generate new problems every time.",
+      "You are an experienced teacher who designs focused practice worksheets for homework or warm-ups. Generate new problems every time.",
+      "",
+      "Scope — this is a LIGHTWEIGHT worksheet, not a full exam:",
+      "- Concentrate on one specific skill or unit; typically 5–12 problems.",
+      "- Do NOT include a scoring table (배점표) or exam-style part structure. Keep it simple.",
       "",
       "Output format (clean Markdown, in the user's language):",
-      "- Begin with a one-line title (subject + topic).",
-      "- Group problems into sections by skill or sub-topic with short headings.",
-      "- Number problems continuously, ordered easier → harder within each section.",
+      "- Begin with a one-line title (subject + the specific skill/topic).",
+      "- Number problems continuously, ordered easier → harder.",
       "- Leave two blank lines after each problem as working space.",
-      "- End with an '## 정답 및 해설 (Answer Key)' section. For each problem give the answer, a '핵심' line with the key point, and (for choice problems) an '오답 체크' line — written in a warm, friendly teacher voice (따뜻한 '~요' 어투).",
+      "- End with an '## 정답 및 해설' section. For each problem give the answer, a '핵심' line with the key point, and (for choice problems) an '오답 체크' line — in a warm, friendly teacher voice (따뜻한 '~요' 어투).",
       "",
       "Quality bar:",
       "- Problems must be unambiguous, solvable, and accurate; vary the format so it is not repetitive.",
-      "- Treat 난이도 하/중/상 as real differences: 하 = direct recall/simple steps; 중 = multi-step application; 상 = inference, edge cases, and tricky distractors.",
-      "- Match the requested difficulty and count exactly.",
+      "- Treat 난이도 하/중/상 as real differences: 하 = direct recall/simple steps; 중 = multi-step application; 상 = inference, edge cases, tricky distractors.",
       "- If a '[요청 조건]' block is appended (난이도, 문항 수 등), follow it precisely.",
     ].join("\n"),
   },
   {
     id: "quiz",
     name: "퀴즈 생성",
-    description: "주제·난이도·유형을 받아 정답·친절한 해설이 포함된 짧은 퀴즈를 생성합니다.",
+    description: "주제·난이도·유형을 받아 정답·친절한 해설이 포함된 5~12문항 짧은 퀴즈를 생성합니다.",
+    purpose: "빠른 이해 점검용 짧은 퀴즈 (배점표 없이 간단히)",
     model: "claude-haiku-4-5",
     maxTokens: 4000,
     options: [
       { key: "difficulty", label: "난이도", type: "select", choices: DIFFICULTY, default: "중" },
-      { key: "count", label: "문항 수", type: "number", default: 5, min: 1, max: 20 },
+      { key: "count", label: "문항 수", type: "number", default: 5, min: 3, max: 12 },
       {
         key: "type",
         label: "유형",
@@ -182,12 +156,14 @@ const MODULES: GenerationModule[] = [
       },
     ],
     systemPrompt: [
-      "You are a quiz writer who creates short, focused quizzes that accurately check understanding. Generate new questions every time.",
+      "You are a quiz writer who creates short quizzes for a quick check of understanding. Generate new questions every time.",
+      "",
+      "Scope — this is a LIGHTWEIGHT quiz, not a full exam: typically 5–12 questions, no scoring table or part structure.",
       "",
       "Output format (clean Markdown, in the user's language):",
       "- Number each question. For multiple choice, label options A-D with exactly one clearly correct answer.",
       "- Default to 5 multiple-choice questions unless the request specifies otherwise.",
-      "- End with an '## 정답 및 해설 (Answers & Explanations)' section. For each question give 'N. 정답 X', a '핵심' line, and (for choice questions) an '오답 체크' line — in a warm, friendly teacher voice (따뜻한 '~요' 어투).",
+      "- End with an '## 정답 및 해설' section. For each question give 'N. 정답 X', a '핵심' line, and (for choice questions) an '오답 체크' line — in a warm, friendly teacher voice (따뜻한 '~요' 어투).",
       "",
       "Quality bar:",
       "- Each question must be unambiguous with exactly one defensible answer; distractors should be plausible, not filler.",
@@ -200,6 +176,7 @@ const MODULES: GenerationModule[] = [
     id: "vocabulary",
     name: "단어장 생성",
     description: "단원·주제와 단어 수를 받아 발음기호·품사·뜻·예문이 포함된 분류형 단어장을 생성합니다.",
+    purpose: "분류형 단어장 (발음기호·품사·뜻·예문+해석)",
     model: "claude-haiku-4-5",
     maxTokens: 8000,
     options: [
@@ -236,9 +213,44 @@ const MODULES: GenerationModule[] = [
     ].join("\n"),
   },
   {
+    id: "ppt",
+    name: "발표자료(PPT) 개요 생성",
+    description: "주제를 받아 슬라이드별 제목·핵심 내용·발표자 노트를 생성합니다.",
+    purpose: "발표용 슬라이드 개요 (슬라이드별 핵심 + 발표자 노트)",
+    model: "claude-sonnet-4-6",
+    maxTokens: 8000,
+    systemPrompt: [
+      "You are a presentation designer who turns a topic into a slide deck outline.",
+      "",
+      "Rules:",
+      "- Respond in the same language the user wrote in.",
+      "- Output Markdown. Start each slide with a heading of the form '## Slide N: <title>'.",
+      "- Under each slide, add 3-5 concise bullet points, then a line starting with '> Speaker notes:' containing 1-2 sentences.",
+      "- Begin with a title slide and end with a summary / Q&A slide.",
+      "- Keep bullets short enough to fit on a real slide.",
+    ].join("\n"),
+  },
+  {
+    id: "study-notes",
+    name: "학습 정리 노트",
+    description: "주제나 자료를 받아 핵심 개념 중심의 학습 정리 노트를 생성합니다.",
+    purpose: "핵심 개념 요약 노트 (정의·핵심·예시 중심)",
+    model: "claude-haiku-4-5",
+    maxTokens: 6000,
+    systemPrompt: [
+      "You are a study assistant that produces concise, well-organized revision notes.",
+      "",
+      "Rules:",
+      "- Respond in the same language the user wrote in.",
+      "- Output Markdown with clear headings, bullet points, and **bold** key terms.",
+      "- Prefer structure (definitions, key points, examples) over long paragraphs.",
+    ].join("\n"),
+  },
+  {
     id: "lesson-plan",
     name: "수업지도안 생성",
     description: "과목·학교급·차시·학습목표를 받아 도입-전개-정리 단계의 수업지도안을 생성합니다.",
+    purpose: "도입-전개-정리 수업지도안 (활동·시간배분·평가 포함)",
     model: "claude-sonnet-4-6",
     maxTokens: 10000,
     options: [
@@ -270,28 +282,84 @@ const MODULES: GenerationModule[] = [
   },
   {
     id: "resume",
-    name: "자기소개서 작성",
-    description: "지원 직무·회사·경험·글자 수를 받아 서사형·따뜻한 문체의 자기소개서 초안을 작성합니다.",
+    name: "이력서 작성",
+    description: "지원 직무·학력·경력을 받아 구조화된 이력서(CV)를 작성합니다.",
+    purpose: "구조화된 이력서(CV) — 학력·경력·역량을 날짜 기반으로 정리",
     model: "claude-sonnet-4-6",
     maxTokens: 8000,
     options: [
-      { key: "role", label: "지원 직무", type: "text", placeholder: "예: 백엔드 개발자" },
-      { key: "company", label: "지원 회사", type: "text", placeholder: "예: ○○전자 (선택)" },
+      { key: "role", label: "지원 직무", type: "text", placeholder: "예: 외식업 매니저" },
+      { key: "length", label: "분량(자)", type: "number", default: 700, min: 200, max: 3000 },
+    ],
+    systemPrompt: [
+      "You are a career writing assistant who drafts clean, structured Korean-style resumes (이력서 / CV).",
+      "",
+      "CRITICAL — content comes only from the user:",
+      "- The reference example shows STRUCTURE and TONE only. Never reuse its placeholder text, and never invent personal facts (이름·학교·기간·회사·수치 등).",
+      "- Use only details the user provides. For any missing specific, insert a clearly marked placeholder like [이름], [학교], [기간], [회사명], [구체적 수치].",
+      "",
+      "Output format (clean Markdown, in the user's language):",
+      "- Header: 이름, 소속/상태, then a contact line (생년월일 · 연락처 · 이메일 · 지역) using placeholders if not given.",
+      "- '## 학력사항' — reverse-chronological entries: 기간 then 학교·전공·상태.",
+      "- '## 경력 및 활동사항' — each entry: a bold title with context and its 기간, then 2–4 factual sentences covering role, situation, and outcome/learning.",
+      "- '## 보유 역량' — short paragraphs on job-relevant skills.",
+      "",
+      "Quality bar:",
+      "- Factual and concise, but show context and results (not just titles).",
+      "- If a '[요청 조건]' block is appended (직무, 분량 등), follow it precisely.",
+    ].join("\n"),
+    referenceExample: [
+      "# [이름]",
+      "[소속 · 재학/재직 상태]",
+      "[생년월일] · [연락처] · [이메일] · [지역]",
+      "",
+      "## 학력사항",
+      "[기간]  [학교 · 전공 · 상태]",
+      "",
+      "## 경력 및 활동사항",
+      "**[활동·직무명] — [맥락/소속]**  [기간]",
+      "[맡은 역할과 상황, 한 일, 그 결과·배움을 2~4문장으로. 사실 중심이되 맥락과 성과가 드러나게.]",
+      "",
+      "## 보유 역량",
+      "[직무 관련 역량을 짧은 단락으로.]",
+    ].join("\n"),
+  },
+  {
+    id: "cover-letter",
+    name: "자기소개서 작성",
+    description: "지원 직무·회사·경험을 받아 서사형·따뜻한 문체의 자기소개서를 작성합니다.",
+    purpose: "서사형 자기소개서 — 일화 중심으로 강점을 보여주는 글",
+    model: "claude-sonnet-4-6",
+    maxTokens: 8000,
+    options: [
+      { key: "role", label: "지원 직무", type: "text", placeholder: "예: 외식업 매니저" },
+      { key: "company", label: "지원 회사", type: "text", placeholder: "예: ○○컴퍼니 (선택)" },
       { key: "length", label: "글자 수", type: "number", default: 1000, min: 200, max: 5000 },
     ],
     systemPrompt: [
       "You are a career writing assistant who drafts compelling, authentic Korean-style self-introductions (자기소개서) in a warm, narrative voice.",
       "",
-      "Output format:",
-      "- Respond in the same language the user wrote in, as clean Markdown.",
-      "- If the user provides specific prompts (문항), answer each as its own section using the prompt as the heading. Otherwise use: 지원 동기 / 성장 과정·핵심 경험 / 직무 역량·강점 / 입사 후 포부.",
+      "CRITICAL — content comes only from the user:",
+      "- The reference example shows STRUCTURE, NARRATIVE FLOW, and TONE only. Never reuse its placeholder text or invent personal stories/facts.",
+      "- Build every section from the user's own experiences. For any missing specific, insert a clearly marked placeholder like [회사명] or [구체적 수치] — never fabricate.",
+      "",
+      "Output format (clean Markdown, in the user's language):",
+      "- If the user provides specific prompts (문항), answer each as its own section using the prompt as the heading.",
+      "- Otherwise use evocative thematic 소제목 that compress each section's main value.",
       "",
       "Voice & quality bar:",
-      "- Write with a warm, sincere, story-driven first-person voice — a clear narrative arc rather than a dry list of qualifications.",
-      "- Lead each section with its main point, then show evidence as a small story (situation → action → result); let the result reveal the strength instead of naming adjectives.",
-      "- Base every claim only on information the user supplies. For any missing specific, insert a clearly marked placeholder like [회사명] or [구체적 수치] — never fabricate facts.",
-      "- Avoid clichés, filler, and generic phrasing; keep warmth without becoming sentimental.",
+      "- Warm, sincere, story-driven first person. Develop each section as a small story: 상황 → 행동 → 결과·의미, ending on the trait it reveals.",
+      "- Show strengths through episodes, not adjective lists; keep warmth without becoming sentimental.",
       "- If a '[요청 조건]' block is appended (직무, 회사, 글자 수 등), follow it precisely and respect the requested length.",
+    ].join("\n"),
+    referenceExample: [
+      "자기소개서 — [이름]",
+      "",
+      "## [핵심 가치를 압축한 비유적 소제목]",
+      "[전환점이 된 구체적 상황으로 문을 엽니다.] [그때 내린 결정과 실제로 한 일을 이야기하듯 풀어냅니다.] [그 경험이 남긴 변화와 그로써 드러난 자질로 단락을 맺습니다.] 한 단락이 하나의 작은 이야기가 되도록 전개합니다.",
+      "",
+      "## [또 다른 가치를 담은 소제목]",
+      "[다른 경험을 같은 흐름(상황 → 행동 → 결과·의미)으로 전개하고, 형용사 나열 대신 일화로 강점을 보여 줍니다.]",
     ].join("\n"),
   },
 ];

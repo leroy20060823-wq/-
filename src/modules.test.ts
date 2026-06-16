@@ -12,6 +12,7 @@ test("listModules returns the registered modules", () => {
   assert.ok(ids.includes("lesson-plan"));
   assert.ok(ids.includes("resume"));
   assert.ok(ids.includes("vocabulary"));
+  assert.ok(ids.includes("cover-letter"));
 });
 
 test("module ids are unique", () => {
@@ -32,9 +33,10 @@ test("declared options are well-formed", () => {
   }
 });
 
-test("every module has a non-empty system prompt", () => {
+test("every module has a non-empty system prompt and purpose", () => {
   for (const module of listModules()) {
     assert.ok(module.systemPrompt.trim().length > 0, `${module.id} has an empty system prompt`);
+    assert.ok(module.purpose.trim().length > 0, `${module.id} has an empty purpose`);
   }
 });
 

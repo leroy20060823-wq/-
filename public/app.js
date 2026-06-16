@@ -12,6 +12,7 @@ const cardsStatus = document.getElementById("cards-status");
 
 const form = document.getElementById("form");
 const moduleSelect = document.getElementById("module");
+const modulePurpose = document.getElementById("module-purpose");
 const moduleDesc = document.getElementById("module-desc");
 const moduleOptionsEl = document.getElementById("module-options");
 const inputEl = document.getElementById("input");
@@ -141,6 +142,7 @@ function gatherOptions() {
 
 function updateModuleDesc() {
   const current = modules.find((m) => m.id === moduleSelect.value);
+  modulePurpose.textContent = current?.purpose ?? "";
   moduleDesc.textContent = current?.description ?? "";
   renderOptions(current);
 }
@@ -150,6 +152,7 @@ function renderCards() {
     .map(
       (m) =>
         `<button type="button" class="card" data-module="${escapeHtml(m.id)}">` +
+        (m.purpose ? `<span class="card-tag">${escapeHtml(m.purpose)}</span>` : "") +
         `<span class="card-name">${escapeHtml(m.name)}</span>` +
         `<span class="card-desc">${escapeHtml(m.description)}</span></button>`,
     )

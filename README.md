@@ -57,9 +57,10 @@ they always point at the current version.
 Liveness check → `{ "status": "ok" }`.
 
 ### `GET /api/modules`
-Lists the available generation modules. Each module also includes an `options`
-array describing its selectable inputs (difficulty, count, length, …) which the
-demo UI renders as dropdowns / number / text fields.
+Lists the available generation modules. Each module includes a one-line `purpose`
+(its use-case, shown in the UI) and an `options` array describing its selectable
+inputs (difficulty, count, length, …) which the demo UI renders as dropdowns /
+number / text fields.
 
 ```json
 {
@@ -71,7 +72,8 @@ demo UI renders as dropdowns / number / text fields.
     { "id": "quiz", "name": "퀴즈 생성", "description": "..." },
     { "id": "vocabulary", "name": "단어장 생성", "description": "..." },
     { "id": "lesson-plan", "name": "수업지도안 생성", "description": "..." },
-    { "id": "resume", "name": "자기소개서 작성", "description": "..." }
+    { "id": "resume", "name": "이력서 작성", "description": "..." },
+    { "id": "cover-letter", "name": "자기소개서 작성", "description": "..." }
   ]
 }
 ```

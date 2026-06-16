@@ -249,6 +249,13 @@ button:disabled {
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
 }
 
+.card-tag {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
 .card-name {
   font-family: var(--serif);
   font-size: 1.06rem;
@@ -311,11 +318,18 @@ button:disabled {
   margin-bottom: 7px;
 }
 
+.module-purpose {
+  display: block;
+  color: var(--gold-bright);
+  font-size: 0.82rem;
+  margin-top: 8px;
+}
+
 .hint {
   display: block;
   color: var(--muted);
   font-size: 0.8rem;
-  margin-top: 7px;
+  margin-top: 4px;
 }
 
 select,
