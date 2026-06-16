@@ -1,12 +1,22 @@
 # Claude Generation Platform (backend)
 
-A backend that generates artifacts — exam papers (시험지), slide-deck outlines (PPT),
-study notes, and more — by calling the Claude API. Each artifact type is a **module**
-with its own system prompt; the user supplies free-form input, and the server sends
-`[module system prompt + user input]` to `messages.create()` and returns the result.
+A backend + demo UI that generates artifacts — exam papers (시험지), worksheets,
+quizzes, vocabulary lists (단어장), slide outlines (PPT), study notes, lesson plans,
+resumes (이력서), cover letters (자기소개서), creative writing, and Excel help — by
+calling the Claude API. Each artifact type is a **module** with its own system
+prompt; the server sends `[module system prompt + user input]` to
+`messages.create()` and streams the result back.
 
-The Anthropic SDK runs **only on the server**. The API key lives in `.env` and is
-never exposed to the browser.
+Highlights:
+- **Guided forms** — each module asks a few friendly questions instead of a blank
+  box, and composes the answers into the prompt.
+- **Demo mode** — per-module sample outputs render without an API key.
+- **Streaming Markdown** output with a warm cream/watercolor theme.
+- **Abuse protection** — per-IP rate limits, a daily cap, and input-length checks.
+
+The Anthropic SDK runs **only on the server**. The API key lives in `.env` (or the
+host's env) and is never exposed to the browser. The key is **optional**: without it
+the UI and demo samples still work; live generation returns 401.
 
 ## Stack
 
@@ -40,11 +50,14 @@ Other scripts: `npm test` (unit tests, no API key needed), `npm run typecheck`,
 
 | Variable             | Required | Default            | Notes                                            |
 | -------------------- | -------- | ------------------ | ------------------------------------------------ |
-| `ANTHROPIC_API_KEY`  | yes      | —                  | Server-side only. Validated at startup.          |
-| `PORT`               | no       | `3000`             |                                                  |
+| `ANTHROPIC_API_KEY`  | no       | —                  | Server-side only. Optional: without it the UI/demo work, generation 401s. |
+| `PORT`               | no       | `3000`             | Injected by the host on deploy.                  |
 | `DEFAULT_MODEL`      | no       | `claude-haiku-4-5` | Used when a module doesn't pin its own model.    |
 | `DEFAULT_MAX_TOKENS` | no       | `8000`             | Used when a module doesn't pin its own budget.   |
 | `ALLOWED_MODELS`     | no       | `claude-haiku-4-5,claude-sonnet-4-6` | Comma-separated allow-list for per-request `model` overrides. |
+| `RATE_LIMIT_PER_MIN` | no       | `10`               | Max generation requests per IP per minute (429 over).        |
+| `RATE_LIMIT_PER_DAY` | no       | `100`              | Max generation requests per IP per day.          |
+| `MAX_INPUT_CHARS`    | no       | `8000`             | Max length of the composed request input (400 over).         |
 
 ### Models & cost
 
@@ -170,13 +183,15 @@ public/                # demo frontend (static, served at /)
 scripts/
   vendor.mjs           # copies frontend libs from node_modules into public/vendor
 src/
-  config.ts            # env loading + validation
+  config.ts            # env loading (key optional) + limits
   anthropic.ts         # shared Anthropic client
-  modules.ts           # module registry (system prompts live here)
+  modules.ts           # module registry: system prompts, options, guides
+  samples.ts           # static per-module demo samples (no key needed)
   validation.ts        # pure request validation (unit-tested)
+  rateLimit.ts         # in-memory per-IP rate limiter (unit-tested)
   services/generator.ts# generate() + generateStream()
-  routes/generate.ts   # /api/modules, /api/generate, /api/generate/stream
-  server.ts            # Express app entry + static hosting
+  routes/generate.ts   # /api/modules(+/:id/sample), /api/generate(+/stream)
+  server.ts            # Express app entry + static hosting + trust proxy
 ```
 
 ## Deploy (Render free tier)
