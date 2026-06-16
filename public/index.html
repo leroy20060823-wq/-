@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>생성 플랫폼 데모</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="header">
+        <h1>생성 플랫폼 데모</h1>
+        <p class="subtitle">모듈을 고르고 요청을 입력하면 Claude가 결과를 실시간으로 생성합니다.</p>
+      </header>
+
+      <form id="form" class="card">
+        <label class="field">
+          <span class="label">모듈</span>
+          <select id="module" required></select>
+          <span id="module-desc" class="hint"></span>
+        </label>
+
+        <label class="field">
+          <span class="label">요청 입력</span>
+          <textarea
+            id="input"
+            rows="5"
+            placeholder="예) 고등학교 2학년 미적분 단원평가, 객관식 10문제, 중상 난이도"
+            required
+          ></textarea>
+        </label>
+
+        <div class="actions">
+          <button id="submit" type="submit">생성</button>
+          <button id="stop" type="button" class="secondary" hidden>중지</button>
+          <span id="status" class="status" role="status" aria-live="polite"></span>
+        </div>
+      </form>
+
+      <section class="card output-card" aria-live="polite">
+        <div class="output-head">
+          <span class="label">결과</span>
+          <button id="copy" type="button" class="link" hidden>복사</button>
+        </div>
+        <pre id="output" class="output" tabindex="0"></pre>
+        <p id="error" class="error" hidden></p>
+      </section>
+    </main>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

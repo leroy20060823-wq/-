@@ -21,6 +21,9 @@ cp .env.example .env   # then put your key in ANTHROPIC_API_KEY
 npm run dev            # http://localhost:3000
 ```
 
+Open <http://localhost:3000> in a browser for the **demo UI** (module picker +
+input + live streaming output). The JSON/SSE API lives under `/api`.
+
 Other scripts: `npm test` (unit tests, no API key needed), `npm run typecheck`,
 `npm run build` (emits to `dist/`), `npm start` (runs the build).
 
@@ -54,7 +57,9 @@ Lists the available generation modules.
   "modules": [
     { "id": "exam", "name": "시험지 생성", "description": "..." },
     { "id": "ppt", "name": "발표자료(PPT) 개요 생성", "description": "..." },
-    { "id": "study-notes", "name": "학습 정리 노트", "description": "..." }
+    { "id": "study-notes", "name": "학습 정리 노트", "description": "..." },
+    { "id": "worksheet", "name": "학습지 생성", "description": "..." },
+    { "id": "quiz", "name": "퀴즈 생성", "description": "..." }
   ]
 }
 ```
@@ -122,13 +127,18 @@ both generation endpoints immediately.
 ## Project layout
 
 ```
+public/                # demo frontend (static, served at /)
+  index.html
+  styles.css
+  app.js
 src/
   config.ts            # env loading + validation
   anthropic.ts         # shared Anthropic client
   modules.ts           # module registry (system prompts live here)
+  validation.ts        # pure request validation (unit-tested)
   services/generator.ts# generate() + generateStream()
   routes/generate.ts   # /api/modules, /api/generate, /api/generate/stream
-  server.ts            # Express app entry
+  server.ts            # Express app entry + static hosting
 ```
 
 ## Security notes

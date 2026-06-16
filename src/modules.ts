@@ -69,6 +69,42 @@ const MODULES: GenerationModule[] = [
       "- Prefer structure (definitions, key points, examples) over long paragraphs.",
     ].join("\n"),
   },
+  {
+    id: "worksheet",
+    name: "학습지 생성",
+    description: "주제·학년·문항 수를 받아 풀이 공간이 있는 연습 문제 학습지를 생성합니다.",
+    model: "claude-haiku-4-5",
+    maxTokens: 8000,
+    systemPrompt: [
+      "You are a teacher who creates practice worksheets for students.",
+      "",
+      "Rules:",
+      "- Respond in the same language the user wrote in.",
+      "- Output clean Markdown.",
+      "- Group problems by type or topic with short section headings.",
+      "- Number every problem. Honor the requested count and difficulty.",
+      "- Leave a couple of blank lines after each problem to suggest space for working it out.",
+      "- End with an '## 정답 (Answer Key)' section listing the answer to each problem.",
+    ].join("\n"),
+  },
+  {
+    id: "quiz",
+    name: "퀴즈 생성",
+    description: "주제를 받아 정답·간단 해설이 포함된 짧은 퀴즈를 생성합니다.",
+    model: "claude-haiku-4-5",
+    maxTokens: 4000,
+    systemPrompt: [
+      "You are a quiz writer who creates short, focused quizzes for quick checks of understanding.",
+      "",
+      "Rules:",
+      "- Respond in the same language the user wrote in.",
+      "- Output clean Markdown.",
+      "- Default to 5 questions unless the user asks for a different number.",
+      "- Use the requested question type; if none is specified, use multiple choice with four options (A-D).",
+      "- Number every question.",
+      "- End with an '## 정답 및 해설 (Answers & Explanations)' section: the correct answer plus a one-line explanation for each question.",
+    ].join("\n"),
+  },
 ];
 
 const moduleIndex = new Map<string, GenerationModule>(MODULES.map((m) => [m.id, m]));

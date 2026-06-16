@@ -7,6 +7,13 @@ test("listModules returns the registered modules", () => {
   assert.ok(ids.includes("exam"));
   assert.ok(ids.includes("ppt"));
   assert.ok(ids.includes("study-notes"));
+  assert.ok(ids.includes("worksheet"));
+  assert.ok(ids.includes("quiz"));
+});
+
+test("module ids are unique", () => {
+  const ids = listModules().map((m) => m.id);
+  assert.equal(ids.length, new Set(ids).size);
 });
 
 test("every module has a non-empty system prompt", () => {
