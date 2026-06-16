@@ -67,9 +67,9 @@ test("normalizes valid option values (coerces numbers, keeps valid selects)", ()
 });
 
 test("clamps numbers to the declared min/max", () => {
-  const exam = getModule("exam")!;
+  const exam = getModule("exam")!; // count: default 33, min 10, max 50
   assert.equal(normalizeOptionValues(exam, { count: 999 }).count, 50);
-  assert.equal(normalizeOptionValues(exam, { count: 0 }).count, 1);
+  assert.equal(normalizeOptionValues(exam, { count: 0 }).count, 10);
 });
 
 test("drops select values outside the choices and unknown keys", () => {

@@ -69,6 +69,7 @@ demo UI renders as dropdowns / number / text fields.
     { "id": "study-notes", "name": "학습 정리 노트", "description": "..." },
     { "id": "worksheet", "name": "학습지 생성", "description": "..." },
     { "id": "quiz", "name": "퀴즈 생성", "description": "..." },
+    { "id": "vocabulary", "name": "단어장 생성", "description": "..." },
     { "id": "lesson-plan", "name": "수업지도안 생성", "description": "..." },
     { "id": "resume", "name": "자기소개서 작성", "description": "..." }
   ]
@@ -149,8 +150,10 @@ and is usable from both generation endpoints immediately.
 Each module can carry a `referenceExample` — a sample of the expected output. When
 set, it's injected into the system prompt under a "참고 예시 (스타일·품질 기준)"
 section so the model matches that style and quality (it's told to match the level,
-not copy the content). Paste a real, high-quality sample per module to raise output
-quality. Leave it unset to omit the section entirely.
+not copy the content). The `exam` and `vocabulary` modules ship with **synthetic
+format skeletons** (generic placeholder content) derived from sample document
+structure — the prompts also explicitly require brand-new passages/items every
+run. Leave `referenceExample` unset to omit the section entirely.
 
 ## Project layout
 

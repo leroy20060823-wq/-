@@ -11,11 +11,25 @@ test("listModules returns the registered modules", () => {
   assert.ok(ids.includes("quiz"));
   assert.ok(ids.includes("lesson-plan"));
   assert.ok(ids.includes("resume"));
+  assert.ok(ids.includes("vocabulary"));
 });
 
 test("module ids are unique", () => {
   const ids = listModules().map((m) => m.id);
   assert.equal(ids.length, new Set(ids).size);
+});
+
+test("declared options are well-formed", () => {
+  for (const m of listModules()) {
+    for (const opt of m.options ?? []) {
+      assert.ok(opt.key, `${m.id} option missing key`);
+      assert.ok(opt.label, `${m.id}.${opt.key} missing label`);
+      assert.ok(["select", "number", "text"].includes(opt.type), `${m.id}.${opt.key} bad type`);
+      if (opt.type === "select") {
+        assert.ok((opt.choices ?? []).length > 0, `${m.id}.${opt.key} select needs choices`);
+      }
+    }
+  }
 });
 
 test("every module has a non-empty system prompt", () => {
