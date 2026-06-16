@@ -1,6 +1,8 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { getModule, listModules } from "../modules.js";
-import { generate, generateStream, type GenerateOptions } from "../services/generator.js";
+import { config } from "../config.js";
+import { listModules } from "../modules.js";
+import { generate, generateStream } from "../services/generator.js";
+import { parseGenerateRequest, type GenerateBody } from "../validation.js";
 
 export const router = Router();
 
@@ -19,32 +21,10 @@ router.get("/modules", (_req, res) => {
   });
 });
 
-interface GenerateBody {
-  module?: unknown;
-  input?: unknown;
-  model?: unknown;
-}
-
-type ParseResult = { ok: true; options: GenerateOptions } | { ok: false; error: string };
-
-function parseBody(body: GenerateBody): ParseResult {
-  const moduleId = typeof body.module === "string" ? body.module.trim() : "";
-  const input = typeof body.input === "string" ? body.input.trim() : "";
-  const model = typeof body.model === "string" && body.model.trim() !== "" ? body.model.trim() : undefined;
-
-  if (!moduleId) return { ok: false, error: "`module` is required." };
-  if (!input) return { ok: false, error: "`input` is required." };
-
-  const module = getModule(moduleId);
-  if (!module) return { ok: false, error: `Unknown module: ${moduleId}` };
-
-  return { ok: true, options: { module, input, model } };
-}
-
 router.post(
   "/generate",
   asyncHandler(async (req, res) => {
-    const parsed = parseBody((req.body ?? {}) as GenerateBody);
+    const parsed = parseGenerateRequest((req.body ?? {}) as GenerateBody, config.allowedModels);
     if (!parsed.ok) {
       res.status(400).json({ error: parsed.error });
       return;
@@ -57,7 +37,7 @@ router.post(
 router.post(
   "/generate/stream",
   asyncHandler(async (req, res) => {
-    const parsed = parseBody((req.body ?? {}) as GenerateBody);
+    const parsed = parseGenerateRequest((req.body ?? {}) as GenerateBody, config.allowedModels);
     if (!parsed.ok) {
       res.status(400).json({ error: parsed.error });
       return;

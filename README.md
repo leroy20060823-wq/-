@@ -21,8 +21,8 @@ cp .env.example .env   # then put your key in ANTHROPIC_API_KEY
 npm run dev            # http://localhost:3000
 ```
 
-Other scripts: `npm run typecheck`, `npm run build` (emits to `dist/`), `npm start`
-(runs the build).
+Other scripts: `npm test` (unit tests, no API key needed), `npm run typecheck`,
+`npm run build` (emits to `dist/`), `npm start` (runs the build).
 
 ## Environment variables
 
@@ -32,6 +32,7 @@ Other scripts: `npm run typecheck`, `npm run build` (emits to `dist/`), `npm sta
 | `PORT`               | no       | `3000`             |                                                  |
 | `DEFAULT_MODEL`      | no       | `claude-haiku-4-5` | Used when a module doesn't pin its own model.    |
 | `DEFAULT_MAX_TOKENS` | no       | `8000`             | Used when a module doesn't pin its own budget.   |
+| `ALLOWED_MODELS`     | no       | `claude-haiku-4-5,claude-sonnet-4-6` | Comma-separated allow-list for per-request `model` overrides. |
 
 ### Models & cost
 
@@ -69,7 +70,8 @@ One-shot generation. Body:
 }
 ```
 
-`module` and `input` are required; `model` is an optional per-request override.
+`module` and `input` are required; `model` is an optional per-request override
+(must be one of `ALLOWED_MODELS`, otherwise the request is rejected with 400).
 Response:
 
 ```json
