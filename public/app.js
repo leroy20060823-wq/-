@@ -56,6 +56,8 @@ const guideFieldsEl = document.getElementById("guide-fields");
 const inputLabel = document.getElementById("input-label");
 const inputEl = document.getElementById("input");
 const submitBtn = document.getElementById("submit");
+const demoBtn = document.getElementById("demo");
+const demoBanner = document.getElementById("demo-banner");
 const stopBtn = document.getElementById("stop");
 const statusEl = document.getElementById("status");
 const loadingEl = document.getElementById("loading");
@@ -407,8 +409,44 @@ async function generate(event) {
   }
 }
 
+/* ---------- Demo / preview mode ---------- */
+async function loadSample() {
+  const id = moduleSelect.value;
+  clearError();
+  resetOutput();
+  setStatus("예시 불러오는 중…");
+  try {
+    const res = await fetch(`/api/modules/${encodeURIComponent(id)}/sample`);
+    if (!res.ok) throw new Error("예시를 불러오지 못했습니다.");
+    const data = await res.json();
+    raw = data.content || "";
+    outputEl.hidden = false;
+    renderNow();
+    copyBtn.hidden = raw.length === 0;
+    setStatus("예시 미리보기 (실제 생성 결과가 아닙니다)");
+  } catch (err) {
+    showError(err instanceof Error ? err.message : String(err));
+    setStatus("");
+  }
+}
+
+async function checkHealth() {
+  try {
+    const res = await fetch("/health");
+    const data = await res.json();
+    if (data.generation === "disabled") {
+      demoBanner.textContent =
+        "현재 미리보기 모드예요 — '예시 보기'로 결과 형식을 확인할 수 있어요. (서버에 API 키를 넣으면 실제 생성이 켜집니다.)";
+      demoBanner.hidden = false;
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 /* ---------- Wiring ---------- */
 form.addEventListener("submit", generate);
+demoBtn.addEventListener("click", loadSample);
 moduleSelect.addEventListener("change", updateModuleDesc);
 stopBtn.addEventListener("click", () => controller?.abort());
 
@@ -440,3 +478,4 @@ copyBtn.addEventListener("click", async () => {
 
 applyRoute();
 loadModules();
+checkHealth();

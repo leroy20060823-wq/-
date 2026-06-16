@@ -4,6 +4,7 @@ import { listModules } from "../modules.js";
 import { generate, generateStream } from "../services/generator.js";
 import { parseGenerateRequest, type GenerateBody } from "../validation.js";
 import { createRateLimiter } from "../rateLimit.js";
+import { getSample } from "../samples.js";
 
 export const router = Router();
 
@@ -52,6 +53,16 @@ router.get("/modules", (_req, res) => {
       }),
     ),
   });
+});
+
+// Static demo sample for a module — works without an API key.
+router.get("/modules/:id/sample", (req, res) => {
+  const content = getSample(req.params.id);
+  if (content === undefined) {
+    res.status(404).json({ error: `No sample for module: ${req.params.id}` });
+    return;
+  }
+  res.json({ module: req.params.id, content });
 });
 
 router.post(

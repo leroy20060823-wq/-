@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { getModule, listModules } from "./modules.js";
+import { getSample } from "./samples.js";
 
 test("listModules returns the registered modules", () => {
   const ids = listModules().map((m) => m.id);
@@ -55,6 +56,13 @@ test("every module has a non-empty system prompt and purpose", () => {
   for (const module of listModules()) {
     assert.ok(module.systemPrompt.trim().length > 0, `${module.id} has an empty system prompt`);
     assert.ok(module.purpose.trim().length > 0, `${module.id} has an empty purpose`);
+  }
+});
+
+test("every module has a non-empty demo sample", () => {
+  for (const m of listModules()) {
+    const s = getSample(m.id);
+    assert.ok(s && s.trim().length > 0, `${m.id} has no sample`);
   }
 });
 
