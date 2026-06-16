@@ -442,6 +442,35 @@ textarea {
   line-height: 1.6;
 }
 
+/* Guided form fields */
+.guide-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.guide-fields:empty {
+  display: none;
+  margin: 0;
+}
+
+.guide-field {
+  display: block;
+}
+
+.guide-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--sage);
+  margin-bottom: 7px;
+}
+
+.guide-label .req {
+  color: var(--clay);
+}
+
 /* Per-module option controls */
 .options-row {
   display: flex;

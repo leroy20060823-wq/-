@@ -15,6 +15,8 @@ const ICONS = {
   worksheet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.4 2.6a2 2 0 0 1 2.8 2.8L12 14.6 8 16l1.4-4z"/></svg>',
   quiz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>',
   "study-notes": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h4"/><path d="M2 12h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/></svg>',
+  "creative-writing": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.67 19a2 2 0 0 0 1.42-.59l6.15-6.17a6 6 0 0 0-8.49-8.49L5.59 9.91A2 2 0 0 0 5 11.33V18a1 1 0 0 0 1 1z"/><path d="M16 8 2 22"/><path d="M17.5 15H9"/></svg>',
+  excel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M12 3v18"/></svg>',
 };
 const DEFAULT_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.94 14.06a4 4 0 1 1 5.66-5.66"/><path d="m12 2 1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5z"/></svg>';
@@ -30,6 +32,8 @@ const THEME = {
   worksheet: { tile: "#EAF2E1", accent: "#6E9B52", tagline: "" },
   quiz: { tile: "#F7E9E5", accent: "#B56A4E", tagline: "" },
   "study-notes": { tile: "#FBF1DD", accent: "#C0913C", tagline: "" },
+  "creative-writing": { tile: "#F7E9E5", accent: "#B56A4E", tagline: "장르만 고르면 초고 완성" },
+  excel: { tile: "#EAF2E1", accent: "#6E9B52", tagline: "수식·차트 한 번에" },
 };
 const DEFAULT_THEME = { tile: "#EFEADD", accent: "#C2613A" };
 
@@ -48,6 +52,8 @@ const moduleSelect = document.getElementById("module");
 const modulePurpose = document.getElementById("module-purpose");
 const moduleDesc = document.getElementById("module-desc");
 const moduleOptionsEl = document.getElementById("module-options");
+const guideFieldsEl = document.getElementById("guide-fields");
+const inputLabel = document.getElementById("input-label");
 const inputEl = document.getElementById("input");
 const submitBtn = document.getElementById("submit");
 const stopBtn = document.getElementById("stop");
@@ -165,12 +171,73 @@ function gatherOptions() {
 }
 
 /* ---------- Modules ---------- */
+/* ---------- Guided form ---------- */
+function renderGuideControl(f) {
+  const req = f.required ? ' <span class="req">*</span>' : "";
+  const label = `<span class="guide-label">${escapeHtml(f.label)}${req}</span>`;
+  const key = escapeHtml(f.key);
+  const ph = escapeHtml(f.placeholder ?? "");
+  let control;
+  if (f.type === "select") {
+    const opts = (f.choices ?? [])
+      .map((c) => `<option value="${escapeHtml(c.value)}">${escapeHtml(c.label ?? c.value)}</option>`)
+      .join("");
+    control = `<select data-guide-key="${key}">${opts}</select>`;
+  } else if (f.type === "textarea") {
+    control = `<textarea data-guide-key="${key}" rows="3" placeholder="${ph}"></textarea>`;
+  } else {
+    const type = f.type === "number" ? "number" : "text";
+    control = `<input type="${type}" data-guide-key="${key}" placeholder="${ph}" />`;
+  }
+  const hint = f.hint ? `<span class="hint">${escapeHtml(f.hint)}</span>` : "";
+  return `<label class="guide-field">${label}${control}${hint}</label>`;
+}
+
+function renderGuide(module) {
+  const guide = module?.guide ?? [];
+  guideFieldsEl.innerHTML = guide.map(renderGuideControl).join("");
+}
+
+function gatherGuide() {
+  const values = {};
+  guideFieldsEl.querySelectorAll("[data-guide-key]").forEach((el) => {
+    values[el.dataset.guideKey] = el.value;
+  });
+  return values;
+}
+
+// Compose the request prompt from guide answers + the optional free-text extra.
+function composeInput(module, guideValues, extra) {
+  const lines = [];
+  for (const f of module?.guide ?? []) {
+    const v = (guideValues[f.key] ?? "").trim();
+    if (v) lines.push(`${f.label.replace(/\s*\(선택\)\s*$/, "")}: ${v}`);
+  }
+  let text = lines.join("\n");
+  if (extra && extra.trim()) text += (text ? "\n\n" : "") + `추가 요청: ${extra.trim()}`;
+  return text;
+}
+
+// Returns the key of the first missing required guide field, or null if OK.
+function firstMissingRequired(module, guideValues) {
+  for (const f of module?.guide ?? []) {
+    if (f.required && !(guideValues[f.key] ?? "").trim()) return f;
+  }
+  return null;
+}
+
 function updateModuleDesc() {
   const current = modules.find((m) => m.id === moduleSelect.value);
   modulePurpose.textContent = current?.purpose ?? "";
   moduleDesc.textContent = current?.description ?? "";
-  inputEl.placeholder = current?.inputPlaceholder || defaultInputPlaceholder;
+  renderGuide(current);
   renderOptions(current);
+
+  const hasGuide = (current?.guide ?? []).length > 0;
+  inputLabel.textContent = hasGuide ? "추가 요청 (선택)" : "요청 입력";
+  inputEl.placeholder = hasGuide
+    ? "더 적고 싶은 내용이 있으면 자유롭게 적어주세요 (선택)"
+    : current?.inputPlaceholder || defaultInputPlaceholder;
 }
 
 function renderCards() {
@@ -218,6 +285,9 @@ function setGenerating(isGenerating) {
   submitBtn.disabled = isGenerating;
   moduleSelect.disabled = isGenerating;
   inputEl.disabled = isGenerating;
+  guideFieldsEl.querySelectorAll("[data-guide-key]").forEach((el) => {
+    el.disabled = isGenerating;
+  });
   stopBtn.hidden = !isGenerating;
 }
 
@@ -259,9 +329,20 @@ async function generate(event) {
   resetOutput();
 
   const module = moduleSelect.value;
-  const input = inputEl.value.trim();
-  if (!input) {
-    showError("요청 입력을 작성해 주세요.");
+  const current = modules.find((m) => m.id === module);
+  const guideValues = gatherGuide();
+
+  const missing = firstMissingRequired(current, guideValues);
+  if (missing) {
+    showError(`'${missing.label}'을(를) 입력해 주세요.`);
+    const el = guideFieldsEl.querySelector(`[data-guide-key="${missing.key}"]`);
+    el?.focus();
+    return;
+  }
+
+  const input = composeInput(current, guideValues, inputEl.value);
+  if (!input.trim()) {
+    showError("요청 내용을 입력해 주세요.");
     return;
   }
 

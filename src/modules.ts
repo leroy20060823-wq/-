@@ -26,6 +26,20 @@ export interface ModuleOption {
   placeholder?: string;
 }
 
+/**
+ * A guided form field. Instead of a blank textarea, each module asks a few
+ * friendly questions; the answers are composed into the request prompt.
+ */
+export interface GuideField {
+  key: string;
+  label: string;
+  type: "text" | "textarea" | "select" | "number";
+  placeholder?: string;
+  choices?: ModuleOptionChoice[];
+  required?: boolean;
+  hint?: string;
+}
+
 export interface GenerationModule {
   id: string;
   name: string;
@@ -34,6 +48,8 @@ export interface GenerationModule {
   purpose: string;
   systemPrompt: string;
   options?: ModuleOption[];
+  /** Step-by-step guided questions rendered in place of the blank input. */
+  guide?: GuideField[];
   referenceExample?: string;
   /** Placeholder text for the main input textarea (per module). */
   inputPlaceholder?: string;
@@ -55,6 +71,12 @@ const MODULES: GenerationModule[] = [
     options: [
       { key: "difficulty", label: "난이도", type: "select", choices: DIFFICULTY, default: "중" },
       { key: "count", label: "문항 수", type: "number", default: 33, min: 10, max: 50 },
+    ],
+    guide: [
+      { key: "subject", label: "과목", type: "text", required: true, placeholder: "예: 영어 읽기와 쓰기" },
+      { key: "scope", label: "출제 범위 / 단원", type: "text", required: true, placeholder: "예: 교재 Unit 3~4" },
+      { key: "types", label: "포함할 문항 유형", type: "text", placeholder: "예: 어휘, 독해, 서술형, 문법" },
+      { key: "note", label: "특이사항 (선택)", type: "text", placeholder: "예: 서술형 비중 높이기" },
     ],
     systemPrompt: [
       "You are an expert exam author who creates full mock-exam papers (모의고사/시험지) on a professional, fixed blueprint. Generate a brand-new exam every time.",
@@ -120,6 +142,11 @@ const MODULES: GenerationModule[] = [
       { key: "difficulty", label: "난이도", type: "select", choices: DIFFICULTY, default: "중" },
       { key: "count", label: "문항 수", type: "number", default: 10, min: 5, max: 15 },
     ],
+    guide: [
+      { key: "topic", label: "과목 · 주제", type: "text", required: true, placeholder: "예: 중2 영어 비교급" },
+      { key: "skill", label: "집중할 스킬 / 유형", type: "text", placeholder: "예: 비교급 만들기, 빈칸 채우기" },
+      { key: "note", label: "특이사항 (선택)", type: "text", placeholder: "예: 실생활 예문 위주" },
+    ],
     systemPrompt: [
       "You are an experienced teacher who designs focused practice worksheets for homework or warm-ups. Generate new problems every time.",
       "",
@@ -157,6 +184,10 @@ const MODULES: GenerationModule[] = [
         default: "객관식",
       },
     ],
+    guide: [
+      { key: "topic", label: "주제", type: "text", required: true, placeholder: "예: 광합성의 원리" },
+      { key: "focus", label: "강조할 포인트 (선택)", type: "text", placeholder: "예: 명반응과 암반응 구분" },
+    ],
     systemPrompt: [
       "You are a quiz writer who creates short quizzes for a quick check of understanding. Generate new questions every time.",
       "",
@@ -185,6 +216,16 @@ const MODULES: GenerationModule[] = [
     options: [
       { key: "unit", label: "단원/주제 (선택)", type: "text", placeholder: "뜻 범위 지정용 — 예: Unit 3 날씨·물" },
       { key: "count", label: "단어 수 (선택)", type: "number", default: 20, min: 1, max: 100 },
+    ],
+    guide: [
+      {
+        key: "words",
+        label: "외울 단어 목록",
+        type: "textarea",
+        required: true,
+        placeholder: "단어를 줄바꿈 또는 쉼표로 입력\n예: vapor, summit, harbor, occur, coastal",
+      },
+      { key: "level", label: "대상 수준 (선택)", type: "text", placeholder: "예: 고1 수준" },
     ],
     systemPrompt: [
       "You are a vocabulary-book author who turns a learner's word list into a clean, simple study word list (단어장). Write fresh example sentences every time — never copy them from any source, and never reuse the sample words from the reference example.",
@@ -230,6 +271,12 @@ const MODULES: GenerationModule[] = [
     purpose: "발표용 슬라이드 개요 (슬라이드별 핵심 + 발표자 노트)",
     model: "claude-sonnet-4-6",
     maxTokens: 8000,
+    guide: [
+      { key: "topic", label: "발표 주제", type: "text", required: true, placeholder: "예: 신입사원 온보딩" },
+      { key: "audience", label: "청중 / 대상", type: "text", placeholder: "예: 신입사원" },
+      { key: "slides", label: "분량 / 슬라이드 수", type: "text", placeholder: "예: 10장, 10분" },
+      { key: "message", label: "강조할 메시지 (선택)", type: "text", placeholder: "예: 회사 문화 적응" },
+    ],
     systemPrompt: [
       "You are a presentation designer who turns a topic into a slide deck outline.",
       "",
@@ -248,6 +295,10 @@ const MODULES: GenerationModule[] = [
     purpose: "핵심 개념 요약 노트 (정의·핵심·예시 중심)",
     model: "claude-haiku-4-5",
     maxTokens: 6000,
+    guide: [
+      { key: "topic", label: "주제 / 범위", type: "text", required: true, placeholder: "예: 한국사 — 조선 후기 경제" },
+      { key: "level", label: "대상 수준 (선택)", type: "text", placeholder: "예: 고등학교" },
+    ],
     systemPrompt: [
       "You are a study assistant that produces concise, well-organized revision notes.",
       "",
@@ -275,6 +326,11 @@ const MODULES: GenerationModule[] = [
       { key: "period", label: "차시", type: "number", default: 1, min: 1, max: 30 },
       { key: "minutes", label: "수업 시간(분)", type: "number", default: 45, min: 10, max: 120 },
     ],
+    guide: [
+      { key: "subject", label: "과목", type: "text", required: true, placeholder: "예: 중학교 영어" },
+      { key: "topic", label: "단원 / 주제", type: "text", required: true, placeholder: "예: 비교급과 최상급" },
+      { key: "objective", label: "학습목표 (선택)", type: "textarea", placeholder: "예: 비교급을 활용해 문장을 쓸 수 있다" },
+    ],
     systemPrompt: [
       "You are an experienced teacher who writes detailed, classroom-ready lesson plans grounded in sound pedagogy.",
       "",
@@ -301,6 +357,11 @@ const MODULES: GenerationModule[] = [
     options: [
       { key: "role", label: "지원 직무", type: "text", placeholder: "예: 외식업 매니저" },
       { key: "length", label: "분량(자)", type: "number", default: 700, min: 200, max: 3000 },
+    ],
+    guide: [
+      { key: "education", label: "학력", type: "textarea", placeholder: "학교 · 전공 · 기간 (예: ○○대 경영 2022~)" },
+      { key: "experience", label: "경력 · 활동", type: "textarea", required: true, placeholder: "회사/활동 · 기간 · 한 일" },
+      { key: "skills", label: "강점 · 보유 역량", type: "text", placeholder: "예: 데이터 분석, 협업" },
     ],
     systemPrompt: [
       "You are a career writing assistant who drafts clean, structured Korean-style resumes (이력서 / CV).",
@@ -347,6 +408,12 @@ const MODULES: GenerationModule[] = [
       { key: "company", label: "지원 회사", type: "text", placeholder: "예: ○○컴퍼니 (선택)" },
       { key: "length", label: "글자 수", type: "number", default: 1000, min: 200, max: 5000 },
     ],
+    guide: [
+      { key: "experience", label: "핵심 경험", type: "textarea", required: true, placeholder: "자랑할 경험 1~2개 (상황·한 일·결과)" },
+      { key: "motivation", label: "지원 동기", type: "textarea", placeholder: "왜 이 직무/회사인지" },
+      { key: "strength", label: "강조할 강점", type: "text", placeholder: "예: 끈기, 협업" },
+      { key: "prompts", label: "자소서 문항 (있으면)", type: "textarea", placeholder: "예: 1. 지원 동기 2. 입사 후 포부" },
+    ],
     systemPrompt: [
       "You are a career writing assistant who drafts compelling, authentic Korean-style self-introductions (자기소개서) in a warm, narrative voice.",
       "",
@@ -371,6 +438,98 @@ const MODULES: GenerationModule[] = [
       "",
       "## [또 다른 가치를 담은 소제목]",
       "[다른 경험을 같은 흐름(상황 → 행동 → 결과·의미)으로 전개하고, 형용사 나열 대신 일화로 강점을 보여 줍니다.]",
+    ].join("\n"),
+  },
+  {
+    id: "creative-writing",
+    name: "소설·글쓰기",
+    description: "장르·소재를 받아 원하는 분량의 이야기 초고를 작성합니다.",
+    purpose: "장르·소재만 고르면 이야기 초고 완성",
+    model: "claude-sonnet-4-6",
+    maxTokens: 12000,
+    options: [
+      { key: "length", label: "분량(자)", type: "number", default: 1500, min: 300, max: 8000 },
+      {
+        key: "pov",
+        label: "시점",
+        type: "select",
+        choices: [{ value: "1인칭" }, { value: "3인칭" }],
+        default: "3인칭",
+      },
+    ],
+    guide: [
+      {
+        key: "genre",
+        label: "장르",
+        type: "select",
+        required: true,
+        choices: [
+          { value: "판타지" },
+          { value: "로맨스" },
+          { value: "스릴러" },
+          { value: "SF" },
+          { value: "일상" },
+          { value: "동화" },
+          { value: "무협" },
+        ],
+      },
+      { key: "premise", label: "소재 · 설정", type: "textarea", required: true, placeholder: "주인공, 배경, 핵심 갈등을 적어주세요" },
+      { key: "tone", label: "분위기 / 톤 (선택)", type: "text", placeholder: "예: 잔잔하고 따뜻한" },
+    ],
+    systemPrompt: [
+      "You are a fiction writing assistant who drafts an original first draft (초고) from the writer's premise. Write fresh, original prose every time.",
+      "",
+      "Output (clean Markdown, in the user's language):",
+      "- Open with a title, then the story prose, using scene breaks where natural.",
+      "- Match the requested genre, point of view, tone, and length.",
+      "",
+      "Quality bar:",
+      "- Show, don't tell: concrete sensory detail, purposeful dialogue, clear scene goals.",
+      "- A coherent arc with a hook, rising tension, and an ending that resonates at the given length.",
+      "- Natural, vivid prose; avoid cliché and purple writing.",
+      "- If a '[요청 조건]' block is appended (분량, 시점 등), follow it and respect the requested length.",
+    ].join("\n"),
+  },
+  {
+    id: "excel",
+    name: "엑셀 작업",
+    description: "원하는 작업을 설명하면 수식·차트·데이터 정리 방법을 알려줍니다.",
+    purpose: "수식·차트·데이터 정리를 한 번에",
+    model: "claude-sonnet-4-6",
+    maxTokens: 6000,
+    options: [
+      {
+        key: "tool",
+        label: "도구",
+        type: "select",
+        choices: [{ value: "엑셀" }, { value: "구글 시트" }],
+        default: "엑셀",
+      },
+      {
+        key: "task",
+        label: "작업 유형",
+        type: "select",
+        choices: [{ value: "수식·함수" }, { value: "피벗·차트" }, { value: "데이터 정리" }],
+        default: "수식·함수",
+      },
+    ],
+    guide: [
+      { key: "goal", label: "하고 싶은 작업", type: "textarea", required: true, placeholder: "예: 매출 데이터에서 월별 합계와 차트 만들기" },
+      { key: "data", label: "데이터 구조 (선택)", type: "text", placeholder: "예: A열 날짜, B열 금액" },
+    ],
+    systemPrompt: [
+      "You are a spreadsheet expert who helps users accomplish tasks in Excel or Google Sheets.",
+      "",
+      "Output (clean Markdown, in the user's language):",
+      "- Restate the goal in one line, then give the solution.",
+      "- For formulas: show the exact formula in a code span, say which cell to place it in, and briefly explain each part.",
+      "- For pivot tables / charts: give numbered step-by-step instructions.",
+      "- For data cleanup: give the steps or formula, with a tiny before/after example if helpful.",
+      "",
+      "Quality bar:",
+      "- Formulas must be correct and use the right function names for the chosen tool (note 엑셀 vs 구글 시트 differences when they matter).",
+      "- Prefer the simplest robust approach; mention an alternative only if clearly useful.",
+      "- If a '[요청 조건]' block is appended (도구, 작업 유형 등), follow it.",
     ].join("\n"),
   },
 ];

@@ -13,6 +13,24 @@ test("listModules returns the registered modules", () => {
   assert.ok(ids.includes("resume"));
   assert.ok(ids.includes("vocabulary"));
   assert.ok(ids.includes("cover-letter"));
+  assert.ok(ids.includes("creative-writing"));
+  assert.ok(ids.includes("excel"));
+});
+
+test("guide fields are well-formed", () => {
+  for (const m of listModules()) {
+    for (const f of m.guide ?? []) {
+      assert.ok(f.key, `${m.id} guide field missing key`);
+      assert.ok(f.label, `${m.id}.${f.key} guide field missing label`);
+      assert.ok(
+        ["text", "textarea", "select", "number"].includes(f.type),
+        `${m.id}.${f.key} bad guide type`,
+      );
+      if (f.type === "select") {
+        assert.ok((f.choices ?? []).length > 0, `${m.id}.${f.key} select needs choices`);
+      }
+    }
+  }
 });
 
 test("module ids are unique", () => {
