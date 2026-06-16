@@ -22,7 +22,13 @@ npm run dev            # http://localhost:3000
 ```
 
 Open <http://localhost:3000> in a browser for the **demo UI** (module picker +
-input + live streaming output). The JSON/SSE API lives under `/api`.
+input + live streaming output, **rendered as Markdown** so headings, bold, lists,
+and tables display properly — and it renders incrementally as it streams). The
+JSON/SSE API lives under `/api`.
+
+The page imports `marked` (Markdown → HTML) and `DOMPurify` (sanitization) from
+`public/vendor/` — local copies, no CDN. After bumping their versions in
+`package.json`, refresh the copies with `npm run vendor`.
 
 Other scripts: `npm test` (unit tests, no API key needed), `npm run typecheck`,
 `npm run build` (emits to `dist/`), `npm start` (runs the build).
@@ -130,7 +136,10 @@ both generation endpoints immediately.
 public/                # demo frontend (static, served at /)
   index.html
   styles.css
-  app.js
+  app.js               # streams + renders Markdown via vendored marked + DOMPurify
+  vendor/              # marked + DOMPurify browser builds (copied via npm run vendor)
+scripts/
+  vendor.mjs           # copies frontend libs from node_modules into public/vendor
 src/
   config.ts            # env loading + validation
   anthropic.ts         # shared Anthropic client
