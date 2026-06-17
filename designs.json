@@ -1472,8 +1472,8 @@
       "#484b5e"
     ],
     "palette": {
-      "bg": "#7132f5",
-      "surface": "#7132f5",
+      "bg": "#ffffff",
+      "surface": "#ffffff",
       "ink": "#7132f5",
       "sub": "#101114",
       "accent": "#7132f5"
@@ -1523,8 +1523,8 @@
     "palette": {
       "bg": "#000000",
       "surface": "#000000",
-      "ink": "#000000",
-      "sub": "#000000",
+      "ink": "#ffffff",
+      "sub": "#7d7d7d",
       "accent": "#ffc000"
     },
     "fonts": {
@@ -1628,8 +1628,8 @@
     "palette": {
       "bg": "#f7f4ed",
       "surface": "#f7f4ed",
-      "ink": "#f7f4ed",
-      "sub": "#1c1c1c",
+      "ink": "#1c1c1c",
+      "sub": "#3b82f6",
       "accent": "#1c1c1c"
     },
     "fonts": {
@@ -1683,7 +1683,7 @@
       "bg": "#f3f0ee",
       "surface": "#f3f0ee",
       "ink": "#141413",
-      "sub": "#f3f0ee",
+      "sub": "#f37338",
       "accent": "#141413"
     },
     "fonts": {

@@ -102,12 +102,45 @@ function roleHintsFrom(text) {
   }
   return hints;
 }
+function sat(hex) {
+  const h = hex.replace("#", "");
+  const n = h.length === 3 ? h.split("").map((c) => c + c).join("") : h.slice(0, 6);
+  const r = parseInt(n.slice(0, 2), 16) / 255, g = parseInt(n.slice(2, 4), 16) / 255, b = parseInt(n.slice(4, 6), 16) / 255;
+  return Math.max(r, g, b) - Math.min(r, g, b);
+}
+// Luminance/contrast-driven role assignment with hints as advisory only — a
+// "background" is almost always near-extreme luminance, so a mid-luminance hint
+// (e.g. a brand purple on a line that mentions "background") is rejected.
 function paletteFromHints(hints, list) {
-  const sorted = [...list].sort((a, b) => lum(a) - lum(b));
-  const bg = hints.bg || sorted[sorted.length - 1] || "#ffffff";
-  const ink = hints.ink || sorted[0] || "#111111";
-  const accent = hints.accent || list.find((v) => lum(v) > 0.15 && lum(v) < 0.8) || list[0] || "#888";
-  const sub = hints.sub || ink;
+  const valid = list.filter(Boolean);
+  const sorted = [...valid].sort((a, b) => lum(a) - lum(b));
+  const lightest = sorted[sorted.length - 1] || "#ffffff";
+  const darkest = sorted[0] || "#111111";
+  const hasLight = lum(lightest) > 0.8;
+
+  let bg;
+  if (hints.bg && (lum(hints.bg) < 0.18 || lum(hints.bg) > 0.82)) bg = hints.bg;
+  else bg = hasLight ? lightest : darkest;
+  const dark = lum(bg) < 0.5;
+
+  let ink = hints.ink;
+  if (!ink || Math.abs(lum(ink) - lum(bg)) < 0.35) ink = dark ? lightest : darkest;
+
+  const contrastOk = (c) => c && Math.abs(lum(c) - lum(bg)) > 0.18;
+  let accent = hints.accent;
+  if (!contrastOk(accent)) {
+    accent =
+      valid
+        .map((c) => ({ c, s: sat(c), d: Math.abs(lum(c) - lum(bg)) }))
+        .filter((x) => x.d > 0.12)
+        .sort((a, b) => b.s - a.s)[0]?.c || (dark ? lightest : darkest);
+  }
+
+  const mid = (lum(bg) + lum(ink)) / 2;
+  let sub = contrastOk(hints.sub) && hints.sub !== accent ? hints.sub : null;
+  if (!sub) {
+    sub = valid.slice().sort((a, b) => Math.abs(lum(a) - mid) - Math.abs(lum(b) - mid))[0] || ink;
+  }
   return { bg, surface: bg, ink, sub, accent };
 }
 function proseFonts(text) {
