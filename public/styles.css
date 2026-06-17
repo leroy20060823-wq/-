@@ -384,6 +384,23 @@ button:disabled {
   display: none;
 }
 
+/* Gallery groups (공부·수업 / 글쓰기·문서) */
+.card-group {
+  margin-bottom: 30px;
+}
+
+.card-group:last-child {
+  margin-bottom: 0;
+}
+
+.card-group-title {
+  margin: 0 0 14px;
+  padding-left: 2px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--sage);
+}
+
 .card {
   display: flex;
   flex-direction: column;
@@ -1174,10 +1191,75 @@ textarea.wizard-input {
 .footer {
   position: relative;
   z-index: 1;
-  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 24px;
+  max-width: 1000px;
+  margin: 28px auto 0;
+  padding: 26px 24px 36px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.footer-name {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.footer-tagline {
+  font-size: 0.85rem;
   color: var(--ink-soft);
-  font-size: 0.82rem;
-  padding: 8px 24px 0;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.footer-links a {
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+
+.footer-links a:hover {
+  color: var(--clay);
+}
+
+/* Legal pages (terms / privacy) */
+.legal {
+  max-width: 760px;
+  margin: 0 auto;
+  padding-top: 8px;
+}
+
+.legal .back {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.legal .back:hover {
+  color: var(--clay);
+}
+
+.legal-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 12px 0 12px;
+}
+
+.legal-note {
+  color: var(--ink-soft);
 }
 
 @media (max-width: 540px) {
@@ -1192,6 +1274,10 @@ textarea.wizard-input {
   }
   .cards {
     grid-template-columns: 1fr;
+  }
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
   }
   .card-panel {
     padding: 18px;

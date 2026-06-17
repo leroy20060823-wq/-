@@ -27,11 +27,11 @@ const THEME = {
   ppt: { tile: "#FBF1DD", accent: "#C0913C", tagline: "주제만 입력하면 슬라이드로" },
   vocabulary: { tile: "#EAF1F8", accent: "#6F8FB8", tagline: "모르는 단어, 쉽게 풀이" },
   "lesson-plan": { tile: "#E6F0E2", accent: "#5F8B4A", tagline: "수업 흐름 자동 구성" },
-  resume: { tile: "#E8F0FA", accent: "#5E86C0", tagline: "면접관이 읽고 싶은 글로" },
-  "cover-letter": { tile: "#E8F0FA", accent: "#5E86C0", tagline: "면접관이 읽고 싶은 글로" },
-  worksheet: { tile: "#EAF2E1", accent: "#6E9B52", tagline: "" },
-  quiz: { tile: "#F7E9E5", accent: "#B56A4E", tagline: "" },
-  "study-notes": { tile: "#FBF1DD", accent: "#C0913C", tagline: "" },
+  resume: { tile: "#E8F0FA", accent: "#5E86C0", tagline: "경력·역량을 한눈에 정리" },
+  "cover-letter": { tile: "#E8F0FA", accent: "#5E86C0", tagline: "경험을 매력적인 이야기로" },
+  worksheet: { tile: "#EAF2E1", accent: "#6E9B52", tagline: "특정 단원 집중 연습" },
+  quiz: { tile: "#F7E9E5", accent: "#B56A4E", tagline: "빠른 이해 점검" },
+  "study-notes": { tile: "#FBF1DD", accent: "#C0913C", tagline: "핵심 개념 요약" },
   "creative-writing": { tile: "#F7E9E5", accent: "#B56A4E", tagline: "장르만 고르면 초고 완성" },
   excel: { tile: "#EAF2E1", accent: "#6E9B52", tagline: "수식·차트 한 번에" },
 };
@@ -40,6 +40,8 @@ const DEFAULT_THEME = { tile: "#EFEADD", accent: "#C2613A" };
 /* ---------- Elements ---------- */
 const viewHome = document.getElementById("view-home");
 const viewApp = document.getElementById("view-app");
+const viewTerms = document.getElementById("view-terms");
+const viewPrivacy = document.getElementById("view-privacy");
 
 const heroForm = document.getElementById("hero-form");
 const heroInput = document.getElementById("hero-input");
@@ -103,11 +105,14 @@ function escapeHtml(s) {
 
 /* ---------- View routing (hash-based) ---------- */
 function applyRoute() {
-  const isApp = location.hash === "#generate";
-  viewHome.hidden = isApp;
-  viewApp.hidden = !isApp;
+  const h = location.hash;
+  const route = h === "#generate" ? "app" : h === "#terms" ? "terms" : h === "#privacy" ? "privacy" : "home";
+  viewHome.hidden = route !== "home";
+  viewApp.hidden = route !== "app";
+  viewTerms.hidden = route !== "terms";
+  viewPrivacy.hidden = route !== "privacy";
   window.scrollTo(0, 0);
-  if (isApp) inputEl.focus();
+  if (route === "app") inputEl.focus();
 }
 window.addEventListener("hashchange", applyRoute);
 
@@ -559,21 +564,35 @@ function updateModuleDesc() {
   applyInputMode(current);
 }
 
+const CARD_GROUPS = [
+  { id: "study", label: "공부·수업" },
+  { id: "work", label: "글쓰기·문서" },
+];
+
+function cardHtml(m) {
+  const theme = THEME[m.id] ?? DEFAULT_THEME;
+  const icon = ICONS[m.id] ?? DEFAULT_ICON;
+  const tagline = THEME[m.id]?.tagline || m.purpose || m.description || "";
+  return (
+    `<button type="button" class="card" data-module="${escapeHtml(m.id)}">` +
+    `<span class="card-icon" style="background:${theme.tile};color:${theme.accent}">${icon}</span>` +
+    `<span class="card-name">${escapeHtml(m.name)}</span>` +
+    `<span class="card-desc">${escapeHtml(tagline)}</span>` +
+    `</button>`
+  );
+}
+
 function renderCards() {
-  cardsEl.innerHTML = modules
-    .map((m) => {
-      const theme = THEME[m.id] ?? DEFAULT_THEME;
-      const icon = ICONS[m.id] ?? DEFAULT_ICON;
-      const tagline = THEME[m.id]?.tagline || m.purpose || m.description || "";
-      return (
-        `<button type="button" class="card" data-module="${escapeHtml(m.id)}">` +
-        `<span class="card-icon" style="background:${theme.tile};color:${theme.accent}">${icon}</span>` +
-        `<span class="card-name">${escapeHtml(m.name)}</span>` +
-        `<span class="card-desc">${escapeHtml(tagline)}</span>` +
-        `</button>`
-      );
-    })
-    .join("");
+  cardsEl.innerHTML = CARD_GROUPS.map((g) => {
+    const mods = modules.filter((m) => (m.group || "work") === g.id);
+    if (!mods.length) return "";
+    return (
+      `<div class="card-group">` +
+      `<h3 class="card-group-title">${escapeHtml(g.label)}</h3>` +
+      `<div class="cards">${mods.map(cardHtml).join("")}</div>` +
+      `</div>`
+    );
+  }).join("");
   cardsStatus.hidden = true;
 }
 

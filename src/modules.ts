@@ -57,6 +57,8 @@ export interface GenerationModule {
   description: string;
   /** One-line use-case shown in the UI. */
   purpose: string;
+  /** Landing gallery section: "study" (공부·수업) or "work" (글쓰기·문서). */
+  group?: "study" | "work";
   systemPrompt: string;
   options?: ModuleOption[];
   /** Step-by-step guided questions rendered in place of the blank input. */
@@ -79,7 +81,8 @@ const DIFFICULTY: ModuleOptionChoice[] = [
 const MODULES: GenerationModule[] = [
   {
     id: "exam",
-    name: "시험지 생성",
+    name: "시험지",
+    group: "study",
     description:
       "출제 범위·난이도·문항 수를 받아 배점표·4파트·정답표·정밀 해설지가 포함된 완본 모의고사를 생성합니다.",
     purpose: "기말·중간 대비 완본 모의고사 (배점표·정답표·정밀 해설지 포함)",
@@ -202,7 +205,8 @@ const MODULES: GenerationModule[] = [
   },
   {
     id: "worksheet",
-    name: "학습지 생성",
+    name: "학습지",
+    group: "study",
     description: "특정 스킬·단원에 집중한 5~12문항 연습 학습지를 풀이 공간·친절한 해설과 함께 생성합니다.",
     purpose: "특정 스킬·단원 집중 연습지 (숙제·워밍업용, 배점표 없이 간단히)",
     model: "claude-haiku-4-5",
@@ -237,7 +241,8 @@ const MODULES: GenerationModule[] = [
   },
   {
     id: "quiz",
-    name: "퀴즈 생성",
+    name: "퀴즈",
+    group: "study",
     description: "주제·난이도·유형을 받아 정답·친절한 해설이 포함된 5~12문항 짧은 퀴즈를 생성합니다.",
     purpose: "빠른 이해 점검용 짧은 퀴즈 (배점표 없이 간단히)",
     model: "claude-haiku-4-5",
@@ -276,7 +281,8 @@ const MODULES: GenerationModule[] = [
   },
   {
     id: "vocabulary",
-    name: "단어장 생성",
+    name: "단어장",
+    group: "study",
     description: "외울 단어 목록을 받아 발음기호·품사·뜻·예문이 있는 단어장을 미국식 영어로 생성합니다.",
     purpose: "외운 단어 목록 → 단어장 (미국식 발음·예문+해석)",
     model: "claude-haiku-4-5",
@@ -335,7 +341,8 @@ const MODULES: GenerationModule[] = [
   },
   {
     id: "ppt",
-    name: "발표자료(PPT) 개요 생성",
+    name: "PPT",
+    group: "work",
     description: "주제를 받아 슬라이드별 제목·핵심 내용·발표자 노트를 생성합니다.",
     purpose: "발표용 슬라이드 개요 (슬라이드별 핵심 + 발표자 노트)",
     model: "claude-sonnet-4-6",
@@ -361,7 +368,8 @@ const MODULES: GenerationModule[] = [
   },
   {
     id: "study-notes",
-    name: "학습 정리 노트",
+    name: "학습 노트",
+    group: "study",
     description: "주제나 자료를 받아 핵심 개념 중심의 학습 정리 노트를 생성합니다.",
     purpose: "핵심 개념 요약 노트 (정의·핵심·예시 중심)",
     model: "claude-haiku-4-5",
@@ -381,7 +389,8 @@ const MODULES: GenerationModule[] = [
   },
   {
     id: "lesson-plan",
-    name: "수업지도안 생성",
+    name: "수업지도안",
+    group: "study",
     description: "과목·학교급·차시·학습목표를 받아 도입-전개-정리 단계의 수업지도안을 생성합니다.",
     purpose: "도입-전개-정리 수업지도안 (활동·시간배분·평가 포함)",
     model: "claude-sonnet-4-6",
@@ -420,7 +429,8 @@ const MODULES: GenerationModule[] = [
   },
   {
     id: "resume",
-    name: "이력서 작성",
+    name: "이력서",
+    group: "work",
     description: "지원 직무·학력·경력을 받아 구조화된 이력서(CV)를 작성합니다.",
     purpose: "구조화된 이력서(CV) — 학력·경력·역량을 날짜 기반으로 정리",
     model: "claude-sonnet-4-6",
@@ -469,7 +479,8 @@ const MODULES: GenerationModule[] = [
   },
   {
     id: "cover-letter",
-    name: "자기소개서 작성",
+    name: "자기소개서",
+    group: "work",
     description: "지원 직무·회사·경험을 받아 서사형·따뜻한 문체의 자기소개서를 작성합니다.",
     purpose: "서사형 자기소개서 — 일화 중심으로 강점을 보여주는 글",
     model: "claude-sonnet-4-6",
@@ -571,6 +582,7 @@ const MODULES: GenerationModule[] = [
   {
     id: "creative-writing",
     name: "소설·글쓰기",
+    group: "work",
     description: "장르·소재를 받아 원하는 분량의 이야기 초고를 작성합니다.",
     purpose: "장르·소재만 고르면 이야기 초고 완성",
     model: "claude-sonnet-4-6",
@@ -620,7 +632,8 @@ const MODULES: GenerationModule[] = [
   },
   {
     id: "excel",
-    name: "엑셀 작업",
+    name: "엑셀",
+    group: "work",
     description: "원하는 작업을 설명하면 수식·차트·데이터 정리 방법을 알려줍니다.",
     purpose: "수식·차트·데이터 정리를 한 번에",
     model: "claude-sonnet-4-6",

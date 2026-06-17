@@ -96,7 +96,7 @@
         <section class="gallery">
           <h2 class="section-title">무엇을 만들어 볼까요</h2>
           <p id="cards-status" class="cards-status">목록을 불러오는 중…</p>
-          <div id="module-cards" class="cards"></div>
+          <div id="module-cards"></div>
         </section>
       </section>
 
@@ -166,9 +166,32 @@
           <p id="error" class="error" hidden></p>
         </section>
       </section>
+
+      <!-- Legal pages (placeholder content — fill in real text later) -->
+      <section id="view-terms" class="view legal" hidden>
+        <a class="back" href="#" data-nav="home">← 홈으로</a>
+        <h1 class="legal-title">이용약관</h1>
+        <p class="legal-note">여기에 이용약관 내용을 채워 주세요. (플레이스홀더)</p>
+      </section>
+
+      <section id="view-privacy" class="view legal" hidden>
+        <a class="back" href="#" data-nav="home">← 홈으로</a>
+        <h1 class="legal-title">개인정보처리방침</h1>
+        <p class="legal-note">여기에 개인정보처리방침 내용을 채워 주세요. (플레이스홀더)</p>
+      </section>
     </main>
 
-    <footer class="footer">올인원 AI</footer>
+    <footer class="footer">
+      <div class="footer-brand">
+        <span class="footer-name">올인원 AI</span>
+        <span class="footer-tagline">처음이어도 괜찮은 AI 작업 도구</span>
+      </div>
+      <nav class="footer-links">
+        <a href="#terms" data-nav="terms">이용약관</a>
+        <a href="#privacy" data-nav="privacy">개인정보처리방침</a>
+        <a href="mailto:leroy20060823@gmail.com">문의</a>
+      </nav>
+    </footer>
 
     <script src="/app.js" type="module"></script>
   </body>

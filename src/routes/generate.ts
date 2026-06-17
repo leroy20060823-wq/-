@@ -43,11 +43,12 @@ function asyncHandler(
 router.get("/modules", (_req, res) => {
   res.json({
     modules: listModules().map(
-      ({ id, name, description, purpose, options, guide, inputPlaceholder, wizard }) => ({
+      ({ id, name, description, purpose, group, options, guide, inputPlaceholder, wizard }) => ({
         id,
         name,
         description,
         purpose,
+        group: group ?? "work",
         options: options ?? [],
         guide: guide ?? [],
         inputPlaceholder: inputPlaceholder ?? null,
