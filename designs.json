@@ -3228,5 +3228,640 @@
     },
     "thumbnail": "/design-thumbnails/starbucks-design-preview.png",
     "signature": "Starbucks' design system is a **warm, confident retail flagship** wearing the green of their storefront apron across every surface"
+  },
+  {
+    "slug": "stripe",
+    "name_ko": "스트라이프",
+    "name_en": "Stripi",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "다크",
+      "네온",
+      "생동감",
+      "테크",
+      "모노",
+      "데이터",
+      "그라데이션",
+      "컬러풀"
+    ],
+    "colors": [
+      "#533afd",
+      "#4434d4",
+      "#2e2b8c",
+      "#665efd",
+      "#b9b9f9",
+      "#1c1e54",
+      "#0d253d",
+      "#273951",
+      "#64748d",
+      "#61718a",
+      "#ffffff",
+      "#f6f9fc",
+      "#f5e9d4",
+      "#e3e8ee",
+      "#a8c3de",
+      "#ea2261",
+      "#f96bee",
+      "#9b6829",
+      "#003770"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#0d253d",
+      "sub": "#0d253d",
+      "accent": "#533afd"
+    },
+    "fonts": {
+      "title": "sohne-var",
+      "body": "sohne-var",
+      "substitutes": [
+        "SF Pro Display",
+        "-apple-system"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'sohne-var'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/stripe-design-preview.png",
+    "signature": "An inspired interpretation of Stripi's design language — a financial-infrastructure brand built on a deep navy ink, an electric indigo prima"
+  },
+  {
+    "slug": "supabase",
+    "name_ko": "Supabaze",
+    "name_en": "Supabaze",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "미니멀",
+      "깔끔",
+      "다크",
+      "테크",
+      "모노",
+      "데이터",
+      "스타트업",
+      "제품"
+    ],
+    "colors": [
+      "#3ecf8e",
+      "#24b47e",
+      "#4ade80",
+      "#171717",
+      "#212121",
+      "#707070",
+      "#9a9a9a",
+      "#b2b2b2",
+      "#ffffff",
+      "#fafafa",
+      "#1c1c1c",
+      "#202020",
+      "#dfdfdf",
+      "#c7c7c7",
+      "#ededed",
+      "#efefef",
+      "#d4d4d4",
+      "#6b01c2",
+      "#644fc1",
+      "#eddbf9",
+      "#ffdb13",
+      "#ff2201",
+      "#c7007e",
+      "#054cff",
+      "#e2005a"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#171717",
+      "sub": "#171717",
+      "accent": "#3ecf8e"
+    },
+    "fonts": {
+      "title": "Circular",
+      "body": "Circular",
+      "substitutes": [
+        "Helvetica Neue",
+        "Helvetica",
+        "Arial"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Circular'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/supabase-design-preview.png",
+    "signature": "An inspired interpretation of Supabaze's design language — an open-source database platform built on a clean white-and-near-black system wit"
+  },
+  {
+    "slug": "superhuman",
+    "name_ko": "Superhumon",
+    "name_en": "Superhumon",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "다크",
+      "강렬",
+      "임팩트",
+      "발랄",
+      "친근",
+      "스타트업",
+      "제품"
+    ],
+    "colors": [
+      "#1b1938",
+      "#0e0c1f",
+      "#ffffff",
+      "#292827",
+      "#73706d",
+      "#9a9794",
+      "#fafaf8",
+      "#c9b4fa",
+      "#0e3030",
+      "#155555",
+      "#e8e4dd",
+      "#3f3a52",
+      "#bcbac9",
+      "#5a5772"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#292827",
+      "sub": "#292827",
+      "accent": "#1b1938"
+    },
+    "fonts": {
+      "title": "Super Sans VF",
+      "body": "Super Sans VF",
+      "substitutes": [
+        "-apple-system",
+        "Segoe UI",
+        "Roboto"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Super Sans VF'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/superhuman-design-preview.png",
+    "signature": "An inspired interpretation of Superhumon's design language — a fast-email productivity brand split between an editorial dark hero (deep indi"
+  },
+  {
+    "slug": "tesla",
+    "name_ko": "Tesla",
+    "name_en": "Tesla",
+    "tags": [
+      "그라데이션",
+      "컬러풀",
+      "스타트업",
+      "제품"
+    ],
+    "colors": [
+      "#3e6ae1",
+      "#ffffff",
+      "#f4f4f4",
+      "#171a20",
+      "#393c41",
+      "#5c5e62",
+      "#8e8e8e",
+      "#eeeeee",
+      "#d0d1d2"
+    ],
+    "palette": {
+      "bg": "#3e6ae1",
+      "surface": "#3e6ae1",
+      "ink": "#3e6ae1",
+      "sub": "#3e6ae1",
+      "accent": "#3e6ae1"
+    },
+    "fonts": {
+      "title": "Universal Sans Display",
+      "body": "Universal Sans Text",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Universal Sans Display'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/tesla-design-preview.png",
+    "signature": "Tesla's website is an exercise in radical subtraction — a digital showroom where the product is everything and the interface is almost nothi"
+  },
+  {
+    "slug": "theverge",
+    "name_ko": "The",
+    "name_en": "The",
+    "tags": [
+      "다크",
+      "네온",
+      "생동감",
+      "강렬",
+      "임팩트",
+      "테크",
+      "모노",
+      "데이터"
+    ],
+    "colors": [
+      "#131313",
+      "#3cffd0",
+      "#5200ff",
+      "#ffffff",
+      "#2d2d2d",
+      "#309875",
+      "#3860be",
+      "#1eaedb",
+      "#3d00bf",
+      "#313131",
+      "#000000",
+      "#949494",
+      "#e9e9e9",
+      "#8c8c8c",
+      "#c2c2c2",
+      "#0500ff"
+    ],
+    "palette": {
+      "bg": "#131313",
+      "surface": "#131313",
+      "ink": "#131313",
+      "sub": "#131313",
+      "accent": "#131313"
+    },
+    "fonts": {
+      "title": "#3cffd0",
+      "body": "#131313",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 '#3cffd0'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/theverge-design-preview.png",
+    "signature": "The Verge's 2024 redesign feels like somebody wired a Condé Nast magazine to a chiptune soundboard"
+  },
+  {
+    "slug": "together.ai",
+    "name_ko": "Together",
+    "name_en": "Together",
+    "tags": [
+      "다크",
+      "테크",
+      "모노",
+      "데이터",
+      "그라데이션",
+      "컬러풀"
+    ],
+    "colors": [
+      "#000000",
+      "#ffffff",
+      "#959494",
+      "#010120",
+      "#313641",
+      "#fc4c02",
+      "#ef2cc1",
+      "#bdbbff",
+      "#c8f6f9"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#000000",
+      "sub": "#959494",
+      "accent": "#000000"
+    },
+    "fonts": {
+      "title": "The Future",
+      "body": "The Future",
+      "substitutes": [
+        "Inter",
+        "Helvetica Neue",
+        "Arial"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'The Future'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/together.ai-design-preview.png",
+    "signature": "An inspired interpretation of Together AI's design language — an AI infrastructure platform whose surface alternates between near-black hero"
+  },
+  {
+    "slug": "uber",
+    "name_ko": "Uber",
+    "name_en": "Uber",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "다크",
+      "기하학",
+      "모던"
+    ],
+    "colors": [
+      "#000000",
+      "#ffffff",
+      "#5e5e5e",
+      "#afafaf",
+      "#4b4b4b",
+      "#efefef",
+      "#f3f3f3",
+      "#e2e2e2",
+      "#0000ee",
+      "#282828"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#000000",
+      "sub": "#5e5e5e",
+      "accent": "#000000"
+    },
+    "fonts": {
+      "title": "UberMove",
+      "body": "UberMoveText",
+      "substitutes": [
+        "UberMoveText",
+        "Helvetica Neue",
+        "Arial"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'UberMove'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/uber-design-preview.png",
+    "signature": "An inspired interpretation of Uber's design language — a transportation-and-delivery super-app brand whose web surface is a black-and-white "
+  },
+  {
+    "slug": "vercel",
+    "name_ko": "버셀",
+    "name_en": "Vercel",
+    "tags": [
+      "다크",
+      "테크",
+      "모노",
+      "데이터",
+      "그라데이션",
+      "컬러풀",
+      "기하학",
+      "모던"
+    ],
+    "colors": [
+      "#171717",
+      "#ffffff",
+      "#4d4d4d",
+      "#888888",
+      "#ebebeb",
+      "#a1a1a1",
+      "#fafafa",
+      "#f5f5f5",
+      "#0070f3",
+      "#0761d1",
+      "#d3e5ff",
+      "#ee0000",
+      "#f7d4d6",
+      "#c50000",
+      "#f5a623",
+      "#ffefcf",
+      "#ab570a",
+      "#7928ca",
+      "#d8ccf1",
+      "#4c2889",
+      "#50e3c2",
+      "#aaffec",
+      "#29bc9b",
+      "#ff0080",
+      "#eb367f",
+      "#007cf0",
+      "#00dfd8",
+      "#ff4d4d",
+      "#f9cb28",
+      "#f2f2f2"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#171717",
+      "sub": "#4d4d4d",
+      "accent": "#171717"
+    },
+    "fonts": {
+      "title": "Geist",
+      "body": "Geist",
+      "substitutes": [
+        "Inter",
+        "-apple-system"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Geist'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/vercel-design-preview.png",
+    "signature": "An inspired interpretation of Vercel's design language — a developer-platform brand whose surface is a stark black-and-ink duet on near-whit"
+  },
+  {
+    "slug": "vodafone",
+    "name_ko": "Vodafone",
+    "name_en": "Vodafone",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "미니멀",
+      "깔끔",
+      "강렬",
+      "임팩트"
+    ],
+    "colors": [
+      "#e60000",
+      "#ffffff",
+      "#25282b",
+      "#7e7e7e",
+      "#bebebe",
+      "#f2f2f2"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#25282b",
+      "sub": "#7e7e7e",
+      "accent": "#e60000"
+    },
+    "fonts": {
+      "title": "Vodafone",
+      "body": "Vodafone",
+      "substitutes": [
+        "Vodafone Rg",
+        "Helvetica Neue",
+        "Arial"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Vodafone'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/vodafone-design-preview.png",
+    "signature": "An inspired interpretation of Vodafone's design language — a telecom super-brand whose web surface alternates between editorial photography "
+  },
+  {
+    "slug": "voltagent",
+    "name_ko": "Voltagent",
+    "name_en": "Voltagent",
+    "tags": [
+      "다크",
+      "네온",
+      "생동감",
+      "테크",
+      "모노",
+      "데이터",
+      "기하학",
+      "모던"
+    ],
+    "colors": [
+      "#00d992",
+      "#2fd6a1",
+      "#10b981",
+      "#101010",
+      "#f2f2f2",
+      "#ffffff",
+      "#bdbdbd",
+      "#8b949e",
+      "#3d3a39",
+      "#b8b3b0",
+      "#1a1a1a",
+      "#f5f6f7"
+    ],
+    "palette": {
+      "bg": "#101010",
+      "surface": "#101010",
+      "ink": "#f2f2f2",
+      "sub": "#bdbdbd",
+      "accent": "#00d992"
+    },
+    "fonts": {
+      "title": "Inter",
+      "body": "Inter",
+      "substitutes": [
+        "-apple-system",
+        "Segoe UI",
+        "Roboto"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Inter'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/voltagent-design-preview.png",
+    "signature": "An inspired interpretation of Voltagent's design language — a developer-focused AI agent engineering platform whose surface is an unrelentin"
+  },
+  {
+    "slug": "warp",
+    "name_ko": "Warp",
+    "name_en": "Warp",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "세리프",
+      "클래식",
+      "미니멀",
+      "깔끔",
+      "다크",
+      "테크",
+      "모노",
+      "데이터"
+    ],
+    "colors": [
+      "#f7f5f0",
+      "#2b2622",
+      "#c9c0ad",
+      "#dad2c1",
+      "#aea69c",
+      "#383330",
+      "#3f3a36"
+    ],
+    "palette": {
+      "bg": "#2b2622",
+      "surface": "#2b2622",
+      "ink": "#f7f5f0",
+      "sub": "#c9c0ad",
+      "accent": "#f7f5f0"
+    },
+    "fonts": {
+      "title": "Inter",
+      "body": "Inter",
+      "substitutes": [
+        "-apple-system",
+        "Segoe UI",
+        "Roboto"
+      ],
+      "titleWeb": "Noto Serif KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Inter'은 웹폰트가 아니라, 한글은 'Noto Serif KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/warp-design-preview.png",
+    "signature": "An inspired interpretation of Warp's design language — an agentic terminal-and-development-environment brand whose surface is a warm near-ch"
+  },
+  {
+    "slug": "webflow",
+    "name_ko": "Webflow",
+    "name_en": "Webflow",
+    "tags": [
+      "미니멀",
+      "깔끔",
+      "다크",
+      "스타트업",
+      "제품"
+    ],
+    "colors": [
+      "#080808",
+      "#ffffff",
+      "#222222",
+      "#363636",
+      "#5a5a5a",
+      "#898989",
+      "#ababab",
+      "#d8d8d8",
+      "#7a3dff",
+      "#ed52cb",
+      "#3b89ff",
+      "#006acc",
+      "#146ef5",
+      "#ff6b00",
+      "#00d722",
+      "#ffae13",
+      "#ee1d36"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#080808",
+      "sub": "#363636",
+      "accent": "#080808"
+    },
+    "fonts": {
+      "title": "WF Visual Sans Variable",
+      "body": "WF Visual Sans Variable",
+      "substitutes": [
+        "Inter"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'WF Visual Sans Variable'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/webflow-design-preview.png",
+    "signature": "An inspired interpretation of Webflow's design language — a visual web development platform whose surface contrasts a deep near-black `#0808"
   }
 ]
