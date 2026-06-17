@@ -70,6 +70,66 @@
     "signature": "A warm, generous consumer marketplace anchored on a clean white canvas and Airbnb Rausch (#ff385c), the single brand voltage that carries ev"
   },
   {
+    "slug": "airtable",
+    "name_ko": "Airtable",
+    "name_en": "Airtable",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "다크",
+      "강렬",
+      "임팩트",
+      "발랄",
+      "친근"
+    ],
+    "colors": [
+      "#181d26",
+      "#0d1218",
+      "#333840",
+      "#41454d",
+      "#dddddd",
+      "#9297a0",
+      "#ffffff",
+      "#f8fafc",
+      "#e0e2e6",
+      "#1d1f25",
+      "#aa2d00",
+      "#0a2e0e",
+      "#f5e9d4",
+      "#fcab79",
+      "#a8d8c4",
+      "#f4d35e",
+      "#d9a441",
+      "#1b61c9",
+      "#1a3866",
+      "#254fad",
+      "#458fff",
+      "#006400",
+      "#39bf45"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#f8fafc",
+      "ink": "#181d26",
+      "sub": "#41454d",
+      "accent": "#181d26"
+    },
+    "fonts": {
+      "title": "Haas Groot Disp",
+      "body": "Haas",
+      "substitutes": [
+        "Haas"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Haas Groot Disp'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/airtable-design-preview.png",
+    "signature": "A sober, editorial workflow-software interface anchored on white canvas and dark-ink type, where brand voltage comes from full-bleed signatu"
+  },
+  {
     "slug": "apple",
     "name_ko": "애플",
     "name_en": "Apple",
@@ -241,6 +301,56 @@
     "signature": "BMW's corporate site — distinct from BMW M's motorsport-bombastic variant, this is a measured and settled corporate-automotive interface"
   },
   {
+    "slug": "bmw-m",
+    "name_ko": "BMW",
+    "name_en": "BMW",
+    "tags": [
+      "다크",
+      "테크",
+      "모노",
+      "데이터"
+    ],
+    "colors": [
+      "#ffffff",
+      "#bbbbbb",
+      "#e6e6e6",
+      "#7e7e7e",
+      "#3c3c3c",
+      "#262626",
+      "#000000",
+      "#1a1a1a",
+      "#0d0d0d",
+      "#0066b1",
+      "#1c69d4",
+      "#e22718",
+      "#0653b6",
+      "#2b2b2b",
+      "#f4b400",
+      "#0fa336"
+    ],
+    "palette": {
+      "bg": "#000000",
+      "surface": "#1a1a1a",
+      "ink": "#ffffff",
+      "sub": "#7e7e7e",
+      "accent": "#ffffff"
+    },
+    "fonts": {
+      "title": "BMWTypeNextLatin",
+      "body": "BMWTypeNextLatin Light",
+      "substitutes": [
+        "BMWTypeNextLatin"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'BMWTypeNextLatin'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/bmw-m-design-preview.png",
+    "signature": "A motorsport-engineering interface anchored on a near-black canvas with white BMW Type Next Latin display headlines in confident UPPERCASE"
+  },
+  {
     "slug": "bugatti",
     "name_ko": "부가티",
     "name_en": "Bugatti",
@@ -290,6 +400,66 @@
     },
     "thumbnail": "/design-thumbnails/bugatti-design-preview.png",
     "signature": "An austere luxury-automotive interface that uses near-pure black canvas, white uppercase letterspaced display, and full-bleed automotive pho"
+  },
+  {
+    "slug": "cal",
+    "name_ko": "Cal.com",
+    "name_en": "Cal.com",
+    "tags": [
+      "미니멀",
+      "깔끔",
+      "다크",
+      "발랄",
+      "친근",
+      "모던",
+      "기하학",
+      "스타트업",
+      "제품"
+    ],
+    "colors": [
+      "#111111",
+      "#242424",
+      "#e5e7eb",
+      "#374151",
+      "#6b7280",
+      "#898989",
+      "#f3f4f6",
+      "#ffffff",
+      "#f8f9fa",
+      "#f5f5f5",
+      "#101010",
+      "#1a1a1a",
+      "#a1a1aa",
+      "#3b82f6",
+      "#10b981",
+      "#f59e0b",
+      "#ef4444",
+      "#fb923c",
+      "#ec4899",
+      "#8b5cf6",
+      "#34d399"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#f5f5f5",
+      "ink": "#111111",
+      "sub": "#6b7280",
+      "accent": "#111111"
+    },
+    "fonts": {
+      "title": "Cal Sans",
+      "body": "Inter",
+      "substitutes": [
+        "Inter"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Cal Sans'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/cal-design-preview.png",
+    "signature": "A clean, calendar-software-first interface anchored on white canvas with black primary CTAs and custom Cal Sans display typography"
   },
   {
     "slug": "claude",
@@ -355,6 +525,74 @@
     },
     "thumbnail": "/design-thumbnails/claude-design-preview.png",
     "signature": "A warm-canvas editorial interface for Anthropic's Claude product"
+  },
+  {
+    "slug": "clay",
+    "name_ko": "Clay",
+    "name_en": "Clay",
+    "tags": [
+      "다크",
+      "네온",
+      "생동감",
+      "발랄",
+      "친근",
+      "테크",
+      "모노",
+      "데이터",
+      "그라데이션",
+      "컬러풀",
+      "스타트업",
+      "제품"
+    ],
+    "colors": [
+      "#0a0a0a",
+      "#1f1f1f",
+      "#e5e5e5",
+      "#3a3a3a",
+      "#1a1a1a",
+      "#6a6a6a",
+      "#9a9a9a",
+      "#f0f0f0",
+      "#fffaf0",
+      "#faf5e8",
+      "#f5f0e0",
+      "#ebe6d6",
+      "#0a1a1a",
+      "#1a2a2a",
+      "#ffffff",
+      "#a0a0a0",
+      "#ff4d8b",
+      "#1a3a3a",
+      "#b8a4ed",
+      "#ffb084",
+      "#e8b94a",
+      "#a4d4c5",
+      "#ff6b5a",
+      "#22c55e",
+      "#f59e0b",
+      "#ef4444"
+    ],
+    "palette": {
+      "bg": "#fffaf0",
+      "surface": "#f5f0e0",
+      "ink": "#0a0a0a",
+      "sub": "#6a6a6a",
+      "accent": "#0a0a0a"
+    },
+    "fonts": {
+      "title": "Plain Black",
+      "body": "Inter",
+      "substitutes": [
+        "Inter"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Plain Black'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/clay-design-preview.png",
+    "signature": "A vibrant claymation-meets-data interface for Clay.com (GTM data-orchestration platform)"
   },
   {
     "slug": "clickhouse",
@@ -473,6 +711,357 @@
     "signature": "Cohere's 2026 web system is a controlled enterprise AI interface built from stark white editorial space, deep green-black product bands, sof"
   },
   {
+    "slug": "coinbase",
+    "name_ko": "코인베이스",
+    "name_en": "Coinbase",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "미니멀",
+      "깔끔",
+      "다크",
+      "발랄",
+      "친근",
+      "테크",
+      "모노",
+      "데이터",
+      "기하학",
+      "모던",
+      "스타트업",
+      "제품"
+    ],
+    "colors": [
+      "#0052ff",
+      "#003ecc",
+      "#a8b8cc",
+      "#0a0b0d",
+      "#5b616e",
+      "#7c828a",
+      "#a8acb3",
+      "#dee1e6",
+      "#eef0f3",
+      "#ffffff",
+      "#f7f7f7",
+      "#16181c",
+      "#05b169",
+      "#cf202f",
+      "#f4b000"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#0a0b0d",
+      "sub": "#7c828a",
+      "accent": "#0052ff"
+    },
+    "fonts": {
+      "title": "Coinbase Display",
+      "body": "Coinbase Sans",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Coinbase Display'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/coinbase-design-preview.png",
+    "signature": "An institutional-grade crypto exchange whose marketing surfaces read like a quietly-confident financial-services brand"
+  },
+  {
+    "slug": "composio",
+    "name_ko": "Composio",
+    "name_en": "Composio",
+    "tags": [
+      "다크",
+      "네온",
+      "생동감",
+      "강렬",
+      "임팩트",
+      "테크",
+      "모노",
+      "데이터",
+      "기하학",
+      "모던"
+    ],
+    "colors": [
+      "#0007cd",
+      "#0005a3",
+      "#1a26ff",
+      "#ffffff",
+      "#a8a8a8",
+      "#888888",
+      "#666666",
+      "#222222",
+      "#1a1a1a",
+      "#333333",
+      "#0f0f0f",
+      "#000000",
+      "#181818",
+      "#2a2a2a",
+      "#00d4ff",
+      "#7b3aed",
+      "#ff4d4d",
+      "#33d17a"
+    ],
+    "palette": {
+      "bg": "#0f0f0f",
+      "surface": "#181818",
+      "ink": "#ffffff",
+      "sub": "#888888",
+      "accent": "#0007cd"
+    },
+    "fonts": {
+      "title": "abcDiatype",
+      "body": "abcDiatype",
+      "substitutes": [
+        "ui-sans-serif"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'abcDiatype'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/composio-design-preview.png",
+    "signature": "A developer-tools brand for AI-agent tool integration whose marketing surfaces lean into a dark, technical aesthetic with a single deep-elec"
+  },
+  {
+    "slug": "cursor",
+    "name_ko": "커서",
+    "name_en": "Cursor",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "미니멀",
+      "깔끔",
+      "다크",
+      "강렬",
+      "임팩트",
+      "테크",
+      "모노",
+      "데이터",
+      "스타트업",
+      "제품"
+    ],
+    "colors": [
+      "#f54e00",
+      "#d04200",
+      "#26251e",
+      "#5a5852",
+      "#807d72",
+      "#a09c92",
+      "#e6e5e0",
+      "#efeee8",
+      "#cfcdc4",
+      "#f7f7f4",
+      "#fafaf7",
+      "#ffffff",
+      "#dfa88f",
+      "#9fc9a2",
+      "#9fbbe0",
+      "#c0a8dd",
+      "#c08532",
+      "#cf2d56",
+      "#1f8a65"
+    ],
+    "palette": {
+      "bg": "#f7f7f4",
+      "surface": "#ffffff",
+      "ink": "#26251e",
+      "sub": "#807d72",
+      "accent": "#f54e00"
+    },
+    "fonts": {
+      "title": "CursorGothic",
+      "body": "CursorGothic",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'CursorGothic'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/cursor-design-preview.png",
+    "signature": "An AI-first code editor whose marketing site reads like a quietly-confident developer-tools brand with a warm-cream editorial canvas (`#f7f7"
+  },
+  {
+    "slug": "dell-1996",
+    "name_ko": "Dell 1996 Inspired",
+    "name_en": "Dell 1996 Inspired",
+    "tags": [
+      "다크",
+      "네온",
+      "생동감",
+      "발랄",
+      "친근",
+      "비즈니스",
+      "신뢰",
+      "전문",
+      "스타트업",
+      "제품"
+    ],
+    "colors": [
+      "#e91d2a",
+      "#ffffff",
+      "#000000",
+      "#fcc20f",
+      "#6a26a4",
+      "#0000ee",
+      "#8e8a25",
+      "#b3bd95",
+      "#d77a7a",
+      "#e6915d",
+      "#c0d4a7",
+      "#9ab6c8",
+      "#a5b8c0",
+      "#8c9ae0"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#000000",
+      "sub": "#000000",
+      "accent": "#e91d2a"
+    },
+    "fonts": {
+      "title": "Arial Black",
+      "body": "Times New Roman",
+      "substitutes": [],
+      "titleWeb": "Noto Serif KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Arial Black'은 웹폰트가 아니라, 한글은 'Noto Serif KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/dell-1996-design-preview.png",
+    "signature": "An inspired interpretation of Dell.com's 1996 design language — a catalog-era enterprise web design built around a literal black page frame,"
+  },
+  {
+    "slug": "elevenlabs",
+    "name_ko": "ElevenLabs",
+    "name_en": "ElevenLabs",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "다크",
+      "네온",
+      "생동감",
+      "발랄",
+      "친근",
+      "비즈니스",
+      "신뢰",
+      "전문",
+      "테크",
+      "모노",
+      "데이터",
+      "그라데이션",
+      "컬러풀"
+    ],
+    "colors": [
+      "#292524",
+      "#0c0a09",
+      "#4e4e4e",
+      "#777169",
+      "#a8a29e",
+      "#e7e5e4",
+      "#f0efed",
+      "#d6d3d1",
+      "#f5f5f5",
+      "#fafafa",
+      "#ffffff",
+      "#1c1917",
+      "#a7e5d3",
+      "#f4c5a8",
+      "#c8b8e0",
+      "#a8c8e8",
+      "#e8b8c4",
+      "#dc2626",
+      "#16a34a"
+    ],
+    "palette": {
+      "bg": "#f5f5f5",
+      "surface": "#ffffff",
+      "ink": "#0c0a09",
+      "sub": "#777169",
+      "accent": "#292524"
+    },
+    "fonts": {
+      "title": "Waldenburg",
+      "body": "Inter",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Waldenburg'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/elevenlabs-design-preview.png",
+    "signature": "A voice-AI brand whose marketing surfaces read like a quietly editorial print magazine"
+  },
+  {
+    "slug": "expo",
+    "name_ko": "엑스포",
+    "name_en": "Expo",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "미니멀",
+      "깔끔",
+      "다크",
+      "강렬",
+      "임팩트",
+      "발랄",
+      "친근",
+      "테크",
+      "모노",
+      "데이터",
+      "그라데이션",
+      "컬러풀"
+    ],
+    "colors": [
+      "#000000",
+      "#1a1a1a",
+      "#0d74ce",
+      "#476cff",
+      "#171717",
+      "#60646c",
+      "#999999",
+      "#cccccc",
+      "#f0f0f3",
+      "#f5f5f7",
+      "#dcdee0",
+      "#ffffff",
+      "#fafafa",
+      "#b0b4ba",
+      "#cfe7ff",
+      "#a8c8e8",
+      "#ab6400",
+      "#8145b5",
+      "#47c2ff",
+      "#eb8e90",
+      "#16a34a"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#171717",
+      "sub": "#999999",
+      "accent": "#000000"
+    },
+    "fonts": {
+      "title": "Inter",
+      "body": "Inter",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Inter'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/expo-design-preview.png",
+    "signature": "A React Native developer-platform whose marketing site reads like a quietly-confident infrastructure brand"
+  },
+  {
     "slug": "ferrari",
     "name_ko": "페라리",
     "name_en": "Ferrari",
@@ -576,5 +1165,115 @@
     },
     "thumbnail": "/design-thumbnails/figma-design-preview.png",
     "signature": "\"A confident black-and-white editorial frame interrupted by oversized, hand-cut pastel color blocks"
+  },
+  {
+    "slug": "framer",
+    "name_ko": "Framer",
+    "name_en": "Framer",
+    "tags": [
+      "다크",
+      "네온",
+      "생동감",
+      "그라데이션",
+      "컬러풀"
+    ],
+    "colors": [
+      "#ffffff",
+      "#000000",
+      "#0099ff",
+      "#999999",
+      "#090909",
+      "#141414",
+      "#1c1c1c",
+      "#262626",
+      "#1a1a1a",
+      "#d44df0",
+      "#6a4cf5",
+      "#ff7a3d",
+      "#ff5577",
+      "#22c55e"
+    ],
+    "palette": {
+      "bg": "#090909",
+      "surface": "#090909",
+      "ink": "#ffffff",
+      "sub": "#ffffff",
+      "accent": "#ffffff"
+    },
+    "fonts": {
+      "title": "GT Walsheim Medium",
+      "body": "Inter Variable",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'GT Walsheim Medium'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/framer-design-preview.png",
+    "signature": "\"A confident dark-canvas builder marketing site that treats the page like a working artboard — pure black surfaces, white display type set i"
+  },
+  {
+    "slug": "hashicorp",
+    "name_ko": "HashiCorp",
+    "name_en": "HashiCorp",
+    "tags": [
+      "다크",
+      "발랄",
+      "친근",
+      "비즈니스",
+      "신뢰",
+      "전문",
+      "테크",
+      "모노",
+      "데이터",
+      "그라데이션",
+      "컬러풀",
+      "스타트업",
+      "제품"
+    ],
+    "colors": [
+      "#000000",
+      "#ffffff",
+      "#2b89ff",
+      "#b2b6bd",
+      "#656a76",
+      "#15181e",
+      "#1f232b",
+      "#3b3d45",
+      "#252830",
+      "#7b42bc",
+      "#911ced",
+      "#ffcf25",
+      "#e62b1e",
+      "#14c6cb",
+      "#12b6bb",
+      "#1868f2",
+      "#00ca8e",
+      "#f24c53",
+      "#fbeabf",
+      "#bb5a00",
+      "#101a59",
+      "#a737ff"
+    ],
+    "palette": {
+      "bg": "#000000",
+      "surface": "#000000",
+      "ink": "#ffffff",
+      "sub": "#ffffff",
+      "accent": "#000000"
+    },
+    "fonts": {
+      "title": "hashicorpSans",
+      "body": "hashicorpSans",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'hashicorpSans'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/hashicorp-design-preview.png",
+    "signature": "\"An enterprise-infrastructure marketing canvas built around a near-black ground (#000000) and a system of per-product accent colors — Terraf"
   }
 ]
