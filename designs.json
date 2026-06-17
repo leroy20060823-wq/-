@@ -3863,5 +3863,222 @@
     },
     "thumbnail": "/design-thumbnails/webflow-design-preview.png",
     "signature": "An inspired interpretation of Webflow's design language — a visual web development platform whose surface contrasts a deep near-black `#0808"
+  },
+  {
+    "slug": "wired",
+    "name_ko": "Wired",
+    "name_en": "Wired",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "세리프",
+      "클래식",
+      "미니멀",
+      "깔끔",
+      "다크",
+      "테크",
+      "모노",
+      "데이터"
+    ],
+    "colors": [
+      "#000000",
+      "#ffffff",
+      "#1a1a1a",
+      "#757575",
+      "#e0e0e0",
+      "#f5f5f5",
+      "#057dbc"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#000000",
+      "sub": "#757575",
+      "accent": "#000000"
+    },
+    "fonts": {
+      "title": "WiredDisplay",
+      "body": "Apercu",
+      "substitutes": [
+        "Times New Roman",
+        "Georgia",
+        "Helvetica Neue",
+        "Helvetica",
+        "Arial"
+      ],
+      "titleWeb": "Noto Serif KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Noto Serif",
+      "substituted": true,
+      "note": "원안 'WiredDisplay'은 웹폰트가 아니라, 한글은 'Noto Serif KR', 라틴은 'Noto Serif'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/wired-design-preview.png",
+    "signature": "An inspired interpretation of Wired's design language — a flagship technology-magazine brand whose surface is a strict editorial duet of sta"
+  },
+  {
+    "slug": "wise",
+    "name_ko": "Wise",
+    "name_en": "Wise",
+    "tags": [
+      "다크",
+      "네온",
+      "생동감",
+      "강렬",
+      "임팩트",
+      "발랄",
+      "친근",
+      "테크",
+      "모노",
+      "데이터"
+    ],
+    "colors": [
+      "#9fe870",
+      "#0e0f0c",
+      "#cdffad",
+      "#c5edab",
+      "#e2f6d5",
+      "#163300",
+      "#454745",
+      "#868685",
+      "#ffffff",
+      "#e8ebe6",
+      "#2ead4b",
+      "#054d28",
+      "#ffd11a",
+      "#b86700",
+      "#4a3b1c",
+      "#d03238",
+      "#a72027",
+      "#a7000d",
+      "#320707",
+      "#ffc091",
+      "#38c8ff"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#0e0f0c",
+      "sub": "#454745",
+      "accent": "#9fe870"
+    },
+    "fonts": {
+      "title": "Wise Sans",
+      "body": "Inter",
+      "substitutes": [
+        "Inter"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Wise Sans'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/wise-design-preview.png",
+    "signature": "An inspired interpretation of Wise's design language — a global money-transfer brand whose surface combines an unusually heavy near-black di"
+  },
+  {
+    "slug": "x.ai",
+    "name_ko": "XAI",
+    "name_en": "XAI",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "다크",
+      "테크",
+      "모노",
+      "데이터",
+      "그라데이션",
+      "컬러풀",
+      "기하학",
+      "모던"
+    ],
+    "colors": [
+      "#ffffff",
+      "#0a0a0a",
+      "#fafaf7",
+      "#dadbdf",
+      "#7d8187",
+      "#212327",
+      "#1a1c20",
+      "#191919",
+      "#363a3f",
+      "#ff7a17",
+      "#ffc285",
+      "#7c3aed",
+      "#c4b5fd",
+      "#a0c3ec",
+      "#0d1726"
+    ],
+    "palette": {
+      "bg": "#0a0a0a",
+      "surface": "#0a0a0a",
+      "ink": "#ffffff",
+      "sub": "#dadbdf",
+      "accent": "#ffffff"
+    },
+    "fonts": {
+      "title": "universalSans",
+      "body": "universalSans",
+      "substitutes": [
+        "Inter",
+        "-apple-system"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'universalSans'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/x.ai-design-preview.png",
+    "signature": "An inspired interpretation of xAI's design language — Elon Musk's frontier-AI company whose web surface is a strict near-black canvas broken"
+  },
+  {
+    "slug": "zapier",
+    "name_ko": "Zapier",
+    "name_en": "Zapier",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "네온",
+      "생동감",
+      "발랄",
+      "친근",
+      "테크",
+      "모노",
+      "데이터"
+    ],
+    "colors": [
+      "#ff4f00",
+      "#fffefb",
+      "#201515",
+      "#2f2a26",
+      "#36342e",
+      "#605d52",
+      "#939084",
+      "#c5c0b1",
+      "#f8f4f0"
+    ],
+    "palette": {
+      "bg": "#fffefb",
+      "surface": "#fffefb",
+      "ink": "#201515",
+      "sub": "#605d52",
+      "accent": "#ff4f00"
+    },
+    "fonts": {
+      "title": "Degular Display",
+      "body": "Inter",
+      "substitutes": [
+        "Inter",
+        "-apple-system"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Degular Display'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/zapier-design-preview.png",
+    "signature": "An inspired interpretation of Zapier's design language — a workflow-automation platform whose surface combines warm-cream neutrals (`#fffefb"
   }
 ]
