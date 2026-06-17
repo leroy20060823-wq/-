@@ -13,6 +13,8 @@ export type ModuleOptionType = "select" | "number" | "text";
 export interface ModuleOptionChoice {
   value: string;
   label?: string;
+  /** Short beginner example shown in the wizard. */
+  example?: string;
 }
 
 export interface ModuleOption {
@@ -24,6 +26,9 @@ export interface ModuleOption {
   min?: number;
   max?: number;
   placeholder?: string;
+  /** Beginner wizard: friendly question + plain-language help. */
+  question?: string;
+  help?: string;
 }
 
 /**
@@ -38,6 +43,12 @@ export interface GuideField {
   choices?: ModuleOptionChoice[];
   required?: boolean;
   hint?: string;
+  /** Beginner wizard: the big friendly question (falls back to label). */
+  question?: string;
+  /** Beginner wizard: plain-language help (jargon explained in parentheses). */
+  help?: string;
+  /** Beginner wizard: value used when the user taps "잘 모르겠어요". */
+  skipValue?: string | number;
 }
 
 export interface GenerationModule {
@@ -53,11 +64,17 @@ export interface GenerationModule {
   referenceExample?: string;
   /** Placeholder text for the main input textarea (per module). */
   inputPlaceholder?: string;
+  /** Enable the beginner one-question-at-a-time wizard for this module. */
+  wizard?: boolean;
   model?: string;
   maxTokens?: number;
 }
 
-const DIFFICULTY: ModuleOptionChoice[] = [{ value: "하" }, { value: "중" }, { value: "상" }];
+const DIFFICULTY: ModuleOptionChoice[] = [
+  { value: "하", example: "기초 위주, 쉽게" },
+  { value: "중", example: "보통 수준" },
+  { value: "상", example: "어렵게, 변별력 있게" },
+];
 
 const MODULES: GenerationModule[] = [
   {
@@ -68,15 +85,67 @@ const MODULES: GenerationModule[] = [
     purpose: "기말·중간 대비 완본 모의고사 (배점표·정답표·정밀 해설지 포함)",
     model: "claude-sonnet-4-6",
     maxTokens: 16000,
+    wizard: true,
     options: [
-      { key: "difficulty", label: "난이도", type: "select", choices: DIFFICULTY, default: "중" },
-      { key: "count", label: "문항 수", type: "number", default: 33, min: 10, max: 50 },
+      {
+        key: "difficulty",
+        label: "난이도",
+        type: "select",
+        choices: DIFFICULTY,
+        default: "중",
+        question: "난이도는 어느 정도로 할까요?",
+        help: "문제가 얼마나 어려울지 정해요.",
+      },
+      {
+        key: "count",
+        label: "문항 수",
+        type: "number",
+        default: 33,
+        min: 10,
+        max: 50,
+        question: "문제는 몇 개 만들까요?",
+        help: "보통 20~33개를 많이 써요. 숫자로 적어주세요.",
+      },
     ],
     guide: [
-      { key: "subject", label: "과목", type: "text", required: true, placeholder: "예: 영어 읽기와 쓰기" },
-      { key: "scope", label: "출제 범위 / 단원", type: "text", required: true, placeholder: "예: 교재 Unit 3~4" },
-      { key: "types", label: "포함할 문항 유형", type: "text", placeholder: "예: 어휘, 독해, 서술형, 문법" },
-      { key: "note", label: "특이사항 (선택)", type: "text", placeholder: "예: 서술형 비중 높이기" },
+      {
+        key: "subject",
+        label: "과목",
+        type: "text",
+        required: true,
+        placeholder: "예: 영어, 수학, 한국사",
+        question: "어떤 과목의 시험지를 만들까요?",
+        help: "가르치거나 공부하는 과목을 적어주세요.",
+        skipValue: "영어",
+      },
+      {
+        key: "scope",
+        label: "출제 범위 / 단원",
+        type: "text",
+        required: true,
+        placeholder: "예: 교재 3~4단원, 2학기 중간 범위",
+        question: "어느 범위에서 낼까요?",
+        help: "교재 단원이나 다룰 주제 범위요. 모르면 넘어가도 돼요.",
+        skipValue: "교재 전체 범위에서 골고루",
+      },
+      {
+        key: "types",
+        label: "문항 유형",
+        type: "text",
+        placeholder: "예: 객관식 위주, 객관식+서술형",
+        question: "어떤 형태의 문제를 넣을까요?",
+        help: "객관식(보기 중 고르기)·서술형(직접 쓰기) 같은 문제 형태요.",
+        skipValue: "객관식과 서술형을 골고루",
+      },
+      {
+        key: "note",
+        label: "특이사항 (선택)",
+        type: "text",
+        placeholder: "예: 서술형 비중을 높여 주세요",
+        question: "더 알려주고 싶은 점이 있나요?",
+        help: "없으면 그냥 넘어가셔도 됩니다.",
+        skipValue: "",
+      },
     ],
     systemPrompt: [
       "You are an expert exam author who creates full mock-exam papers (모의고사/시험지) on a professional, fixed blueprint. Generate a brand-new exam every time.",
@@ -405,16 +474,73 @@ const MODULES: GenerationModule[] = [
     purpose: "서사형 자기소개서 — 일화 중심으로 강점을 보여주는 글",
     model: "claude-sonnet-4-6",
     maxTokens: 8000,
+    wizard: true,
     options: [
-      { key: "role", label: "지원 직무", type: "text", placeholder: "예: 외식업 매니저" },
-      { key: "company", label: "지원 회사", type: "text", placeholder: "예: ○○컴퍼니 (선택)" },
-      { key: "length", label: "글자 수", type: "number", default: 1000, min: 200, max: 5000 },
+      {
+        key: "role",
+        label: "지원 직무",
+        type: "text",
+        placeholder: "예: 요양보호사, 카페 직원, 사무 보조",
+        question: "어떤 일(직무)에 지원하시나요?",
+        help: "지원하려는 직무나 일자리를 적어주세요.",
+      },
+      {
+        key: "company",
+        label: "지원 회사",
+        type: "text",
+        placeholder: "예: ○○컴퍼니",
+        question: "지원하는 회사 이름이 있나요?",
+        help: "없으면 넘어가셔도 됩니다.",
+      },
+      {
+        key: "length",
+        label: "글자 수",
+        type: "number",
+        default: 1000,
+        min: 200,
+        max: 5000,
+        question: "글은 어느 정도 길이로 쓸까요?",
+        help: "보통 1000자 정도예요. 숫자로 적어주세요.",
+      },
     ],
     guide: [
-      { key: "experience", label: "핵심 경험", type: "textarea", required: true, placeholder: "자랑할 경험 1~2개 (상황·한 일·결과)" },
-      { key: "motivation", label: "지원 동기", type: "textarea", placeholder: "왜 이 직무/회사인지" },
-      { key: "strength", label: "강조할 강점", type: "text", placeholder: "예: 끈기, 협업" },
-      { key: "prompts", label: "자소서 문항 (있으면)", type: "textarea", placeholder: "예: 1. 지원 동기 2. 입사 후 포부" },
+      {
+        key: "experience",
+        label: "핵심 경험",
+        type: "textarea",
+        required: true,
+        placeholder: "예: 마트에서 3년간 일하며 손님 응대를 잘했어요.",
+        question: "자랑하고 싶은 경험을 알려주세요.",
+        help: "일했던 곳, 맡았던 일, 잘했던 점을 편하게 적어주세요. 한두 가지면 충분해요.",
+        skipValue: "[대표 경험을 한 가지 적어 주세요]",
+      },
+      {
+        key: "motivation",
+        label: "지원 동기",
+        type: "textarea",
+        placeholder: "예: 사람을 돕는 일이 보람돼서요.",
+        question: "왜 이 일을 하고 싶으세요?",
+        help: "지원하는 이유를 한두 문장으로 적어주세요.",
+        skipValue: "",
+      },
+      {
+        key: "strength",
+        label: "강조할 강점",
+        type: "text",
+        placeholder: "예: 성실함, 책임감, 친절함",
+        question: "본인의 장점은 무엇인가요?",
+        help: "잘하는 점이나 성격의 강점이요.",
+        skipValue: "",
+      },
+      {
+        key: "prompts",
+        label: "자소서 문항 (있으면)",
+        type: "textarea",
+        placeholder: "예: 1. 지원 동기 2. 입사 후 포부",
+        question: "정해진 자소서 질문이 있나요?",
+        help: "회사가 준 질문이 있으면 적어주세요. 없으면 넘어가세요.",
+        skipValue: "",
+      },
     ],
     systemPrompt: [
       "You are a career writing assistant who drafts compelling, authentic Korean-style self-introductions (자기소개서) in a warm, narrative voice.",

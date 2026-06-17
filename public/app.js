@@ -70,6 +70,10 @@ const loadingEl = document.getElementById("loading");
 const outputEl = document.getElementById("output");
 const errorEl = document.getElementById("error");
 const copyBtn = document.getElementById("copy");
+const wizardEl = document.getElementById("wizard");
+const toWizardBtn = document.getElementById("to-wizard");
+const extraField = document.getElementById("extra-field");
+const actionsRow = document.getElementById("actions-row");
 
 let modules = [];
 let controller = null;
@@ -79,6 +83,12 @@ const defaultInputPlaceholder = inputEl.getAttribute("placeholder") ?? "";
 let themesById = {};
 let selectedPptTheme = null;
 const fontsLoaded = new Set();
+
+// Beginner wizard state
+let classicMode = false;
+let wizardSteps = [];
+let wizardIdx = 0;
+let wizardValues = {};
 
 // Streaming render state.
 let raw = "";
@@ -354,6 +364,179 @@ async function showAllThemes() {
   }
 }
 
+/* ---------- Beginner step-by-step wizard ---------- */
+function getCurrentModule() {
+  return modules.find((m) => m.id === moduleSelect.value);
+}
+
+function buildWizardSteps(module) {
+  const steps = [];
+  for (const f of module.guide ?? []) steps.push({ kind: "guide", ...f });
+  for (const o of module.options ?? []) steps.push({ kind: "option", ...o });
+  return steps;
+}
+
+function stepSkipValue(s) {
+  if (s.kind === "guide") return s.skipValue !== undefined ? s.skipValue : "";
+  return s.default !== undefined ? s.default : "";
+}
+
+function applyInputMode(module) {
+  const useWizard = !!(module && module.wizard) && !classicMode;
+  wizardEl.hidden = !useWizard;
+  toWizardBtn.hidden = !(module && module.wizard && classicMode);
+  const disp = useWizard ? "none" : "";
+  guideFieldsEl.style.display = disp;
+  moduleOptionsEl.style.display = disp;
+  extraField.style.display = disp;
+  actionsRow.style.display = disp;
+  if (useWizard) startWizard(module);
+  else wizardEl.innerHTML = "";
+}
+
+function startWizard(module) {
+  wizardSteps = buildWizardSteps(module);
+  wizardIdx = 0;
+  wizardValues = {};
+  renderWizardStep();
+}
+
+function setWizardCurrentValue(val) {
+  const s = wizardSteps[wizardIdx];
+  if (s) wizardValues[s.key] = val;
+}
+
+function renderWizardStep() {
+  if (wizardIdx >= wizardSteps.length) {
+    renderWizardSummary();
+    return;
+  }
+  const s = wizardSteps[wizardIdx];
+  const total = wizardSteps.length;
+  const pct = Math.round((wizardIdx / total) * 100);
+  const help = s.help ? `<p class="wizard-help">${escapeHtml(s.help)}</p>` : "";
+  const cur = wizardValues[s.key] ?? "";
+
+  let control;
+  const isChoice = s.type === "select" && (s.choices ?? []).length > 0;
+  if (isChoice) {
+    control =
+      `<div class="wizard-choices">` +
+      s.choices
+        .map((c) => {
+          const ex = c.example ? `<span class="ex">${escapeHtml(c.example)}</span>` : "";
+          return `<button type="button" class="wizard-choice" data-choice="${escapeHtml(c.value)}">${escapeHtml(c.label || c.value)}${ex}</button>`;
+        })
+        .join("") +
+      `</div>`;
+  } else if (s.type === "textarea") {
+    control = `<textarea class="wizard-input" id="wizard-input" placeholder="${escapeHtml(s.placeholder || "")}">${escapeHtml(String(cur))}</textarea>`;
+  } else {
+    const t = s.type === "number" ? "number" : "text";
+    const minmax = `${s.min !== undefined ? `min="${s.min}"` : ""} ${s.max !== undefined ? `max="${s.max}"` : ""}`;
+    control = `<input class="wizard-input" id="wizard-input" type="${t}" placeholder="${escapeHtml(s.placeholder || "")}" value="${escapeHtml(String(cur))}" ${minmax}>`;
+  }
+
+  wizardEl.innerHTML =
+    `<div class="wizard-progress"><span class="wizard-progress-text">${wizardIdx + 1} / ${total}</span><span class="wizard-bar"><i style="width:${pct}%"></i></span></div>` +
+    `<h3 class="wizard-q">${escapeHtml(s.question || s.label)}</h3>` +
+    help +
+    control +
+    `<p class="wizard-warn" id="wizard-warn" role="alert"></p>` +
+    `<div class="wizard-actions">` +
+    (isChoice ? "" : `<button type="button" class="btn-primary" id="wizard-next">다음</button>`) +
+    (wizardIdx > 0 ? `<button type="button" class="btn-ghost" id="wizard-prev">이전</button>` : "") +
+    `<button type="button" class="wizard-skip" id="wizard-skip">잘 모르겠어요</button>` +
+    `</div>` +
+    `<button type="button" class="wizard-skip" id="wizard-classic">직접 입력하기</button>`;
+
+  if (isChoice) {
+    wizardEl.querySelectorAll("[data-choice]").forEach((b) =>
+      b.addEventListener("click", () => {
+        setWizardCurrentValue(b.dataset.choice);
+        wizardIdx += 1;
+        renderWizardStep();
+      }),
+    );
+  } else {
+    const inp = document.getElementById("wizard-input");
+    inp?.focus();
+    document.getElementById("wizard-next").addEventListener("click", () => {
+      const val = inp.value.trim();
+      if (s.required && !val) {
+        document.getElementById("wizard-warn").textContent =
+          "이 항목은 꼭 필요해요. 모르시면 아래 '잘 모르겠어요'를 눌러주세요.";
+        inp.focus();
+        return;
+      }
+      setWizardCurrentValue(val);
+      wizardIdx += 1;
+      renderWizardStep();
+    });
+  }
+  document.getElementById("wizard-skip").addEventListener("click", () => {
+    setWizardCurrentValue(stepSkipValue(s));
+    wizardIdx += 1;
+    renderWizardStep();
+  });
+  document.getElementById("wizard-prev")?.addEventListener("click", () => {
+    wizardIdx = Math.max(0, wizardIdx - 1);
+    renderWizardStep();
+  });
+  document.getElementById("wizard-classic").addEventListener("click", () => {
+    classicMode = true;
+    applyInputMode(getCurrentModule());
+  });
+}
+
+function renderWizardSummary() {
+  const items = wizardSteps
+    .map((s) => {
+      const v = wizardValues[s.key];
+      const empty = v === undefined || v === "" || v === stepSkipValue(s);
+      const shown = v === undefined || v === "" ? "기본값으로 진행" : String(v);
+      return (
+        `<div class="wizard-summary-item">` +
+        `<div class="wizard-summary-q">${escapeHtml(s.question || s.label)}</div>` +
+        `<div class="wizard-summary-a ${empty ? "default" : ""}">${escapeHtml(shown)}</div></div>`
+      );
+    })
+    .join("");
+  wizardEl.innerHTML =
+    `<h3 class="wizard-q">이렇게 만들게요</h3>` +
+    `<p class="wizard-help">아래 내용으로 만들어요. 고치고 싶으면 '처음부터'를 눌러주세요.</p>` +
+    items +
+    `<div class="wizard-actions">` +
+    `<button type="button" class="btn-primary" id="wizard-make">이대로 만들기</button>` +
+    `<button type="button" class="btn-ghost" id="wizard-demo">예시 먼저 보기</button>` +
+    `<button type="button" class="btn-ghost" id="wizard-restart">처음부터</button>` +
+    `</div>` +
+    `<button type="button" class="wizard-skip" id="wizard-classic">직접 입력하기</button>`;
+  document.getElementById("wizard-make").addEventListener("click", finishWizard);
+  document.getElementById("wizard-demo").addEventListener("click", loadSample);
+  document.getElementById("wizard-restart").addEventListener("click", () => {
+    wizardIdx = 0;
+    renderWizardStep();
+  });
+  document.getElementById("wizard-classic").addEventListener("click", () => {
+    classicMode = true;
+    applyInputMode(getCurrentModule());
+  });
+}
+
+// Write wizard answers into the (hidden) classic inputs, then run normal generate.
+function finishWizard() {
+  for (const s of wizardSteps) {
+    const v = wizardValues[s.key] ?? "";
+    const container = s.kind === "guide" ? guideFieldsEl : moduleOptionsEl;
+    const attr = s.kind === "guide" ? "data-guide-key" : "data-opt-key";
+    const el = container.querySelector(`[${attr}="${s.key}"]`);
+    if (el) el.value = v;
+  }
+  if (typeof form.requestSubmit === "function") form.requestSubmit();
+  else generate(new Event("submit"));
+}
+
 function updateModuleDesc() {
   const current = modules.find((m) => m.id === moduleSelect.value);
   modulePurpose.textContent = current?.purpose ?? "";
@@ -370,6 +553,10 @@ function updateModuleDesc() {
   inputEl.placeholder = hasGuide
     ? "더 적고 싶은 내용이 있으면 자유롭게 적어주세요 (선택)"
     : current?.inputPlaceholder || defaultInputPlaceholder;
+
+  // Reset to the beginner wizard whenever the module changes (if it has one).
+  classicMode = false;
+  applyInputMode(current);
 }
 
 function renderCards() {
@@ -583,6 +770,10 @@ async function checkHealth() {
 /* ---------- Wiring ---------- */
 form.addEventListener("submit", generate);
 demoBtn.addEventListener("click", loadSample);
+toWizardBtn.addEventListener("click", () => {
+  classicMode = false;
+  applyInputMode(getCurrentModule());
+});
 pptRecommendBtn.addEventListener("click", recommendPptThemes);
 pptAllBtn.addEventListener("click", showAllThemes);
 pptThemesEl.addEventListener("click", (e) => {

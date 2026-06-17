@@ -87,6 +87,10 @@
             <span id="module-desc" class="hint"></span>
           </label>
 
+          <button id="to-wizard" type="button" class="btn-ghost to-wizard" hidden>← 단계별로 쉽게 입력하기</button>
+
+          <div id="wizard" class="wizard" hidden></div>
+
           <div id="guide-fields" class="guide-fields"></div>
 
           <div id="module-options" class="options-row"></div>
@@ -102,7 +106,7 @@
             <div id="ppt-preview" class="ppt-preview" hidden></div>
           </div>
 
-          <label class="field">
+          <label class="field" id="extra-field">
             <span class="label" id="input-label">요청 입력</span>
             <textarea
               id="input"
@@ -111,7 +115,7 @@
             ></textarea>
           </label>
 
-          <div class="actions">
+          <div class="actions" id="actions-row">
             <button id="submit" type="submit" class="btn-primary">생성</button>
             <button id="demo" type="button" class="btn-ghost">예시 보기</button>
             <button id="stop" type="button" class="btn-ghost" hidden>중지</button>

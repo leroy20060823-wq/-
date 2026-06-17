@@ -66,6 +66,15 @@ test("every module has a non-empty demo sample", () => {
   }
 });
 
+test("wizard modules declare wizard + per-step beginner questions", () => {
+  for (const id of ["exam", "cover-letter"]) {
+    const m = getModule(id)!;
+    assert.equal(m.wizard, true, `${id} should enable the wizard`);
+    for (const f of m.guide ?? []) assert.ok(f.question, `${id}.${f.key} guide needs a question`);
+    for (const o of m.options ?? []) assert.ok(o.question, `${id}.${o.key} option needs a question`);
+  }
+});
+
 test("getModule returns a known module", () => {
   const module = getModule("exam");
   assert.equal(module?.id, "exam");
