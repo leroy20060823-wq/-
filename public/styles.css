@@ -215,6 +215,91 @@ button:disabled {
   font-size: 1.02rem;
 }
 
+.hero-audience {
+  margin: 14px 0 0;
+}
+
+.hero-audience span {
+  display: inline-block;
+  padding: 6px 16px;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  background: rgba(123, 160, 91, 0.12);
+  border-radius: var(--radius-pill);
+}
+
+/* "이렇게 쉬워요" — minimal 3-step row */
+.steps {
+  padding: 8px 0 16px;
+}
+
+.steps-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 20px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.step {
+  flex: 1;
+  max-width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.step-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--clay);
+  background: rgba(194, 97, 58, 0.1);
+}
+
+.step-icon svg {
+  width: 27px;
+  height: 27px;
+}
+
+.step-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.step-desc {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.step-arrow {
+  margin-top: 18px;
+  color: var(--clay);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+@media (max-width: 600px) {
+  .steps-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .step {
+    max-width: 280px;
+  }
+  .step-arrow {
+    margin-top: 0;
+    transform: rotate(90deg);
+  }
+}
+
 .hero-search {
   display: flex;
   align-items: center;
