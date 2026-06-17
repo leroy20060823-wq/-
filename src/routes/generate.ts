@@ -5,7 +5,7 @@ import { generate, generateStream } from "../services/generator.js";
 import { parseGenerateRequest, type GenerateBody } from "../validation.js";
 import { createRateLimiter } from "../rateLimit.js";
 import { getSample } from "../samples.js";
-import { PRESETS, recommendThemes } from "../design.js";
+import { recommendThemes, recommendFromDesigns, listThemes } from "../design.js";
 
 export const router = Router();
 
@@ -69,18 +69,21 @@ router.get("/modules/:id/sample", (req, res) => {
 // PPT design system: all presets, and keyword-based theme recommendation.
 // No API key needed (keyword matcher; an LLM analyzer can replace it later).
 router.get("/ppt/themes", (_req, res) => {
-  res.json({ presets: PRESETS });
+  // designs.json when available, else the built-in PRESETS.
+  res.json({ presets: listThemes() });
 });
 
 router.post("/ppt/recommend", (req, res) => {
   const body = (req.body ?? {}) as Record<string, unknown>;
   const str = (v: unknown) => (typeof v === "string" ? v : undefined);
-  const recommendations = recommendThemes({
+  const input = {
     topic: str(body.topic),
     purpose: str(body.purpose),
     audience: str(body.audience),
     mood: str(body.mood),
-  });
+  };
+  // Prefer designs.json (74 systems); fall back to PRESETS when it's empty.
+  const recommendations = recommendFromDesigns(input) ?? recommendThemes(input);
   res.json({ recommendations });
 });
 

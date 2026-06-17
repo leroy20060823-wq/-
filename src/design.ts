@@ -11,6 +11,10 @@
  * function with a simple input shape so an LLM-based analyzer (once an API key
  * is configured) can replace or augment it without touching callers.
  */
+import { readFileSync, existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 export interface DesignFont {
   /** The intended font (may be a print/system font). */
   ideal: string;
@@ -165,4 +169,97 @@ export function recommendThemes(input: RecommendInput, limit = 3): DesignRecomme
 
 export function getPreset(id: string): DesignPreset | undefined {
   return PRESETS.find((p) => p.id === id);
+}
+
+/* ---------- designs.json (generated from design-systems/) ---------- */
+export interface DesignEntry {
+  slug: string;
+  name_ko: string;
+  name_en: string;
+  tags: string[];
+  colors: string[];
+  palette: DesignPalette;
+  fonts: {
+    title: string;
+    body: string;
+    substitutes: string[];
+    titleWeb: string;
+    bodyWeb: string;
+    latinWeb: string;
+    substituted: boolean;
+    note?: string;
+  };
+  thumbnail: string;
+  signature: string;
+}
+
+let designsCache: DesignEntry[] | null = null;
+export function loadDesigns(): DesignEntry[] {
+  if (designsCache) return designsCache;
+  try {
+    const p = join(dirname(fileURLToPath(import.meta.url)), "..", "designs.json");
+    designsCache = existsSync(p) ? (JSON.parse(readFileSync(p, "utf8")) as DesignEntry[]) : [];
+  } catch {
+    designsCache = [];
+  }
+  return designsCache;
+}
+
+// Map a design entry to the "preset" shape the frontend/recommender already use,
+// plus the extra thumbnail/tags fields.
+export function designToTheme(d: DesignEntry): DesignPreset & {
+  thumbnail: string;
+  tags: string[];
+  name_en: string;
+  signature: string;
+} {
+  return {
+    id: d.slug,
+    name: d.name_ko || d.name_en,
+    name_en: d.name_en,
+    moods: d.tags,
+    tags: d.tags,
+    palette: d.palette,
+    heading: {
+      ideal: d.fonts.title,
+      webFont: d.fonts.titleWeb,
+      weights: [700],
+      substituted: d.fonts.substituted,
+      note: d.fonts.note,
+    },
+    body: { ideal: d.fonts.body, webFont: d.fonts.bodyWeb, weights: [400], substituted: false },
+    thumbnail: d.thumbnail,
+    signature: d.signature,
+  };
+}
+
+/**
+ * Recommend from designs.json (tag-based). Returns the same {preset, score,
+ * reason} shape as recommendThemes so callers/frontend are unchanged. Returns
+ * null when no designs are available (caller falls back to PRESETS).
+ */
+export function recommendFromDesigns(input: RecommendInput, limit = 3): DesignRecommendation[] | null {
+  const designs = loadDesigns();
+  if (designs.length === 0) return null;
+  const hay = [input.topic, input.purpose, input.audience, input.mood]
+    .filter((v): v is string => typeof v === "string" && v.trim() !== "")
+    .join(" ")
+    .toLowerCase();
+
+  const scored = designs.map((d) => {
+    const matched = d.tags.filter((t) => hay.includes(t.toLowerCase()));
+    return { d, score: matched.length, matched };
+  });
+  scored.sort((a, b) => b.score - a.score);
+
+  return scored.slice(0, limit).map((s) => ({
+    preset: designToTheme(s.d),
+    score: s.score,
+    reason: s.score > 0 ? `‘${s.matched.slice(0, 2).join("·")}’ 분위기에 잘 어울려요` : "추천 디자인",
+  }));
+}
+
+export function listThemes(): (DesignPreset | (DesignPreset & { thumbnail: string }))[] {
+  const designs = loadDesigns();
+  return designs.length > 0 ? designs.map(designToTheme) : PRESETS;
 }

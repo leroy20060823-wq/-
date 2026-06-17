@@ -13,7 +13,8 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "vendor": "node scripts/vendor.mjs",
-    "test": "node --import tsx --test \"src/**/*.test.ts\""
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
+    "design:build": "node scripts/build-design-assets.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.2",
@@ -27,6 +28,7 @@
     "@types/node": "^25.9.3",
     "dompurify": "^3.4.10",
     "marked": "^18.0.5",
+    "playwright": "^1.61.0",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   }

@@ -57,7 +57,9 @@ const inputLabel = document.getElementById("input-label");
 const inputEl = document.getElementById("input");
 const pptDesign = document.getElementById("ppt-design");
 const pptRecommendBtn = document.getElementById("ppt-recommend");
+const pptAllBtn = document.getElementById("ppt-all");
 const pptThemesEl = document.getElementById("ppt-themes");
+const pptPreview = document.getElementById("ppt-preview");
 const pptDesignStatus = document.getElementById("ppt-design-status");
 const submitBtn = document.getElementById("submit");
 const demoBtn = document.getElementById("demo");
@@ -74,7 +76,7 @@ let controller = null;
 const defaultInputPlaceholder = inputEl.getAttribute("placeholder") ?? "";
 
 // PPT design recommendation state
-let lastPptRecs = [];
+let themesById = {};
 let selectedPptTheme = null;
 const fontsLoaded = new Set();
 
@@ -254,43 +256,70 @@ function loadFont(font) {
   document.head.appendChild(link);
 }
 
-function renderThemes(recs) {
-  lastPptRecs = recs;
-  selectedPptTheme = null;
-  pptThemesEl.innerHTML = recs
-    .map((r) => {
-      const p = r.preset;
-      loadFont(p.heading);
-      loadFont(p.body);
-      const pal = p.palette;
-      const headFam = cssFamily(p.heading.webFont);
-      const bodyFam = cssFamily(p.body.webFont);
-      const note = p.heading.substituted || p.body.substituted;
-      const noteText = p.heading.note || p.body.note || "가까운 웹폰트로 대체됨";
-      const subNote = note ? `<div class="theme-fontnote sub">ⓘ ${escapeHtml(noteText)}</div>` : "";
-      return (
-        `<button type="button" class="theme-card" data-theme="${escapeHtml(p.id)}">` +
-        `<div class="slide-mock" style="background:${pal.bg};color:${pal.ink}">` +
-        `<div class="slide-bar" style="background:${pal.accent}"></div>` +
-        `<div class="slide-title" style="font-family:'${headFam}',sans-serif">제목을 여기에</div>` +
-        `<div class="slide-bullet" style="font-family:'${bodyFam}',sans-serif;color:${pal.sub}">핵심 포인트 하나</div>` +
-        `<div class="slide-bullet" style="font-family:'${bodyFam}',sans-serif;color:${pal.sub}">핵심 포인트 둘</div>` +
-        `</div>` +
-        `<div class="theme-meta">` +
-        `<div class="theme-name">${escapeHtml(p.name)}</div>` +
-        `<div class="theme-reason">${escapeHtml(r.reason)}</div>` +
-        `<div class="theme-fontnote">${escapeHtml(p.heading.webFont)} · ${escapeHtml(p.body.webFont)}</div>` +
-        subNote +
-        `</div></button>`
-      );
-    })
-    .join("");
+function cssMiniSlide(p) {
+  loadFont(p.heading);
+  loadFont(p.body);
+  const pal = p.palette;
+  return (
+    `<div class="slide-mock" style="background:${pal.bg};color:${pal.ink}">` +
+    `<div class="slide-bar" style="background:${pal.accent}"></div>` +
+    `<div class="slide-title" style="font-family:'${cssFamily(p.heading.webFont)}',sans-serif">제목을 여기에</div>` +
+    `<div class="slide-bullet" style="font-family:'${cssFamily(p.body.webFont)}',sans-serif;color:${pal.sub}">핵심 포인트 하나</div>` +
+    `<div class="slide-bullet" style="font-family:'${cssFamily(p.body.webFont)}',sans-serif;color:${pal.sub}">핵심 포인트 둘</div>` +
+    `</div>`
+  );
+}
+
+function themeCard(preset, reason) {
+  themesById[preset.id] = preset;
+  const tags = (preset.tags || preset.moods || []).slice(0, 3).join(" · ");
+  const subbed = preset.heading && preset.heading.substituted;
+  const subNote = subbed
+    ? `<div class="theme-fontnote sub">ⓘ ${escapeHtml(preset.heading.note || "가까운 웹폰트로 대체")}</div>`
+    : "";
+  // Use the rendered thumbnail when present; otherwise a live CSS mini-slide.
+  const top = preset.thumbnail
+    ? `<img class="theme-thumb" src="${escapeHtml(preset.thumbnail)}" alt="" loading="lazy">`
+    : cssMiniSlide(preset);
+  return (
+    `<button type="button" class="theme-card" data-theme="${escapeHtml(preset.id)}">${top}` +
+    `<div class="theme-meta">` +
+    `<div class="theme-name">${escapeHtml(preset.name)}</div>` +
+    (reason ? `<div class="theme-reason">${escapeHtml(reason)}</div>` : "") +
+    `<div class="theme-fontnote">${escapeHtml(tags)}</div>` +
+    subNote +
+    `</div></button>`
+  );
+}
+
+function renderThemeCards(items) {
+  pptThemesEl.innerHTML = items.map((it) => themeCard(it.preset, it.reason)).join("");
+}
+
+function renderLivePreview(theme) {
+  loadFont(theme.heading);
+  loadFont(theme.body);
+  const g = gatherGuide();
+  const title = (g.topic || "").trim() || "신제품 발표회";
+  const pal = theme.palette;
+  pptPreview.hidden = false;
+  pptPreview.innerHTML =
+    `<span class="ppt-preview-label">선택한 디자인 미리보기</span>` +
+    `<div class="slide-mock big" style="background:${pal.bg};color:${pal.ink}">` +
+    `<div class="slide-bar" style="background:${pal.accent}"></div>` +
+    `<div class="slide-title" style="font-family:'${cssFamily(theme.heading.webFont)}',sans-serif">${escapeHtml(title)}</div>` +
+    `<div class="slide-bullet" style="font-family:'${cssFamily(theme.body.webFont)}',sans-serif;color:${pal.sub}">핵심 포인트 하나</div>` +
+    `<div class="slide-bullet" style="font-family:'${cssFamily(theme.body.webFont)}',sans-serif;color:${pal.sub}">핵심 포인트 둘</div>` +
+    `</div>` +
+    `<div class="theme-fontnote">${escapeHtml(theme.name)} · 제목 ${escapeHtml(theme.heading.webFont)} / 본문 ${escapeHtml(theme.body.webFont)}</div>`;
 }
 
 function resetPptDesign() {
-  lastPptRecs = [];
+  themesById = {};
   selectedPptTheme = null;
   pptThemesEl.innerHTML = "";
+  pptPreview.hidden = true;
+  pptPreview.innerHTML = "";
   pptDesignStatus.textContent = "";
 }
 
@@ -305,10 +334,23 @@ async function recommendPptThemes() {
     });
     if (!res.ok) throw new Error();
     const data = await res.json();
-    renderThemes(data.recommendations || []);
+    renderThemeCards((data.recommendations || []).map((r) => ({ preset: r.preset, reason: r.reason })));
     pptDesignStatus.textContent = "마음에 드는 디자인을 골라보세요";
   } catch {
     pptDesignStatus.textContent = "추천을 불러오지 못했어요";
+  }
+}
+
+async function showAllThemes() {
+  pptDesignStatus.textContent = "전체 불러오는 중…";
+  try {
+    const res = await fetch("/api/ppt/themes");
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    renderThemeCards((data.presets || []).map((p) => ({ preset: p })));
+    pptDesignStatus.textContent = "전체 디자인에서 골라보세요";
+  } catch {
+    pptDesignStatus.textContent = "목록을 불러오지 못했어요";
   }
 }
 
@@ -435,6 +477,7 @@ async function generate(event) {
     const p = selectedPptTheme;
     const pal = p.palette;
     input += `\n\n디자인 테마: ${p.name} — 배경 ${pal.bg}, 잉크 ${pal.ink}, 강조색 ${pal.accent}, 제목 폰트 ${p.heading.webFont}, 본문 폰트 ${p.body.webFont}`;
+    if (p.signature) input += ` · 시그니처: ${p.signature}`;
   }
   if (!input.trim()) {
     showError("요청 내용을 입력해 주세요.");
@@ -541,13 +584,14 @@ async function checkHealth() {
 form.addEventListener("submit", generate);
 demoBtn.addEventListener("click", loadSample);
 pptRecommendBtn.addEventListener("click", recommendPptThemes);
+pptAllBtn.addEventListener("click", showAllThemes);
 pptThemesEl.addEventListener("click", (e) => {
   const card = e.target.closest("[data-theme]");
   if (!card) return;
-  const id = card.dataset.theme;
-  selectedPptTheme = (lastPptRecs.find((r) => r.preset.id === id) || {}).preset || null;
+  selectedPptTheme = themesById[card.dataset.theme] || null;
   pptThemesEl.querySelectorAll(".theme-card").forEach((c) => c.classList.toggle("selected", c === card));
   pptDesignStatus.textContent = selectedPptTheme ? `'${selectedPptTheme.name}' 선택됨` : "";
+  if (selectedPptTheme) renderLivePreview(selectedPptTheme);
 });
 moduleSelect.addEventListener("change", updateModuleDesc);
 stopBtn.addEventListener("click", () => controller?.abort());

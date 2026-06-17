@@ -530,6 +530,46 @@ textarea {
   box-shadow: 0 0 0 2px rgba(194, 97, 58, 0.25);
 }
 
+.theme-thumb {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.ppt-preview {
+  margin-top: 16px;
+}
+
+.ppt-preview[hidden] {
+  display: none;
+}
+
+.ppt-preview-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--sage);
+  margin-bottom: 8px;
+}
+
+.slide-mock.big {
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  aspect-ratio: 16 / 9;
+  max-width: 460px;
+  gap: 9px;
+  padding: 22px 26px;
+}
+
+.slide-mock.big .slide-title {
+  font-size: 1.5rem;
+}
+
+.slide-mock.big .slide-bullet {
+  font-size: 0.82rem;
+}
+
 .slide-mock {
   aspect-ratio: 16 / 9;
   padding: 14px 16px;
