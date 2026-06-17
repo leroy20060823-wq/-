@@ -55,6 +55,10 @@ const moduleOptionsEl = document.getElementById("module-options");
 const guideFieldsEl = document.getElementById("guide-fields");
 const inputLabel = document.getElementById("input-label");
 const inputEl = document.getElementById("input");
+const pptDesign = document.getElementById("ppt-design");
+const pptRecommendBtn = document.getElementById("ppt-recommend");
+const pptThemesEl = document.getElementById("ppt-themes");
+const pptDesignStatus = document.getElementById("ppt-design-status");
 const submitBtn = document.getElementById("submit");
 const demoBtn = document.getElementById("demo");
 const demoBanner = document.getElementById("demo-banner");
@@ -68,6 +72,11 @@ const copyBtn = document.getElementById("copy");
 let modules = [];
 let controller = null;
 const defaultInputPlaceholder = inputEl.getAttribute("placeholder") ?? "";
+
+// PPT design recommendation state
+let lastPptRecs = [];
+let selectedPptTheme = null;
+const fontsLoaded = new Set();
 
 // Streaming render state.
 let raw = "";
@@ -228,12 +237,91 @@ function firstMissingRequired(module, guideValues) {
   return null;
 }
 
+/* ---------- PPT design recommendation ---------- */
+function cssFamily(name) {
+  return name.replace(/'/g, "");
+}
+
+function loadFont(font) {
+  const key = `${font.webFont}:${font.weights.join(",")}`;
+  if (fontsLoaded.has(key)) return;
+  fontsLoaded.add(key);
+  const fam = font.webFont.replace(/ /g, "+");
+  const wght = font.weights.join(";");
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = `https://fonts.googleapis.com/css2?family=${fam}:wght@${wght}&display=swap`;
+  document.head.appendChild(link);
+}
+
+function renderThemes(recs) {
+  lastPptRecs = recs;
+  selectedPptTheme = null;
+  pptThemesEl.innerHTML = recs
+    .map((r) => {
+      const p = r.preset;
+      loadFont(p.heading);
+      loadFont(p.body);
+      const pal = p.palette;
+      const headFam = cssFamily(p.heading.webFont);
+      const bodyFam = cssFamily(p.body.webFont);
+      const note = p.heading.substituted || p.body.substituted;
+      const noteText = p.heading.note || p.body.note || "가까운 웹폰트로 대체됨";
+      const subNote = note ? `<div class="theme-fontnote sub">ⓘ ${escapeHtml(noteText)}</div>` : "";
+      return (
+        `<button type="button" class="theme-card" data-theme="${escapeHtml(p.id)}">` +
+        `<div class="slide-mock" style="background:${pal.bg};color:${pal.ink}">` +
+        `<div class="slide-bar" style="background:${pal.accent}"></div>` +
+        `<div class="slide-title" style="font-family:'${headFam}',sans-serif">제목을 여기에</div>` +
+        `<div class="slide-bullet" style="font-family:'${bodyFam}',sans-serif;color:${pal.sub}">핵심 포인트 하나</div>` +
+        `<div class="slide-bullet" style="font-family:'${bodyFam}',sans-serif;color:${pal.sub}">핵심 포인트 둘</div>` +
+        `</div>` +
+        `<div class="theme-meta">` +
+        `<div class="theme-name">${escapeHtml(p.name)}</div>` +
+        `<div class="theme-reason">${escapeHtml(r.reason)}</div>` +
+        `<div class="theme-fontnote">${escapeHtml(p.heading.webFont)} · ${escapeHtml(p.body.webFont)}</div>` +
+        subNote +
+        `</div></button>`
+      );
+    })
+    .join("");
+}
+
+function resetPptDesign() {
+  lastPptRecs = [];
+  selectedPptTheme = null;
+  pptThemesEl.innerHTML = "";
+  pptDesignStatus.textContent = "";
+}
+
+async function recommendPptThemes() {
+  const g = gatherGuide();
+  pptDesignStatus.textContent = "추천 받는 중…";
+  try {
+    const res = await fetch("/api/ppt/recommend", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic: g.topic, purpose: g.message, audience: g.audience, mood: g.mood }),
+    });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    renderThemes(data.recommendations || []);
+    pptDesignStatus.textContent = "마음에 드는 디자인을 골라보세요";
+  } catch {
+    pptDesignStatus.textContent = "추천을 불러오지 못했어요";
+  }
+}
+
 function updateModuleDesc() {
   const current = modules.find((m) => m.id === moduleSelect.value);
   modulePurpose.textContent = current?.purpose ?? "";
   moduleDesc.textContent = current?.description ?? "";
   renderGuide(current);
   renderOptions(current);
+
+  const isPpt = current?.id === "ppt";
+  pptDesign.hidden = !isPpt;
+  if (!isPpt) resetPptDesign();
 
   const hasGuide = (current?.guide ?? []).length > 0;
   inputLabel.textContent = hasGuide ? "추가 요청 (선택)" : "요청 입력";
@@ -342,7 +430,12 @@ async function generate(event) {
     return;
   }
 
-  const input = composeInput(current, guideValues, inputEl.value);
+  let input = composeInput(current, guideValues, inputEl.value);
+  if (current?.id === "ppt" && selectedPptTheme) {
+    const p = selectedPptTheme;
+    const pal = p.palette;
+    input += `\n\n디자인 테마: ${p.name} — 배경 ${pal.bg}, 잉크 ${pal.ink}, 강조색 ${pal.accent}, 제목 폰트 ${p.heading.webFont}, 본문 폰트 ${p.body.webFont}`;
+  }
   if (!input.trim()) {
     showError("요청 내용을 입력해 주세요.");
     return;
@@ -447,6 +540,15 @@ async function checkHealth() {
 /* ---------- Wiring ---------- */
 form.addEventListener("submit", generate);
 demoBtn.addEventListener("click", loadSample);
+pptRecommendBtn.addEventListener("click", recommendPptThemes);
+pptThemesEl.addEventListener("click", (e) => {
+  const card = e.target.closest("[data-theme]");
+  if (!card) return;
+  const id = card.dataset.theme;
+  selectedPptTheme = (lastPptRecs.find((r) => r.preset.id === id) || {}).preset || null;
+  pptThemesEl.querySelectorAll(".theme-card").forEach((c) => c.classList.toggle("selected", c === card));
+  pptDesignStatus.textContent = selectedPptTheme ? `'${selectedPptTheme.name}' 선택됨` : "";
+});
 moduleSelect.addEventListener("change", updateModuleDesc);
 stopBtn.addEventListener("click", () => controller?.abort());
 

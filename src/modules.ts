@@ -276,6 +276,7 @@ const MODULES: GenerationModule[] = [
       { key: "audience", label: "청중 / 대상", type: "text", placeholder: "예: 신입사원" },
       { key: "slides", label: "분량 / 슬라이드 수", type: "text", placeholder: "예: 10장, 10분" },
       { key: "message", label: "강조할 메시지 (선택)", type: "text", placeholder: "예: 회사 문화 적응" },
+      { key: "mood", label: "분위기 / 톤", type: "text", placeholder: "예: 신뢰감 있는 · 발랄한 · 미니멀" },
     ],
     systemPrompt: [
       "You are a presentation designer who turns a topic into a slide deck outline.",
@@ -286,6 +287,7 @@ const MODULES: GenerationModule[] = [
       "- Under each slide, add 3-5 concise bullet points, then a line starting with '> Speaker notes:' containing 1-2 sentences.",
       "- Begin with a title slide and end with a summary / Q&A slide.",
       "- Keep bullets short enough to fit on a real slide.",
+      "- If a '디자인 테마' is provided in the request, end with a short '## 디자인 가이드' section noting the palette (hex) and the heading/body font pairing to apply.",
     ].join("\n"),
   },
   {
