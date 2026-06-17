@@ -43,6 +43,22 @@ function parseDesignMd(text) {
     }
   }
   out._typ = typ;
+  // Prose fallback when there's no YAML colors block.
+  if (Object.keys(out.colors).length === 0) {
+    out._prose = true;
+    out.colorList = allHex(text);
+    out.roleHints = roleHintsFrom(text);
+    const pf = proseFonts(text);
+    out._proseFonts = pf;
+    if (!out.name) {
+      const h = text.match(/^#\s+(.+)$/m);
+      out.name = h ? h[1].replace(/design system\s*(inspired by)?/i, "").trim() : "";
+    }
+    if (!out.description) {
+      const para = text.split("\n").find((l) => l.trim() && !l.startsWith("#") && !l.startsWith("|"));
+      out.description = para ? para.trim() : "";
+    }
+  }
   return out;
 }
 
@@ -53,6 +69,51 @@ function splitFamily(ff) {
   const ideal = parts[0] || "";
   const subs = parts.slice(1).filter((p) => !GENERIC.has(p.toLowerCase()));
   return { ideal, subs };
+}
+
+// ---- Markdown-prose fallback (some DESIGN.md aren't YAML frontmatter) ----
+function allHex(text) {
+  const out = [];
+  const seen = new Set();
+  const re = /#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b/g;
+  let m;
+  while ((m = re.exec(text))) {
+    const h = m[0].toLowerCase();
+    if (!seen.has(h)) {
+      seen.add(h);
+      out.push(h);
+    }
+  }
+  return out;
+}
+function roleHintsFrom(text) {
+  const hints = {};
+  const set = (role, hex) => {
+    if (!hints[role]) hints[role] = hex.toLowerCase();
+  };
+  for (const line of text.split("\n")) {
+    const hex = (line.match(/#[0-9a-fA-F]{6}\b/) || [])[0];
+    if (!hex) continue;
+    const L = line.toLowerCase();
+    if (/background|surface|canvas|\bwhite\b|\bbase\b|\bpaper\b/.test(L)) set("bg", hex);
+    if (/primary|brand|\bcta\b|accent|\blink/.test(L)) set("accent", hex);
+    if (/secondary|muted|neutral|gray|grey|\bsub/.test(L)) set("sub", hex);
+    if (/text|near.?black|\bink\b|foreground|heading/.test(L)) set("ink", hex);
+  }
+  return hints;
+}
+function paletteFromHints(hints, list) {
+  const sorted = [...list].sort((a, b) => lum(a) - lum(b));
+  const bg = hints.bg || sorted[sorted.length - 1] || "#ffffff";
+  const ink = hints.ink || sorted[0] || "#111111";
+  const accent = hints.accent || list.find((v) => lum(v) > 0.15 && lum(v) < 0.8) || list[0] || "#888";
+  const sub = hints.sub || ink;
+  return { bg, surface: bg, ink, sub, accent };
+}
+function proseFonts(text) {
+  const disp = text.match(/(?:Display|Heading)[^\n]*?`([^`]+)`/i);
+  const body = text.match(/(?:Body|UI|Product|Text)[^\n]*?`([^`]+)`/i);
+  return { title: disp ? disp[1] : "", body: body ? body[1] : disp ? disp[1] : "" };
 }
 
 // Latin "ideal/substitute" font name -> a Google Fonts family we can load.
@@ -195,30 +256,39 @@ const KO_NAMES = {
 };
 
 function buildEntry(slug, parsed) {
-  const colors = Object.values(parsed.colors).filter((v, i, a) => a.indexOf(v) === i);
-  const t = splitFamily(parsed._typ["display-xl"] || parsed._typ["display-lg"] ||
-    Object.entries(parsed._typ).find(([k]) => k.startsWith("display"))?.[1] ||
-    Object.values(parsed._typ)[0]);
-  const b = splitFamily(parsed._typ["body-md"] ||
-    Object.entries(parsed._typ).find(([k]) => k.startsWith("body"))?.[1] || t.ideal);
-  const desc = parsed.description;
+  const desc = parsed.description || "";
+  let colors, pal, t, b;
+  if (parsed._prose) {
+    colors = parsed.colorList;
+    pal = paletteFromHints(parsed.roleHints, parsed.colorList);
+    t = splitFamily(parsed._proseFonts.title);
+    b = splitFamily(parsed._proseFonts.body);
+  } else {
+    colors = Object.values(parsed.colors).filter((v, i, a) => a.indexOf(v) === i);
+    pal = palette(parsed.colors);
+    t = splitFamily(parsed._typ["display-xl"] || parsed._typ["display-lg"] ||
+      Object.entries(parsed._typ).find(([k]) => k.startsWith("display"))?.[1] ||
+      Object.values(parsed._typ)[0]);
+    b = splitFamily(parsed._typ["body-md"] ||
+      Object.entries(parsed._typ).find(([k]) => k.startsWith("body"))?.[1] || t.ideal);
+  }
+  if (colors.length === 0) throw new Error("no colors");
   const serif = titleIsSerif(t.ideal, desc);
   const latinWeb = latinGoogle(t.subs[0] || t.ideal);
   const titleWeb = serif ? "Noto Serif KR" : "Noto Sans KR";
   const bodyWeb = "Noto Sans KR";
-  const subbed = true; // brand fonts are proprietary; we render with web substitutes
-  const note = `원안 '${t.ideal}'은 웹폰트가 아니라, 한글은 '${titleWeb}', 라틴은 '${latinWeb}'로 대체`;
-  const nameEn = (parsed.name || slug).split("-")[0].replace(/^\w/, (c) => c.toUpperCase());
+  const note = `원안 '${t.ideal || "브랜드 전용"}'은 웹폰트가 아니라, 한글은 '${titleWeb}', 라틴은 '${latinWeb}'로 대체`;
+  const nameEn = (parsed.name || slug).split(/[-\s]/)[0].replace(/^\w/, (c) => c.toUpperCase());
   return {
     slug,
     name_ko: KO_NAMES[slug] || nameEn,
     name_en: nameEn,
     tags: deriveTags(desc),
     colors,
-    palette: palette(parsed.colors),
-    fonts: { title: t.ideal, body: b.ideal, substitutes: [...new Set([...t.subs, ...b.subs])], titleWeb, bodyWeb, latinWeb, substituted: subbed, note },
+    palette: pal,
+    fonts: { title: t.ideal, body: b.ideal, substitutes: [...new Set([...t.subs, ...b.subs])], titleWeb, bodyWeb, latinWeb, substituted: true, note },
     thumbnail: `/design-thumbnails/${slug}-design-preview.png`,
-    signature: desc.split(". ")[0].slice(0, 140),
+    signature: (desc.split(". ")[0] || "").slice(0, 140),
   };
 }
 
@@ -239,7 +309,6 @@ async function main() {
     try {
       if (!existsSync(mdPath)) throw new Error("DESIGN.md not found");
       const parsed = parseDesignMd(await readFile(mdPath, "utf8"));
-      if (Object.keys(parsed.colors).length === 0) throw new Error("no colors");
       const entry = buildEntry(slug, parsed);
       await page.setContent(tileHtml(entry), { waitUntil: "load" });
       await page.evaluate(() => document.fonts.ready);

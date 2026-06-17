@@ -1442,6 +1442,105 @@
     "signature": "\"An editorial customer-service marketing canvas built around a soft cream-white ground, charcoal type set in Saans (Intercom's proprietary g"
   },
   {
+    "slug": "kraken",
+    "name_ko": "Kraken",
+    "name_en": "Kraken",
+    "tags": [
+      "미니멀",
+      "깔끔",
+      "강렬",
+      "임팩트",
+      "발랄",
+      "친근",
+      "비즈니스",
+      "신뢰",
+      "전문",
+      "스타트업",
+      "제품"
+    ],
+    "colors": [
+      "#7132f5",
+      "#5741d8",
+      "#5b1ecf",
+      "#101114",
+      "#149e61",
+      "#686b82",
+      "#9497a9",
+      "#ffffff",
+      "#dedee5",
+      "#026b3f",
+      "#484b5e"
+    ],
+    "palette": {
+      "bg": "#7132f5",
+      "surface": "#7132f5",
+      "ink": "#7132f5",
+      "sub": "#101114",
+      "accent": "#7132f5"
+    },
+    "fonts": {
+      "title": "Kraken-Brand",
+      "body": "Kraken-Product",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Kraken-Brand'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/kraken-design-preview.png",
+    "signature": "Kraken's website is a clean, trustworthy crypto exchange that uses purple as its commanding brand color"
+  },
+  {
+    "slug": "lamborghini",
+    "name_ko": "Lamborghini",
+    "name_en": "Lamborghini",
+    "tags": [
+      "다크"
+    ],
+    "colors": [
+      "#000000",
+      "#ffc000",
+      "#ffffff",
+      "#917300",
+      "#ffce3e",
+      "#29abe2",
+      "#3860be",
+      "#202020",
+      "#181818",
+      "#f8f8f8",
+      "#e6e6e6",
+      "#f5f5f5",
+      "#494949",
+      "#7d7d7d",
+      "#969696",
+      "#666666",
+      "#555555",
+      "#313131",
+      "#1eaedb",
+      "#dddddd"
+    ],
+    "palette": {
+      "bg": "#000000",
+      "surface": "#000000",
+      "ink": "#000000",
+      "sub": "#000000",
+      "accent": "#ffc000"
+    },
+    "fonts": {
+      "title": "LamboType",
+      "body": "#FFCE3E",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'LamboType'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/lamborghini-design-preview.png",
+    "signature": "Lamborghini's website is a cathedral of darkness — a digital stage where jet-black surfaces stretch infinitely and every element emerges fro"
+  },
+  {
     "slug": "linear.app",
     "name_ko": "Linear",
     "name_en": "Linear",
@@ -1500,6 +1599,105 @@
     },
     "thumbnail": "/design-thumbnails/linear.app-design-preview.png",
     "signature": "\"A near-black product-focused marketing canvas built around #010102 (the deepest dark surface of any tool in this collection), light gray te"
+  },
+  {
+    "slug": "lovable",
+    "name_ko": "Lovable",
+    "name_en": "Lovable",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "미니멀",
+      "깔끔",
+      "다크",
+      "발랄",
+      "친근",
+      "테크",
+      "모노",
+      "데이터"
+    ],
+    "colors": [
+      "#f7f4ed",
+      "#1c1c1c",
+      "#eceae4",
+      "#fcfbf8",
+      "#5f5f5d",
+      "#3b82f6",
+      "#ffffff"
+    ],
+    "palette": {
+      "bg": "#f7f4ed",
+      "surface": "#f7f4ed",
+      "ink": "#f7f4ed",
+      "sub": "#1c1c1c",
+      "accent": "#1c1c1c"
+    },
+    "fonts": {
+      "title": "ui-sans-serif",
+      "body": "#1c1c1c",
+      "substitutes": [],
+      "titleWeb": "Noto Serif KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'ui-sans-serif'은 웹폰트가 아니라, 한글은 'Noto Serif KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/lovable-design-preview.png",
+    "signature": "Lovable's website radiates warmth through restraint"
+  },
+  {
+    "slug": "mastercard",
+    "name_ko": "Mastercard",
+    "name_en": "Mastercard",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "럭셔리",
+      "우아",
+      "프리미엄",
+      "발랄",
+      "친근"
+    ],
+    "colors": [
+      "#f3f0ee",
+      "#141413",
+      "#eb001b",
+      "#f79e1b",
+      "#cf4500",
+      "#f37338",
+      "#9a3a0a",
+      "#fcfbfa",
+      "#ffffff",
+      "#f4f4f4",
+      "#262627",
+      "#696969",
+      "#555555",
+      "#565656",
+      "#d1cdc7",
+      "#3860be",
+      "#000000",
+      "#2b2b2b",
+      "#e8e2da"
+    ],
+    "palette": {
+      "bg": "#f3f0ee",
+      "surface": "#f3f0ee",
+      "ink": "#141413",
+      "sub": "#f3f0ee",
+      "accent": "#141413"
+    },
+    "fonts": {
+      "title": "#141413",
+      "body": "#F3F0EE",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 '#141413'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/mastercard-design-preview.png",
+    "signature": "Mastercard's experience reads like a warm, editorial magazine built from soft stone and signal orange"
   },
   {
     "slug": "meta",
