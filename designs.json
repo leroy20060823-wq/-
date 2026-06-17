@@ -2621,5 +2621,612 @@
     },
     "thumbnail": "/design-thumbnails/raycast-design-preview.png",
     "signature": "|"
+  },
+  {
+    "slug": "renault",
+    "name_ko": "Renault",
+    "name_en": "Renault",
+    "tags": [
+      "모던"
+    ],
+    "colors": [
+      "#ffed00",
+      "#e6d200",
+      "#000000",
+      "#222222",
+      "#333333",
+      "#666666",
+      "#8a8a8a",
+      "#c4c4c4",
+      "#ffffff",
+      "#f7f7f7",
+      "#111111",
+      "#f2f2f2",
+      "#0000ee",
+      "#be6464",
+      "#f0ad4e",
+      "#8dc572",
+      "#337ab7"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#000000",
+      "sub": "#222222",
+      "accent": "#ffed00"
+    },
+    "fonts": {
+      "title": "NouvelR",
+      "body": "NouvelR",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'NouvelR'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/renault-design-preview.png",
+    "signature": "|"
+  },
+  {
+    "slug": "replicate",
+    "name_ko": "Replicate",
+    "name_en": "Replicate",
+    "tags": [
+      "모던"
+    ],
+    "colors": [
+      "#ea2804",
+      "#c01f00",
+      "#ffffff",
+      "#202020",
+      "#3a3a3a",
+      "#575757",
+      "#646464",
+      "#8d8d8d",
+      "#bbbbbb",
+      "#fcfcfc",
+      "#f9f7f3",
+      "#f3f0e8",
+      "#000000",
+      "#ff6a3d",
+      "#f4a8a0",
+      "#2b9a66",
+      "#24292e"
+    ],
+    "palette": {
+      "bg": "#f9f7f3",
+      "surface": "#ffffff",
+      "ink": "#202020",
+      "sub": "#3a3a3a",
+      "accent": "#ea2804"
+    },
+    "fonts": {
+      "title": "rb-freigeist-neue",
+      "body": "basier-square",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'rb-freigeist-neue'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/replicate-design-preview.png",
+    "signature": "|"
+  },
+  {
+    "slug": "resend",
+    "name_ko": "Resend",
+    "name_en": "Resend",
+    "tags": [
+      "모던"
+    ],
+    "colors": [
+      "#fcfdff",
+      "#000000",
+      "#a1a4a5",
+      "#888e90",
+      "#464a4d",
+      "#0a0a0c",
+      "#101012",
+      "#06060a",
+      "#ff801f",
+      "#ffc53d",
+      "#3b9eff",
+      "#11ff99",
+      "#ff2047",
+      "#f1f7fe"
+    ],
+    "palette": {
+      "bg": "#000000",
+      "surface": "#0a0a0c",
+      "ink": "#fcfdff",
+      "sub": "#fcfdff",
+      "accent": "#fcfdff"
+    },
+    "fonts": {
+      "title": "Domaine Display",
+      "body": "ABC Favorit",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Domaine Display'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/resend-design-preview.png",
+    "signature": "|"
+  },
+  {
+    "slug": "revolut",
+    "name_ko": "Revolut",
+    "name_en": "Revolut",
+    "tags": [
+      "모던"
+    ],
+    "colors": [
+      "#494fdf",
+      "#4f55f1",
+      "#3a40c4",
+      "#ffffff",
+      "#191c1f",
+      "#1f2226",
+      "#3a3d40",
+      "#505a63",
+      "#5c5e60",
+      "#8d969e",
+      "#c9c9cd",
+      "#000000",
+      "#f4f4f4",
+      "#0a0a0a",
+      "#16181a",
+      "#e2e2e7",
+      "#00a87e",
+      "#376cd5",
+      "#007bc2",
+      "#428619",
+      "#006400",
+      "#b09000",
+      "#ec7e00",
+      "#e61e49",
+      "#e23b4a",
+      "#8b0000",
+      "#936d62"
+    ],
+    "palette": {
+      "bg": "#f4f4f4",
+      "surface": "#ffffff",
+      "ink": "#191c1f",
+      "sub": "#1f2226",
+      "accent": "#494fdf",
+      "accent2": "#00a87e"
+    },
+    "fonts": {
+      "title": "Aeonik Pro",
+      "body": "Inter",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Aeonik Pro'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/revolut-design-preview.png",
+    "signature": "|"
+  },
+  {
+    "slug": "runwayml",
+    "name_ko": "Runway",
+    "name_en": "Runway",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "다크",
+      "테크",
+      "모노",
+      "데이터",
+      "스타트업",
+      "제품"
+    ],
+    "colors": [
+      "#767d88",
+      "#7d848e",
+      "#000000",
+      "#030303",
+      "#1a1a1a",
+      "#ffffff",
+      "#fefefe",
+      "#e9ecf2",
+      "#27272a",
+      "#404040",
+      "#3f3f3f",
+      "#a7a7a7",
+      "#c9ccd1",
+      "#d0d4d4",
+      "#6b7280",
+      "#0c0c0c",
+      "#999999"
+    ],
+    "palette": {
+      "bg": "#000000",
+      "surface": "#000000",
+      "ink": "#000000",
+      "sub": "#767d88",
+      "accent": "#000000"
+    },
+    "fonts": {
+      "title": "",
+      "body": "with positive letter-spacing (0.35px) to create navigational signposts that contrast with the tight lowercase text.\n\n## 4. Component Stylings\n\n### Buttons\n- Text: weight 600 at 14px abcNormal\n- Background: likely transparent or dark",
+      "substitutes": [
+        "with minimal border\n- Radius: small (4px) for button-like links\n- The button design is extremely restrained — no heavy fills or borders detected\n- Interactive elements blend into the editorial flow\n\n### Cards & Containers\n- Background: transparent or Dark Surface ("
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 '브랜드 전용'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/runwayml-design-preview.png",
+    "signature": "Runway's interface is a cinematic reel brought to life as a website — a dark, editorial, film-production-grade design where full-bleed photo"
+  },
+  {
+    "slug": "sanity",
+    "name_ko": "Sanity",
+    "name_en": "Sanity",
+    "tags": [
+      "다크",
+      "발랄",
+      "친근",
+      "테크",
+      "모노",
+      "데이터",
+      "스타트업",
+      "제품"
+    ],
+    "colors": [
+      "#0b0b0b",
+      "#212121",
+      "#353535",
+      "#797979",
+      "#b9b9b9",
+      "#ededed",
+      "#ffffff",
+      "#0052ef",
+      "#f36458",
+      "#000000",
+      "#55beff",
+      "#afe3ff",
+      "#19d600",
+      "#dd0000",
+      "#37cd84",
+      "#072227"
+    ],
+    "palette": {
+      "bg": "#0b0b0b",
+      "surface": "#0b0b0b",
+      "ink": "#0b0b0b",
+      "sub": "#0b0b0b",
+      "accent": "#0b0b0b"
+    },
+    "fonts": {
+      "title": "#0052ef",
+      "body": "#0b0b0b",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 '#0052ef'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/sanity-design-preview.png",
+    "signature": "Sanity's website is a developer-content platform rendered as a nocturnal command center -- dark, precise, and deeply structured"
+  },
+  {
+    "slug": "sentry",
+    "name_ko": "Sentri",
+    "name_en": "Sentri",
+    "tags": [
+      "다크",
+      "네온",
+      "생동감",
+      "발랄",
+      "친근",
+      "테크",
+      "모노",
+      "데이터"
+    ],
+    "colors": [
+      "#150f23",
+      "#1f1633",
+      "#ffffff",
+      "#c2ef4e",
+      "#fa7faa",
+      "#6a5fc1",
+      "#422082",
+      "#79628c",
+      "#f0f0f0",
+      "#efefef",
+      "#362d59",
+      "#cfcfdb",
+      "#e5e7eb",
+      "#1a1a1a",
+      "#bdb8c0",
+      "#3f3849",
+      "#9dc1f5"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#1f1633",
+      "sub": "#1f1633",
+      "accent": "#150f23"
+    },
+    "fonts": {
+      "title": "Sentri Display",
+      "body": "Rubik",
+      "substitutes": [
+        "Rubik",
+        "-apple-system"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Sentri Display'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/sentry-design-preview.png",
+    "signature": "An inspired interpretation of Sentri's design language — a developer-tools brand built on a deep purple-violet midnight canvas, electric lim"
+  },
+  {
+    "slug": "shopify",
+    "name_ko": "Shopifi",
+    "name_en": "Shopifi",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "다크",
+      "스타트업",
+      "제품"
+    ],
+    "colors": [
+      "#000000",
+      "#ffffff",
+      "#0a0a0a",
+      "#fbfbf5",
+      "#1e2c31",
+      "#d4d4d8",
+      "#a1a1aa",
+      "#71717a",
+      "#52525b",
+      "#3f3f46",
+      "#e4e4e7",
+      "#c1fbd4",
+      "#d4f9e0",
+      "#9dabad",
+      "#9797a2",
+      "#bdbdca",
+      "#99b3ad"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#000000",
+      "sub": "#000000",
+      "accent": "#000000"
+    },
+    "fonts": {
+      "title": "NeueHaasGrotesk Display",
+      "body": "Inter Variable",
+      "substitutes": [
+        "Helvetica",
+        "Arial",
+        "Inter"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'NeueHaasGrotesk Display'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/shopify-design-preview.png",
+    "signature": "An inspired interpretation of Shopifi's design language — a cinematic commerce platform that runs two parallel design tracks"
+  },
+  {
+    "slug": "slack",
+    "name_ko": "Slacc",
+    "name_en": "Slacc",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "발랄",
+      "친근",
+      "그라데이션",
+      "컬러풀",
+      "스타트업",
+      "제품"
+    ],
+    "colors": [
+      "#4a154b",
+      "#481a54",
+      "#611f69",
+      "#592466",
+      "#ffffff",
+      "#1d1d1d",
+      "#696969",
+      "#1264a3",
+      "#3860be",
+      "#f4ede4",
+      "#f9f0ff",
+      "#e6e6e6",
+      "#000000",
+      "#cc4117",
+      "#007a5a",
+      "#d9bdde"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#1d1d1d",
+      "sub": "#1d1d1d",
+      "accent": "#4a154b"
+    },
+    "fonts": {
+      "title": "Salesforce-Avant-Garde",
+      "body": "Salesforce-Sans",
+      "substitutes": [
+        "-apple-system",
+        "BlinkMacSystemFont"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'Salesforce-Avant-Garde'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/slack-design-preview.png",
+    "signature": "An inspired interpretation of Slacc's design language — a workplace messaging brand built on a deep aubergine primary, with cream-lavender h"
+  },
+  {
+    "slug": "spacex",
+    "name_ko": "Spacex",
+    "name_en": "Spacex",
+    "tags": [
+      "미니멀",
+      "깔끔",
+      "다크"
+    ],
+    "colors": [
+      "#000000",
+      "#ffffff",
+      "#f0f0fa",
+      "#0a0a0a",
+      "#3a3a3f",
+      "#e0e0e8",
+      "#0000ee",
+      "#5a5a5f"
+    ],
+    "palette": {
+      "bg": "#ffffff",
+      "surface": "#ffffff",
+      "ink": "#000000",
+      "sub": "#000000",
+      "accent": "#000000"
+    },
+    "fonts": {
+      "title": "D-DIN-Bold",
+      "body": "D-DIN",
+      "substitutes": [
+        "Arial Narrow",
+        "Arial",
+        "Verdana"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 'D-DIN-Bold'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/spacex-design-preview.png",
+    "signature": "An inspired interpretation of Spasex's design language — a mission-oriented aerospace brand built on pure black canvas, full-bleed photograp"
+  },
+  {
+    "slug": "spotify",
+    "name_ko": "스포티파이",
+    "name_en": "Spotify",
+    "tags": [
+      "다크"
+    ],
+    "colors": [
+      "#121212",
+      "#181818",
+      "#1f1f1f",
+      "#1ed760",
+      "#f3727f",
+      "#ffa42b",
+      "#539df5",
+      "#ffffff",
+      "#b3b3b3",
+      "#cbcbcb",
+      "#fdfdfd",
+      "#252525",
+      "#272727",
+      "#4d4d4d",
+      "#7c7c7c",
+      "#eeeeee",
+      "#1db954",
+      "#000000"
+    ],
+    "palette": {
+      "bg": "#121212",
+      "surface": "#121212",
+      "ink": "#121212",
+      "sub": "#b3b3b3",
+      "accent": "#121212"
+    },
+    "fonts": {
+      "title": "",
+      "body": "#1ed760",
+      "substitutes": [],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 '브랜드 전용'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/spotify-design-preview.png",
+    "signature": "Spotify's web interface is a dark, immersive music player that wraps listeners in a near-black cocoon (`#121212`, `#181818`, `#1f1f1f`) wher"
+  },
+  {
+    "slug": "starbucks",
+    "name_ko": "Starbucks",
+    "name_en": "Starbucks",
+    "tags": [
+      "따뜻",
+      "에디토리얼",
+      "발랄",
+      "친근"
+    ],
+    "colors": [
+      "#f2f0eb",
+      "#edebe9",
+      "#006241",
+      "#cba258",
+      "#00754a",
+      "#1e3932",
+      "#2b5148",
+      "#d4e9e2",
+      "#dfc49d",
+      "#faf6ee",
+      "#ffffff",
+      "#f9f9f9",
+      "#000000",
+      "#33433d",
+      "#c82014",
+      "#fbbc05",
+      "#d6dbde",
+      "#e7e7e7"
+    ],
+    "palette": {
+      "bg": "#f2f0eb",
+      "surface": "#f2f0eb",
+      "ink": "#1e3932",
+      "sub": "#f2f0eb",
+      "accent": "#f2f0eb"
+    },
+    "fonts": {
+      "title": "#006241",
+      "body": "0 0 6px rgba(0",
+      "substitutes": [
+        "0",
+        "0.24)"
+      ],
+      "titleWeb": "Noto Sans KR",
+      "bodyWeb": "Noto Sans KR",
+      "latinWeb": "Inter",
+      "substituted": true,
+      "note": "원안 '#006241'은 웹폰트가 아니라, 한글은 'Noto Sans KR', 라틴은 'Inter'로 대체"
+    },
+    "thumbnail": "/design-thumbnails/starbucks-design-preview.png",
+    "signature": "Starbucks' design system is a **warm, confident retail flagship** wearing the green of their storefront apron across every surface"
   }
 ]
