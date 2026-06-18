@@ -730,12 +730,137 @@ textarea.wizard-input {
   }
 }
 
+/* First-visit onboarding modal */
+.onboarding[hidden] {
+  display: none;
+}
+
+.onboarding {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: auto;
+  background: rgba(42, 39, 34, 0.45);
+}
+
+.onboarding-card {
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow: auto;
+  background: var(--bg-cream);
+  border: 1px solid var(--border-soft);
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(80, 70, 50, 0.25);
+  padding: 28px 26px;
+}
+
+.onboarding-title {
+  margin: 0 0 6px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.onboarding-sub {
+  margin: 0 0 18px;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+
+.onboarding-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.oq-text {
+  display: block;
+  font-size: 1.02rem;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.oq-btns {
+  display: flex;
+  gap: 10px;
+}
+
+.oq-btn {
+  flex: 1;
+  padding: 12px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.oq-btn:hover {
+  border-color: var(--clay);
+}
+
+.oq-btn.selected {
+  background: var(--clay);
+  border-color: var(--clay);
+  color: #fff;
+}
+
+.onboarding-start {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.onboarding-start:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.onboarding-skip {
+  display: block;
+  margin: 12px auto 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  font-size: 0.95rem;
+}
+
+.onboarding-skip:hover {
+  color: var(--clay);
+}
+
 /* Guided form fields */
 .guide-fields {
   display: flex;
   flex-direction: column;
   gap: 14px;
   margin-bottom: 16px;
+}
+
+/* Guidance level (internal): "lite" trims help text + tightens spacing */
+.guide-help {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: -2px 0 7px;
+}
+
+body[data-guidance="lite"] .guide-help,
+body[data-guidance="lite"] .guide-field .hint {
+  display: none;
+}
+
+body[data-guidance="lite"] .guide-fields {
+  gap: 10px;
 }
 
 .guide-fields:empty {

@@ -193,6 +193,17 @@
       </nav>
     </footer>
 
+    <!-- First-visit onboarding (shown once) -->
+    <div id="onboarding" class="onboarding" hidden role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+      <div class="onboarding-card">
+        <h2 class="onboarding-title" id="onboarding-title">잠깐, 몇 가지만 여쭤볼게요</h2>
+        <p class="onboarding-sub">더 편하게 쓰실 수 있도록 도와드리려고요. 5개만 골라주세요.</p>
+        <div id="onboarding-questions" class="onboarding-questions"></div>
+        <button id="onboarding-start" class="btn-primary onboarding-start" type="button" disabled>시작하기</button>
+        <button id="onboarding-skip" class="onboarding-skip" type="button">건너뛰기</button>
+      </div>
+    </div>
+
     <script src="/app.js" type="module"></script>
   </body>
 </html>

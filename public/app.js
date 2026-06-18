@@ -92,6 +92,11 @@ let wizardSteps = [];
 let wizardIdx = 0;
 let wizardValues = {};
 
+// Internal guidance level from onboarding ("guided" = more help, "lite" = compact).
+// Never shown as a label in the UI. Default to "guided" (more help) until known.
+let guidanceLevel = localStorage.getItem("aio_guidance") || "guided";
+document.body.dataset.guidance = guidanceLevel;
+
 // Streaming render state.
 let raw = "";
 let renderScheduled = false;
@@ -217,8 +222,9 @@ function renderGuideControl(f) {
     const type = f.type === "number" ? "number" : "text";
     control = `<input type="${type}" data-guide-key="${key}" placeholder="${ph}" />`;
   }
+  const help = f.help ? `<span class="guide-help">${escapeHtml(f.help)}</span>` : "";
   const hint = f.hint ? `<span class="hint">${escapeHtml(f.hint)}</span>` : "";
-  return `<label class="guide-field">${label}${control}${hint}</label>`;
+  return `<label class="guide-field">${label}${help}${control}${hint}</label>`;
 }
 
 function renderGuide(module) {
@@ -559,8 +565,8 @@ function updateModuleDesc() {
     ? "더 적고 싶은 내용이 있으면 자유롭게 적어주세요 (선택)"
     : current?.inputPlaceholder || defaultInputPlaceholder;
 
-  // Reset to the beginner wizard whenever the module changes (if it has one).
-  classicMode = false;
+  // Default input mode per guidance: guided → step-by-step wizard, lite → compact form.
+  classicMode = guidanceLevel === "lite";
   applyInputMode(current);
 }
 
@@ -832,6 +838,90 @@ copyBtn.addEventListener("click", async () => {
   }
 });
 
+/* ---------- First-visit onboarding survey ---------- */
+const ONBOARD_KEY = "aio_onboarded";
+const GUIDANCE_KEY = "aio_guidance";
+const ONBOARD_QUESTIONS = [
+  "AI를 사용해본 경험이 있으신가요?",
+  "AI로 직접 무언가를 만들어 본 적이 있으신가요?",
+  "본인이 AI를 잘 다룬다고 생각하시나요?",
+  "AI한테 뭐라고 입력해야 할지 막막할 때가 있으신가요?",
+  "AI를 일·공부에 더 잘 써보고 싶으신가요?",
+];
+const onboardingEl = document.getElementById("onboarding");
+const onboardingQuestionsEl = document.getElementById("onboarding-questions");
+const onboardingStartBtn = document.getElementById("onboarding-start");
+const onboardingSkipBtn = document.getElementById("onboarding-skip");
+const onboardAnswers = new Array(ONBOARD_QUESTIONS.length).fill(null);
+
+function setGuidance(level) {
+  guidanceLevel = level;
+  localStorage.setItem(GUIDANCE_KEY, level);
+  document.body.dataset.guidance = level;
+}
+
+function guidanceFromAnswers(a) {
+  const score = (a[0] ? 0 : 1) + (a[1] ? 0 : 1) + (a[2] ? 0 : 1) + (a[3] ? 1 : 0);
+  return score >= 2 ? "guided" : "lite";
+}
+
+function renderOnboarding() {
+  onboardingQuestionsEl.innerHTML = ONBOARD_QUESTIONS.map(
+    (q, i) =>
+      `<div class="oq"><span class="oq-text">${escapeHtml(q)}</span>` +
+      `<div class="oq-btns">` +
+      `<button type="button" class="oq-btn" data-q="${i}" data-ans="yes">예</button>` +
+      `<button type="button" class="oq-btn" data-q="${i}" data-ans="no">아니요</button>` +
+      `</div></div>`,
+  ).join("");
+}
+
+function closeOnboarding() {
+  localStorage.setItem(ONBOARD_KEY, "1");
+  onboardingEl.hidden = true;
+  if (modules.length) updateModuleDesc(); // re-apply input mode under new guidance
+}
+
+onboardingQuestionsEl.addEventListener("click", (e) => {
+  const btn = e.target.closest(".oq-btn");
+  if (!btn) return;
+  const i = Number(btn.dataset.q);
+  onboardAnswers[i] = btn.dataset.ans === "yes";
+  onboardingQuestionsEl
+    .querySelectorAll(`.oq-btn[data-q="${i}"]`)
+    .forEach((b) => b.classList.toggle("selected", b === btn));
+  onboardingStartBtn.disabled = onboardAnswers.some((a) => a === null);
+});
+
+onboardingStartBtn.addEventListener("click", () => {
+  if (onboardAnswers.some((a) => a === null)) return;
+  setGuidance(guidanceFromAnswers(onboardAnswers));
+  closeOnboarding();
+  fetch("/api/onboarding-survey", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      q1: onboardAnswers[0],
+      q2: onboardAnswers[1],
+      q3: onboardAnswers[2],
+      q4: onboardAnswers[3],
+      q5: onboardAnswers[4],
+    }),
+  }).catch(() => {});
+});
+
+onboardingSkipBtn.addEventListener("click", () => {
+  setGuidance("guided"); // skip → default to more help
+  closeOnboarding();
+});
+
+function maybeShowOnboarding() {
+  if (localStorage.getItem(ONBOARD_KEY)) return;
+  renderOnboarding();
+  onboardingEl.hidden = false;
+}
+
 applyRoute();
 loadModules();
 checkHealth();
+maybeShowOnboarding();

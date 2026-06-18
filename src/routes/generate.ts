@@ -1,4 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
+import { appendFile, mkdir } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { config } from "../config.js";
 import { listModules } from "../modules.js";
 import { generate, generateStream } from "../services/generator.js";
@@ -6,6 +9,7 @@ import { parseGenerateRequest, type GenerateBody } from "../validation.js";
 import { createRateLimiter } from "../rateLimit.js";
 import { getSample } from "../samples.js";
 import { recommendThemes, recommendFromDesigns, listThemes } from "../design.js";
+import { guidanceFromAnswers, parseSurvey } from "../onboarding.js";
 
 export const router = Router();
 
@@ -20,6 +24,39 @@ const perDay = createRateLimiter({
   max: config.rateLimitPerDay,
   message: "오늘 사용량 한도를 초과했습니다. 내일 다시 이용해 주세요.",
 });
+const surveyLimiter = createRateLimiter({
+  windowMs: 60_000,
+  max: 30,
+  message: "잠시 후 다시 시도해 주세요.",
+});
+
+// Anonymous onboarding survey storage: only the 5 answers + level + timestamp.
+// No IP / name / email / login is recorded. (Render's disk is ephemeral — swap
+// for a DB/Sheet for durable storage.)
+const dataDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "data");
+async function appendSurvey(record: unknown): Promise<void> {
+  await mkdir(dataDir, { recursive: true });
+  await appendFile(join(dataDir, "onboarding-survey.jsonl"), JSON.stringify(record) + "\n");
+}
+
+router.post(
+  "/onboarding-survey",
+  surveyLimiter,
+  asyncHandler(async (req, res) => {
+    const answers = parseSurvey(req.body ?? {});
+    if (!answers) {
+      res.status(400).json({ error: "invalid survey" });
+      return;
+    }
+    const guidanceLevel = guidanceFromAnswers(answers);
+    try {
+      await appendSurvey({ ts: new Date().toISOString(), ...answers, guidanceLevel });
+    } catch {
+      /* storage is best-effort; never fail the request on a write error */
+    }
+    res.json({ ok: true, guidanceLevel });
+  }),
+);
 
 // Shared gate: generation needs a server-side API key. Without it the UI and
 // /api/modules still work, but generation returns 401.
