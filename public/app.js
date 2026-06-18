@@ -294,10 +294,8 @@ function cssMiniSlide(p) {
 function themeCard(preset, reason) {
   themesById[preset.id] = preset;
   const tags = (preset.tags || preset.moods || []).slice(0, 3).join(" · ");
-  const subbed = preset.heading && preset.heading.substituted;
-  const subNote = subbed
-    ? `<div class="theme-fontnote sub">ⓘ ${escapeHtml(preset.heading.note || "가까운 웹폰트로 대체")}</div>`
-    : "";
+  // Font-substitution info is kept in designs.json / logs but NOT shown on screen
+  // (no red warning). Re-enable as faint gray helper text only if ever needed.
   // Use the rendered thumbnail when present; otherwise a live CSS mini-slide.
   const top = preset.thumbnail
     ? `<img class="theme-thumb" src="${escapeHtml(preset.thumbnail)}" alt="" loading="lazy">`
@@ -308,7 +306,6 @@ function themeCard(preset, reason) {
     `<div class="theme-name">${escapeHtml(preset.name)}</div>` +
     (reason ? `<div class="theme-reason">${escapeHtml(reason)}</div>` : "") +
     `<div class="theme-fontnote">${escapeHtml(tags)}</div>` +
-    subNote +
     `</div></button>`
   );
 }
