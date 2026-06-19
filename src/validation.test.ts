@@ -98,14 +98,14 @@ test("rejects a per-field value longer than maxFieldChars", () => {
 
 test("normalizes valid option values (coerces numbers, keeps valid selects)", () => {
   const exam = getModule("exam")!;
-  const values = normalizeOptionValues(exam, { difficulty: "중", count: "10" });
-  assert.deepEqual(values, { difficulty: "중", count: 10 });
+  const values = normalizeOptionValues(exam, { difficulty: "중", time: "60" });
+  assert.deepEqual(values, { difficulty: "중", time: 60 });
 });
 
 test("clamps numbers to the declared min/max", () => {
-  const exam = getModule("exam")!; // count: default 33, min 10, max 50
-  assert.equal(normalizeOptionValues(exam, { count: 999 }).count, 50);
-  assert.equal(normalizeOptionValues(exam, { count: 0 }).count, 10);
+  const exam = getModule("exam")!; // time: default 50, min 10, max 180
+  assert.equal(normalizeOptionValues(exam, { time: 999 }).time, 180);
+  assert.equal(normalizeOptionValues(exam, { time: 0 }).time, 10);
 });
 
 test("drops select values outside the choices and unknown keys", () => {

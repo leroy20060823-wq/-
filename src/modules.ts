@@ -17,6 +17,15 @@ export interface ModuleOptionChoice {
   example?: string;
 }
 
+/** One row of a "counts" control (e.g. 객관식 / 서술형 / 단답형). */
+export interface CountItem {
+  key: string;
+  label: string;
+  default?: number;
+  min?: number;
+  max?: number;
+}
+
 export interface ModuleOption {
   key: string;
   label: string;
@@ -25,10 +34,15 @@ export interface ModuleOption {
   default?: string | number;
   min?: number;
   max?: number;
+  /** Number stepper extras. */
+  step?: number;
+  unit?: string;
+  presets?: number[];
   placeholder?: string;
-  /** Beginner wizard: friendly question + plain-language help. */
-  question?: string;
+  /** One-line helper shown under the control. */
   help?: string;
+  /** Beginner wizard: friendly question. */
+  question?: string;
 }
 
 /**
@@ -38,9 +52,18 @@ export interface ModuleOption {
 export interface GuideField {
   key: string;
   label: string;
-  type: "text" | "textarea" | "select" | "number";
+  type: "text" | "textarea" | "select" | "number" | "counts";
   placeholder?: string;
   choices?: ModuleOptionChoice[];
+  /** Number stepper extras. */
+  min?: number;
+  max?: number;
+  default?: number;
+  step?: number;
+  unit?: string;
+  presets?: number[];
+  /** "counts" control: the labeled stepper rows that share a live total. */
+  items?: CountItem[];
   required?: boolean;
   hint?: string;
   /** Beginner wizard: the big friendly question (falls back to label). */
@@ -93,9 +116,9 @@ export interface GenerationModule {
 }
 
 const DIFFICULTY: ModuleOptionChoice[] = [
-  { value: "하", example: "기초 위주, 쉽게" },
-  { value: "중", example: "보통 수준" },
-  { value: "상", example: "어렵게, 변별력 있게" },
+  { value: "하", label: "쉬움" },
+  { value: "중", label: "보통" },
+  { value: "상", label: "어려움" },
 ];
 
 const MODULES: GenerationModule[] = [
@@ -121,28 +144,21 @@ const MODULES: GenerationModule[] = [
         type: "select",
         choices: DIFFICULTY,
         default: "중",
+        help: "문제가 얼마나 어려울지 골라요.",
         question: "난이도는 어느 정도로 할까요?",
-        help: "문제가 얼마나 어려울지 정해요.",
-      },
-      {
-        key: "count",
-        label: "문항 수",
-        type: "number",
-        default: 33,
-        min: 10,
-        max: 50,
-        question: "문제는 몇 개 만들까요?",
-        help: "보통 20~33개를 많이 써요. 숫자로 적어주세요.",
       },
       {
         key: "time",
-        label: "시험시간(분)",
+        label: "시험 시간",
         type: "number",
         default: 50,
         min: 10,
         max: 180,
-        question: "시험시간은 몇 분으로 할까요?",
-        help: "분 단위로 적어주세요. 보통 45~60분이에요.",
+        step: 5,
+        unit: "분",
+        presets: [40, 50, 60],
+        help: "보통 45~60분이에요.",
+        question: "시험 시간은 몇 분으로 할까요?",
       },
     ],
     guide: [
@@ -153,34 +169,38 @@ const MODULES: GenerationModule[] = [
         required: true,
         placeholder: "예: 영어, 수학, 한국사",
         question: "어떤 과목의 시험지를 만들까요?",
-        help: "가르치거나 공부하는 과목을 적어주세요.",
+        help: "가르치거나 공부하는 과목을 적어 주세요.",
         skipValue: "영어",
       },
       {
         key: "scope",
-        label: "단원 / 범위 또는 주제 (선택)",
+        label: "단원·범위 또는 주제 (선택)",
         type: "text",
-        placeholder: "예: 교재 3~4단원 · 광합성 · 2학기 중간 범위",
+        placeholder: "예: 교과서 3~4단원, 광합성, 2학기 중간 범위",
         question: "어느 범위·주제에서 낼까요? (선택)",
-        help: "자료를 올렸다면 비워도 돼요. 자료 없이 만들 땐 여기에 적은 주제로 만들어요.",
+        help: "사진이나 본문을 올렸다면 비워도 돼요. 안 올렸다면 여기에 적은 내용으로 만들어요.",
         skipValue: "",
       },
       {
-        key: "types",
-        label: "문항 유형",
-        type: "text",
-        placeholder: "예: 객관식 위주, 객관식+서술형",
-        question: "어떤 형태의 문제를 넣을까요?",
-        help: "객관식(보기 중 고르기)·서술형(직접 쓰기) 같은 문제 형태요.",
-        skipValue: "객관식과 서술형을 골고루",
+        key: "qtypes",
+        label: "문제 유형별 개수",
+        type: "counts",
+        unit: "문항",
+        items: [
+          { key: "mc", label: "객관식", default: 20, min: 0, max: 50 },
+          { key: "essay", label: "서술형", default: 2, min: 0, max: 30 },
+          { key: "short", label: "단답형", default: 0, min: 0, max: 30 },
+        ],
+        question: "어떤 문제를 몇 개씩 넣을까요?",
+        help: "−/+ 단추로 개수를 정하면 아래에 총 문항 수가 나와요. 그대로 두셔도 좋아요.",
       },
       {
         key: "note",
-        label: "특이사항 (선택)",
+        label: "더 부탁할 점 (선택)",
         type: "text",
         placeholder: "예: 서술형 비중을 높여 주세요",
         question: "더 알려주고 싶은 점이 있나요?",
-        help: "없으면 그냥 넘어가셔도 됩니다.",
+        help: "없으면 그냥 넘어가셔도 돼요.",
         skipValue: "",
       },
     ],

@@ -24,11 +24,17 @@ test("guide fields are well-formed", () => {
       assert.ok(f.key, `${m.id} guide field missing key`);
       assert.ok(f.label, `${m.id}.${f.key} guide field missing label`);
       assert.ok(
-        ["text", "textarea", "select", "number"].includes(f.type),
+        ["text", "textarea", "select", "number", "counts"].includes(f.type),
         `${m.id}.${f.key} bad guide type`,
       );
       if (f.type === "select") {
         assert.ok((f.choices ?? []).length > 0, `${m.id}.${f.key} select needs choices`);
+      }
+      if (f.type === "counts") {
+        assert.ok((f.items ?? []).length > 0, `${m.id}.${f.key} counts needs items`);
+        for (const it of f.items ?? []) {
+          assert.ok(it.key && it.label, `${m.id}.${f.key} counts item missing key/label`);
+        }
       }
     }
   }

@@ -339,33 +339,171 @@ async function downloadExamPdf() {
   }
 }
 
+/* ---------- Shared structured controls (chips / stepper / counts) ---------- */
+// Reusable builders so every module's bounded inputs look & behave the same.
+// Each exposes a single value-bearing element carrying the gather attribute
+// (data-guide-key / data-opt-key) so gatherGuide/gatherOptions stay unchanged.
+
+function choiceChips(keyAttr, key, choices, def) {
+  const value = def != null ? def : choices[0]?.value ?? "";
+  const chips = choices
+    .map((c) => {
+      const v = c.value;
+      const lab = c.label ?? c.value;
+      const ex = c.example ? `<span class="chip-ex">${escapeHtml(c.example)}</span>` : "";
+      return `<button type="button" class="chip${v === value ? " active" : ""}" data-chip="${escapeHtml(v)}">${escapeHtml(lab)}${ex}</button>`;
+    })
+    .join("");
+  return (
+    `<div class="chips" role="group">${chips}</div>` +
+    `<input type="hidden" ${keyAttr}="${escapeHtml(key)}" value="${escapeHtml(value)}">`
+  );
+}
+
+function numberStepper(keyAttr, key, opt, id) {
+  const min = opt.min ?? 0;
+  const max = opt.max ?? 9999;
+  const step = opt.step ?? 1;
+  const def = opt.default ?? min;
+  const unit = opt.unit ? `<span class="stepper-unit">${escapeHtml(opt.unit)}</span>` : "";
+  const idAttr = id ? ` id="${id}"` : "";
+  const presets =
+    Array.isArray(opt.presets) && opt.presets.length
+      ? `<div class="presets">` +
+        opt.presets.map((p) => `<button type="button" class="preset" data-preset="${escapeHtml(String(p))}">${escapeHtml(String(p))}</button>`).join("") +
+        `</div>`
+      : "";
+  return (
+    `<div class="stepper" data-min="${min}" data-max="${max}" data-step="${step}">` +
+    `<button type="button" class="step-btn" data-step-dir="-1" aria-label="줄이기">−</button>` +
+    `<input type="number" class="step-input"${idAttr} ${keyAttr}="${escapeHtml(key)}" value="${escapeHtml(String(def))}" min="${min}" max="${max}" step="${step}" inputmode="numeric">` +
+    `<button type="button" class="step-btn" data-step-dir="1" aria-label="늘리기">+</button>` +
+    unit +
+    `</div>` +
+    presets
+  );
+}
+
+function countsControl(keyAttr, key, field, id) {
+  const items = field.items ?? [];
+  const unit = field.unit ?? "개";
+  const rows = items
+    .map((it) => {
+      const def = it.default ?? 0;
+      return (
+        `<div class="count-row">` +
+        `<span class="count-label">${escapeHtml(it.label)}</span>` +
+        `<div class="stepper" data-min="${it.min ?? 0}" data-max="${it.max ?? 999}" data-step="1">` +
+        `<button type="button" class="step-btn" data-step-dir="-1" aria-label="줄이기">−</button>` +
+        `<input type="number" class="step-input count-item" data-count-item="${escapeHtml(it.key)}" data-count-label="${escapeHtml(it.label)}" value="${def}" min="${it.min ?? 0}" max="${it.max ?? 999}" inputmode="numeric">` +
+        `<button type="button" class="step-btn" data-step-dir="1" aria-label="늘리기">+</button>` +
+        `<span class="stepper-unit">${escapeHtml(unit)}</span>` +
+        `</div></div>`
+      );
+    })
+    .join("");
+  const idAttr = id ? ` id="${id}"` : "";
+  return (
+    `<div class="counts" data-unit="${escapeHtml(unit)}">` +
+    rows +
+    `<div class="count-total"><span class="count-total-text"></span></div>` +
+    `<input type="hidden"${idAttr} ${keyAttr}="${escapeHtml(key)}" value="">` +
+    `</div>`
+  );
+}
+
+// Recompute a counts control's live total + the hidden composed value it submits.
+function refreshCounts(countsEl) {
+  if (!countsEl) return;
+  const unit = countsEl.dataset.unit || "개";
+  const parts = [];
+  let total = 0;
+  countsEl.querySelectorAll(".count-item").forEach((inp) => {
+    const n = Math.max(0, parseInt(inp.value, 10) || 0);
+    total += n;
+    if (n > 0) parts.push(`${inp.dataset.countLabel} ${n}${unit}`);
+  });
+  const totalText = countsEl.querySelector(".count-total-text");
+  if (totalText) totalText.textContent = `총 ${total}${unit}`;
+  const hidden = countsEl.querySelector("input[type='hidden']");
+  if (hidden) hidden.value = parts.length ? `${parts.join(", ")} (총 ${total}${unit})` : "";
+}
+
+function refreshAllCounts(scope) {
+  (scope || form).querySelectorAll(".counts").forEach(refreshCounts);
+}
+
+function clampStepInput(inp) {
+  const wrap = inp.closest(".stepper");
+  const min = wrap ? Number(wrap.dataset.min ?? 0) : 0;
+  const max = wrap ? Number(wrap.dataset.max ?? 9999) : 9999;
+  let n = parseInt(inp.value, 10);
+  if (!Number.isFinite(n)) n = min;
+  n = Math.max(min, Math.min(max, n));
+  inp.value = String(n);
+  return n;
+}
+
+// One delegated handler for all structured controls inside the form (classic + wizard).
+form.addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip[data-chip]");
+  if (chip) {
+    const group = chip.closest(".chips");
+    group?.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c === chip));
+    const hidden = group?.parentElement.querySelector("input[type='hidden']");
+    if (hidden) hidden.value = chip.dataset.chip;
+    return;
+  }
+  const stepBtn = e.target.closest(".step-btn[data-step-dir]");
+  if (stepBtn) {
+    const wrap = stepBtn.closest(".stepper");
+    const inp = wrap?.querySelector(".step-input");
+    if (inp) {
+      const step = Number(wrap.dataset.step ?? 1);
+      inp.value = String((parseInt(inp.value, 10) || 0) + step * Number(stepBtn.dataset.stepDir));
+      clampStepInput(inp);
+      if (inp.classList.contains("count-item")) refreshCounts(inp.closest(".counts"));
+    }
+    return;
+  }
+  const preset = e.target.closest(".preset[data-preset]");
+  if (preset) {
+    const inp = preset.closest(".presets")?.previousElementSibling?.querySelector?.(".step-input");
+    if (inp) {
+      inp.value = preset.dataset.preset;
+      clampStepInput(inp);
+    }
+  }
+});
+
+// Clamp + recompute on manual typing.
+form.addEventListener("input", (e) => {
+  const inp = e.target.closest(".step-input");
+  if (!inp) return;
+  if (inp.classList.contains("count-item")) refreshCounts(inp.closest(".counts"));
+});
+form.addEventListener("change", (e) => {
+  const inp = e.target.closest(".step-input");
+  if (inp) {
+    clampStepInput(inp);
+    if (inp.classList.contains("count-item")) refreshCounts(inp.closest(".counts"));
+  }
+});
+
 /* ---------- Options ---------- */
 function renderOptionControl(opt) {
   const label = `<span class="opt-label">${escapeHtml(opt.label)}</span>`;
+  const help = opt.help ? `<span class="guide-help">${escapeHtml(opt.help)}</span>` : "";
+  let control;
   if (opt.type === "select") {
-    const options = (opt.choices ?? [])
-      .map((c) => {
-        const value = escapeHtml(c.value);
-        const text = escapeHtml(c.label ?? c.value);
-        const selected = opt.default === c.value ? " selected" : "";
-        return `<option value="${value}"${selected}>${text}</option>`;
-      })
-      .join("");
-    return `<label class="opt">${label}<select data-opt-key="${escapeHtml(opt.key)}">${options}</select></label>`;
+    control = choiceChips("data-opt-key", opt.key, opt.choices ?? [], opt.default);
+  } else if (opt.type === "number") {
+    control = numberStepper("data-opt-key", opt.key, opt);
+  } else {
+    const ph = opt.placeholder ? `placeholder="${escapeHtml(opt.placeholder)}"` : "";
+    control = `<input type="text" data-opt-key="${escapeHtml(opt.key)}" maxlength="1000" ${ph} ${opt.default !== undefined ? `value="${escapeHtml(String(opt.default))}"` : ""}/>`;
   }
-  const type = opt.type === "number" ? "number" : "text";
-  const attrs = [
-    `type="${type}"`,
-    `data-opt-key="${escapeHtml(opt.key)}"`,
-    opt.default !== undefined ? `value="${escapeHtml(String(opt.default))}"` : "",
-    opt.min !== undefined ? `min="${opt.min}"` : "",
-    opt.max !== undefined ? `max="${opt.max}"` : "",
-    type === "text" ? `maxlength="1000"` : "",
-    opt.placeholder ? `placeholder="${escapeHtml(opt.placeholder)}"` : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-  return `<label class="opt">${label}<input ${attrs} /></label>`;
+  return `<div class="opt">${label}${help}${control}</div>`;
 }
 
 function renderOptions(module) {
@@ -390,27 +528,31 @@ function renderGuideControl(f) {
   const label = `<span class="guide-label">${escapeHtml(f.label)}${req}</span>`;
   const key = escapeHtml(f.key);
   const ph = escapeHtml(f.placeholder ?? "");
+  const help = f.help ? `<span class="guide-help">${escapeHtml(f.help)}</span>` : "";
+  const hint = f.hint ? `<span class="hint">${escapeHtml(f.hint)}</span>` : "";
   let control;
+  let tag = "label"; // text/textarea focus nicely inside a <label>
   if (f.type === "select") {
-    const opts = (f.choices ?? [])
-      .map((c) => `<option value="${escapeHtml(c.value)}">${escapeHtml(c.label ?? c.value)}</option>`)
-      .join("");
-    control = `<select data-guide-key="${key}">${opts}</select>`;
+    control = choiceChips("data-guide-key", f.key, f.choices ?? [], f.default);
+    tag = "div"; // interactive buttons shouldn't sit inside a <label>
+  } else if (f.type === "number") {
+    control = numberStepper("data-guide-key", f.key, f);
+    tag = "div";
+  } else if (f.type === "counts") {
+    control = countsControl("data-guide-key", f.key, f);
+    tag = "div";
   } else if (f.type === "textarea") {
     control = `<textarea data-guide-key="${key}" rows="3" maxlength="3000" placeholder="${ph}"></textarea>`;
   } else {
-    const type = f.type === "number" ? "number" : "text";
-    const cap = type === "text" ? ' maxlength="3000"' : "";
-    control = `<input type="${type}" data-guide-key="${key}"${cap} placeholder="${ph}" />`;
+    control = `<input type="text" data-guide-key="${key}" maxlength="3000" placeholder="${ph}" />`;
   }
-  const help = f.help ? `<span class="guide-help">${escapeHtml(f.help)}</span>` : "";
-  const hint = f.hint ? `<span class="hint">${escapeHtml(f.hint)}</span>` : "";
-  return `<label class="guide-field">${label}${help}${control}${hint}</label>`;
+  return `<${tag} class="guide-field">${label}${help}${control}${hint}</${tag}>`;
 }
 
 function renderGuide(module) {
   const guide = module?.guide ?? [];
   guideFieldsEl.innerHTML = guide.map(renderGuideControl).join("");
+  refreshAllCounts(guideFieldsEl);
 }
 
 function gatherGuide() {
@@ -669,13 +811,14 @@ function renderWizardStep() {
         })
         .join("") +
       `</div>`;
+  } else if (s.type === "number") {
+    control = numberStepper("data-wiz", s.key, { ...s, default: cur !== "" ? cur : s.default }, "wizard-input");
+  } else if (s.type === "counts") {
+    control = countsControl("data-wiz", s.key, s, "wizard-input");
   } else if (s.type === "textarea") {
     control = `<textarea class="wizard-input" id="wizard-input" maxlength="3000" placeholder="${escapeHtml(s.placeholder || "")}">${escapeHtml(String(cur))}</textarea>`;
   } else {
-    const t = s.type === "number" ? "number" : "text";
-    const minmax = `${s.min !== undefined ? `min="${s.min}"` : ""} ${s.max !== undefined ? `max="${s.max}"` : ""}`;
-    const cap = t === "text" ? ' maxlength="3000"' : "";
-    control = `<input class="wizard-input" id="wizard-input" type="${t}"${cap} placeholder="${escapeHtml(s.placeholder || "")}" value="${escapeHtml(String(cur))}" ${minmax}>`;
+    control = `<input class="wizard-input" id="wizard-input" type="text" maxlength="3000" placeholder="${escapeHtml(s.placeholder || "")}" value="${escapeHtml(String(cur))}">`;
   }
 
   wizardEl.innerHTML =
@@ -691,6 +834,8 @@ function renderWizardStep() {
     `</div>` +
     `<button type="button" class="wizard-skip" id="wizard-classic">직접 입력하기</button>`;
 
+  refreshAllCounts(wizardEl);
+
   if (isChoice) {
     wizardEl.querySelectorAll("[data-choice]").forEach((b) =>
       b.addEventListener("click", () => {
@@ -701,7 +846,7 @@ function renderWizardStep() {
     );
   } else {
     const inp = document.getElementById("wizard-input");
-    inp?.focus();
+    if (inp && inp.type !== "hidden") inp.focus();
     document.getElementById("wizard-next").addEventListener("click", () => {
       const val = inp.value.trim();
       if (s.required && !val) {
@@ -814,10 +959,13 @@ function updateModuleDesc() {
   if (!isPpt) resetPptDesign();
 
   const hasGuide = (current?.guide ?? []).length > 0;
-  inputLabel.textContent = hasGuide ? "추가 요청 (선택)" : "요청 입력";
+  inputLabel.textContent = hasGuide ? "더 부탁할 내용 (선택)" : "무엇을 만들까요?";
   inputEl.placeholder = hasGuide
-    ? "더 적고 싶은 내용이 있으면 자유롭게 적어주세요 (선택)"
+    ? "예: 비교급 문법을 강조해 주세요 (없으면 비워 두셔도 돼요)"
     : current?.inputPlaceholder || defaultInputPlaceholder;
+
+  // Plain-language action button: "시험지 만들기", "단어장 만들기" …
+  if (submitBtn) submitBtn.textContent = current ? `${current.name} 만들기` : "만들기";
 
   // Default input mode per guidance: guided → step-by-step wizard, lite → compact form.
   classicMode = guidanceLevel === "lite";
