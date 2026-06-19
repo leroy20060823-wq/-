@@ -1344,6 +1344,188 @@ body[data-guidance="lite"] .guide-fields {
   font-variant-numeric: tabular-nums;
 }
 
+/* ---------------- Source material input (attachments.js) ---------------- */
+.source-section {
+  display: block;
+  margin-bottom: 18px;
+}
+
+.source-section[hidden] {
+  display: none;
+}
+
+.source-section > .label {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.source-section > .hint {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.source-input {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: #fcfbf7;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+}
+
+.source-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.source-btn {
+  flex: 1 1 200px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--ink);
+  background: #fff;
+  border: 1.5px solid var(--border-soft);
+  border-radius: 10px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.source-btn:hover {
+  border-color: var(--sage);
+}
+
+.source-btn.primary {
+  color: #fff;
+  background: var(--sage);
+  border-color: var(--sage);
+}
+
+.source-btn.primary:hover {
+  filter: brightness(0.96);
+}
+
+.source-ico {
+  font-size: 1.2rem;
+}
+
+.source-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.source-thumbs:empty {
+  display: none;
+}
+
+.thumb {
+  position: relative;
+  width: 92px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.thumb img {
+  width: 92px;
+  height: 92px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border-soft);
+  display: block;
+}
+
+.thumb-doc {
+  width: 92px;
+  height: 92px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: var(--clay-deep);
+  background: #f3ecdc;
+  border-radius: 8px;
+  border: 1px solid var(--border-soft);
+}
+
+.thumb-name {
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thumb-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.thumb-actions button {
+  flex: 1;
+  padding: 2px 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  cursor: pointer;
+  color: var(--ink-soft);
+  background: #fff;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+}
+
+.thumb-actions .thumb-rm {
+  color: var(--clay-deep);
+}
+
+.source-paste summary {
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: var(--sky);
+  font-weight: 600;
+}
+
+.source-text {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.92rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.source-status {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.source-status:empty {
+  display: none;
+}
+
+.source-note {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.source-note.grounded {
+  color: var(--sage);
+  font-weight: 600;
+}
+
 /* ---------------- Exam PDF bar ---------------- */
 .exam-pdf {
   display: flex;

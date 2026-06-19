@@ -45,4 +45,13 @@ export const config = {
   // Input limits: per-field cap + overall request cap (in characters).
   maxFieldChars: intFromEnv("MAX_FIELD_CHARS", 3000),
   maxInputChars: intFromEnv("MAX_INPUT_CHARS", 8000),
+  // Pasted source material can be longer than the form text (a whole passage).
+  maxSourceChars: intFromEnv("MAX_SOURCE_CHARS", 20000),
+  // Attachment (photo / PDF) limits — images add token cost, so cap count + size.
+  maxAttachments: intFromEnv("MAX_ATTACHMENTS", 10),
+  maxImageBytes: intFromEnv("MAX_IMAGE_BYTES", 5 * 1024 * 1024),
+  maxPdfBytes: intFromEnv("MAX_PDF_BYTES", 10 * 1024 * 1024),
+  maxTotalUploadBytes: intFromEnv("MAX_TOTAL_UPLOAD_BYTES", 18 * 1024 * 1024),
+  // Express JSON body limit (must comfortably hold base64 attachments).
+  maxUploadMb: intFromEnv("MAX_UPLOAD_MB", 24),
 };

@@ -2,6 +2,7 @@ import { marked } from "./vendor/marked.esm.js";
 import DOMPurify from "./vendor/purify.es.mjs";
 import { parseDeck, renderDeck } from "./slides.js";
 import { renderPagedDocument } from "./docqa.js";
+import { createSourceInput } from "./attachments.js";
 
 marked.use({ gfm: true, breaks: false });
 
@@ -94,6 +95,31 @@ const DEFAULT_DECK_THEME = {
 };
 const wizardEl = document.getElementById("wizard");
 const toWizardBtn = document.getElementById("to-wizard");
+const sourceSection = document.getElementById("source-section");
+const sourceLabel = document.getElementById("source-label");
+const sourceHint = document.getElementById("source-hint");
+const sourceMount = document.getElementById("source-mount");
+const sourceNote = document.getElementById("source-note");
+
+// Topic-mode reminder shown under the source input.
+const SOURCE_TOPIC_NOTE =
+  "본문·사진 없이 주제만 넣으면 AI가 비슷한 내용을 새로 만들어요. 실제 교재 그대로 내려면 본문이나 사진을 올려주세요.";
+const SOURCE_GROUNDED_NOTE = "✓ 올려주신 자료를 바탕으로 만들어요.";
+
+// One reusable source-material input (photo / paste / file), shared across modules.
+const sourceInput = createSourceInput({ onChange: () => updateSourceNote() });
+
+function mountSourceTo(container) {
+  if (container && sourceInput.el.parentNode !== container) container.appendChild(sourceInput.el);
+}
+function updateSourceNote() {
+  const grounded = !sourceInput.isEmpty();
+  for (const el of [sourceNote, document.getElementById("wizard-source-note")]) {
+    if (!el) continue;
+    el.textContent = grounded ? SOURCE_GROUNDED_NOTE : SOURCE_TOPIC_NOTE;
+    el.classList.toggle("grounded", grounded);
+  }
+}
 const extraField = document.getElementById("extra-field");
 const actionsRow = document.getElementById("actions-row");
 
@@ -534,6 +560,15 @@ function getCurrentModule() {
 
 function buildWizardSteps(module) {
   const steps = [];
+  // Step ①: upload source material (for content-dependent modules).
+  if (module.source && module.source.enabled) {
+    steps.push({
+      kind: "source",
+      key: "__source__",
+      question: module.source.label ? `${module.source.label} 올리기` : "자료 올리기",
+      help: module.source.hint || "",
+    });
+  }
   for (const f of module.guide ?? []) steps.push({ kind: "guide", ...f });
   for (const o of module.options ?? []) steps.push({ kind: "option", ...o });
   return steps;
@@ -553,6 +588,13 @@ function applyInputMode(module) {
   moduleOptionsEl.style.display = disp;
   extraField.style.display = disp;
   actionsRow.style.display = disp;
+
+  // The source input lives in the classic form OR (during the wizard) inside its
+  // first step — show the section only in classic mode and keep the element there.
+  const srcEnabled = !!(module && module.source && module.source.enabled);
+  sourceSection.hidden = !srcEnabled || useWizard;
+  if (srcEnabled && !useWizard) mountSourceTo(sourceMount);
+
   if (useWizard) startWizard(module);
   else wizardEl.innerHTML = "";
 }
@@ -579,6 +621,41 @@ function renderWizardStep() {
   const pct = Math.round((wizardIdx / total) * 100);
   const help = s.help ? `<p class="wizard-help">${escapeHtml(s.help)}</p>` : "";
   const cur = wizardValues[s.key] ?? "";
+
+  // Special step: upload source material (photo / paste / file).
+  if (s.kind === "source") {
+    wizardEl.innerHTML =
+      `<div class="wizard-progress"><span class="wizard-progress-text">${wizardIdx + 1} / ${total}</span><span class="wizard-bar"><i style="width:${pct}%"></i></span></div>` +
+      `<h3 class="wizard-q">${escapeHtml(s.question)}</h3>` +
+      help +
+      `<div id="wizard-source-mount"></div>` +
+      `<p class="source-note" id="wizard-source-note"></p>` +
+      `<div class="wizard-actions">` +
+      `<button type="button" class="btn-primary" id="wizard-next">다음</button>` +
+      (wizardIdx > 0 ? `<button type="button" class="btn-ghost" id="wizard-prev">이전</button>` : "") +
+      `<button type="button" class="wizard-skip" id="wizard-skip">사진·본문 없이 진행</button>` +
+      `</div>` +
+      `<button type="button" class="wizard-skip" id="wizard-classic">직접 입력하기</button>`;
+    mountSourceTo(document.getElementById("wizard-source-mount"));
+    updateSourceNote();
+    document.getElementById("wizard-next").addEventListener("click", () => {
+      wizardIdx += 1;
+      renderWizardStep();
+    });
+    document.getElementById("wizard-skip").addEventListener("click", () => {
+      wizardIdx += 1;
+      renderWizardStep();
+    });
+    document.getElementById("wizard-prev")?.addEventListener("click", () => {
+      wizardIdx = Math.max(0, wizardIdx - 1);
+      renderWizardStep();
+    });
+    document.getElementById("wizard-classic").addEventListener("click", () => {
+      classicMode = true;
+      applyInputMode(getCurrentModule());
+    });
+    return;
+  }
 
   let control;
   const isChoice = s.type === "select" && (s.choices ?? []).length > 0;
@@ -656,9 +733,20 @@ function renderWizardStep() {
 function renderWizardSummary() {
   const items = wizardSteps
     .map((s) => {
-      const v = wizardValues[s.key];
-      const empty = v === undefined || v === "" || v === stepSkipValue(s);
-      const shown = v === undefined || v === "" ? "기본값으로 진행" : String(v);
+      let shown;
+      let empty;
+      if (s.kind === "source") {
+        const n = sourceInput.count();
+        const hasTxt = sourceInput.hasText();
+        empty = !n && !hasTxt;
+        shown = empty
+          ? "없음 (주제 기반으로 생성)"
+          : [n ? `사진·파일 ${n}개` : "", hasTxt ? "본문 붙여넣음" : ""].filter(Boolean).join(" + ");
+      } else {
+        const v = wizardValues[s.key];
+        empty = v === undefined || v === "" || v === stepSkipValue(s);
+        shown = v === undefined || v === "" ? "기본값으로 진행" : String(v);
+      }
       return (
         `<div class="wizard-summary-item">` +
         `<div class="wizard-summary-q">${escapeHtml(s.question || s.label)}</div>` +
@@ -691,6 +779,7 @@ function renderWizardSummary() {
 // Write wizard answers into the (hidden) classic inputs, then run normal generate.
 function finishWizard() {
   for (const s of wizardSteps) {
+    if (s.kind === "source") continue; // material is read straight from the component
     const v = wizardValues[s.key] ?? "";
     const container = s.kind === "guide" ? guideFieldsEl : moduleOptionsEl;
     const attr = s.kind === "guide" ? "data-guide-key" : "data-opt-key";
@@ -707,6 +796,18 @@ function updateModuleDesc() {
   moduleDesc.textContent = current?.description ?? "";
   renderGuide(current);
   renderOptions(current);
+
+  // Source-material input (reusable across content-dependent modules).
+  const src = current?.source;
+  if (src?.enabled) {
+    sourceLabel.textContent = src.label || "자료";
+    sourceHint.textContent = src.hint || "";
+    sourceInput.reset();
+    mountSourceTo(sourceMount);
+    updateSourceNote();
+  } else {
+    sourceInput.reset();
+  }
 
   const isPpt = current?.id === "ppt";
   pptDesign.hidden = !isPpt;
@@ -844,8 +945,15 @@ async function generate(event) {
     input += `\n\n디자인 테마: ${p.name} — 배경 ${pal.bg}, 잉크 ${pal.ink}, 강조색 ${pal.accent}, 제목 폰트 ${p.heading.webFont}, 본문 폰트 ${p.body.webFont}`;
     if (p.signature) input += ` · 시그니처: ${p.signature}`;
   }
-  if (!input.trim()) {
-    showError("요청 내용을 입력해 주세요.");
+
+  // Source material (photo / paste / file) for content-dependent modules.
+  const srcEnabled = !!current?.source?.enabled;
+  const attachments = srcEnabled ? sourceInput.getAttachments() : [];
+  const sourceText = srcEnabled ? sourceInput.getSourceText() : "";
+  const hasMaterial = attachments.length > 0 || !!sourceText;
+
+  if (!input.trim() && !hasMaterial) {
+    showError("요청 내용을 입력하거나 자료(사진·본문)를 올려주세요.");
     return;
   }
 
@@ -855,10 +963,13 @@ async function generate(event) {
   controller = new AbortController();
 
   try {
+    const body = { module, input, options: gatherOptions() };
+    if (sourceText) body.sourceText = sourceText;
+    if (attachments.length) body.attachments = attachments;
     const res = await fetch("/api/generate/stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ module, input, options: gatherOptions() }),
+      body: JSON.stringify(body),
       signal: controller.signal,
     });
 

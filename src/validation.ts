@@ -1,16 +1,77 @@
 import { getModule, type GenerationModule } from "./modules.js";
-import type { GenerateOptions } from "./services/generator.js";
+import type { Attachment, GenerateOptions } from "./services/generator.js";
 
 export interface GenerateBody {
   module?: unknown;
   input?: unknown;
   model?: unknown;
   options?: unknown;
+  /** Pasted source material (textbook passages, etc.). */
+  sourceText?: unknown;
+  /** Uploaded source material: [{ kind, mediaType, data(base64) }]. */
+  attachments?: unknown;
+}
+
+/** Attachment / source caps (injected from config; sane fallbacks for tests). */
+export interface ParseLimits {
+  maxSourceChars?: number;
+  maxAttachments?: number;
+  maxImageBytes?: number;
+  maxPdfBytes?: number;
+  maxTotalUploadBytes?: number;
 }
 
 export type ParseResult =
   | { ok: true; options: GenerateOptions }
   | { ok: false; error: string };
+
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
+
+/** Approximate decoded byte length of a base64 string. */
+function approxBase64Bytes(b64: string): number {
+  const s = b64.replace(/\s/g, "");
+  if (!s) return 0;
+  const pad = s.endsWith("==") ? 2 : s.endsWith("=") ? 1 : 0;
+  return Math.floor((s.length * 3) / 4) - pad;
+}
+
+type AttachResult = { ok: true; list: Attachment[] } | { ok: false; error: string };
+
+function parseAttachments(raw: unknown, limits: Required<ParseLimits>): AttachResult {
+  if (raw === undefined || raw === null) return { ok: true, list: [] };
+  if (!Array.isArray(raw)) return { ok: false, error: "첨부 형식이 올바르지 않아요." };
+  if (raw.length > limits.maxAttachments) {
+    return { ok: false, error: `첨부는 최대 ${limits.maxAttachments}개까지 올릴 수 있어요.` };
+  }
+  const list: Attachment[] = [];
+  let total = 0;
+  for (const item of raw) {
+    if (!item || typeof item !== "object") return { ok: false, error: "첨부 형식이 올바르지 않아요." };
+    const o = item as Record<string, unknown>;
+    const mediaType = typeof o.mediaType === "string" ? o.mediaType : "";
+    const data = typeof o.data === "string" ? o.data.replace(/\s/g, "") : "";
+    if (!data || !/^[A-Za-z0-9+/]+={0,2}$/.test(data)) {
+      return { ok: false, error: "첨부 파일을 읽지 못했어요. 다시 올려주세요." };
+    }
+    const bytes = approxBase64Bytes(data);
+    let kind: Attachment["kind"];
+    if (mediaType === "application/pdf") {
+      kind = "pdf";
+      if (bytes > limits.maxPdfBytes) return { ok: false, error: "PDF 파일이 너무 커요. (최대 10MB)" };
+    } else if (ALLOWED_IMAGE_TYPES.has(mediaType)) {
+      kind = "image";
+      if (bytes > limits.maxImageBytes) return { ok: false, error: "사진 파일이 너무 커요. 더 작게 찍거나 줄여주세요." };
+    } else {
+      return { ok: false, error: "이미지(JPG·PNG·WEBP·GIF) 또는 PDF만 올릴 수 있어요." };
+    }
+    total += bytes;
+    list.push({ kind, mediaType: mediaType as Attachment["mediaType"], data });
+  }
+  if (total > limits.maxTotalUploadBytes) {
+    return { ok: false, error: "첨부 용량이 너무 커요. 사진 수를 줄여주세요." };
+  }
+  return { ok: true, list };
+}
 
 /** Per-text-option character cap (short structured fields like "추가 요청사항"). */
 const OPTION_TEXT_CAP = 1000;
@@ -84,22 +145,44 @@ export function parseGenerateRequest(
   allowedModels: readonly string[],
   maxInputChars = 8000,
   maxFieldChars = 3000,
+  limits: ParseLimits = {},
 ): ParseResult {
+  const caps: Required<ParseLimits> = {
+    maxSourceChars: limits.maxSourceChars ?? 20000,
+    maxAttachments: limits.maxAttachments ?? 10,
+    maxImageBytes: limits.maxImageBytes ?? 5 * 1024 * 1024,
+    maxPdfBytes: limits.maxPdfBytes ?? 10 * 1024 * 1024,
+    maxTotalUploadBytes: limits.maxTotalUploadBytes ?? 18 * 1024 * 1024,
+  };
+
   const moduleId = typeof body.module === "string" ? body.module.trim() : "";
   const input = typeof body.input === "string" ? sanitizeText(body.input).trim() : "";
+  const sourceText = typeof body.sourceText === "string" ? sanitizeText(body.sourceText).trim() : "";
   const model =
     typeof body.model === "string" && body.model.trim() !== ""
       ? body.model.trim()
       : undefined;
 
   if (!moduleId) return { ok: false, error: "`module` is required." };
-  if (!input) return { ok: false, error: "내용을 입력해 주세요." };
-  if (input.length > maxInputChars) {
-    return { ok: false, error: `입력이 너무 깁니다 (최대 ${maxInputChars}자).` };
-  }
 
   const module = getModule(moduleId);
   if (!module) return { ok: false, error: `Unknown module: ${moduleId}` };
+
+  // Attachments (photos / PDF).
+  const attach = parseAttachments(body.attachments, caps);
+  if (!attach.ok) return { ok: false, error: attach.error };
+  const attachments = attach.list;
+
+  // Need *something* to work from: form text, pasted source, or an upload.
+  if (!input && !sourceText && attachments.length === 0) {
+    return { ok: false, error: "내용을 입력하거나 자료(사진·본문)를 올려주세요." };
+  }
+  if (input.length > maxInputChars) {
+    return { ok: false, error: `입력이 너무 깁니다 (최대 ${maxInputChars}자).` };
+  }
+  if (sourceText.length > caps.maxSourceChars) {
+    return { ok: false, error: `붙여넣은 본문이 너무 깁니다 (최대 ${caps.maxSourceChars}자).` };
+  }
 
   if (model && !allowedModels.includes(model)) {
     return {
@@ -120,5 +203,15 @@ export function parseGenerateRequest(
 
   const optionValues = normalizeOptionValues(module, body.options);
 
-  return { ok: true, options: { module, input, model, optionValues } };
+  return {
+    ok: true,
+    options: {
+      module,
+      input,
+      model,
+      optionValues,
+      ...(sourceText ? { sourceText } : {}),
+      ...(attachments.length ? { attachments } : {}),
+    },
+  };
 }

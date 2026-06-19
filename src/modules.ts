@@ -51,6 +51,24 @@ export interface GuideField {
   skipValue?: string | number;
 }
 
+/**
+ * Reusable "source material" input config. When enabled, the module shows the
+ * shared attachment component (photo / paste / file) and the generator switches
+ * between grounded mode (use the provided material) and topic mode (invent from a
+ * topic). Adopt it on any content-dependent module (exam, vocabulary, …).
+ */
+export interface ModuleSource {
+  enabled: boolean;
+  /** Heading shown above the attachment input. */
+  label?: string;
+  /** Friendly one-line hint. */
+  hint?: string;
+  /** Overrides the default system directive when material IS provided. */
+  groundedDirective?: string;
+  /** Overrides the default system directive when NO material is provided. */
+  topicDirective?: string;
+}
+
 export interface GenerationModule {
   id: string;
   name: string;
@@ -59,6 +77,8 @@ export interface GenerationModule {
   purpose: string;
   /** Landing gallery section: "study" (공부·수업) or "work" (글쓰기·문서). */
   group?: "study" | "work";
+  /** Opt-in "upload source material" input (shared, reusable across modules). */
+  source?: ModuleSource;
   systemPrompt: string;
   options?: ModuleOption[];
   /** Step-by-step guided questions rendered in place of the blank input. */
@@ -89,6 +109,11 @@ const MODULES: GenerationModule[] = [
     model: "claude-sonnet-4-6",
     maxTokens: 16000,
     wizard: true,
+    source: {
+      enabled: true,
+      label: "시험으로 만들 자료",
+      hint: "교재 사진을 찍어 올리거나 본문을 붙여넣으면, 그 내용 그대로 시험을 만들어요. 없으면 주제만 적어도 돼요.",
+    },
     options: [
       {
         key: "difficulty",
@@ -109,6 +134,16 @@ const MODULES: GenerationModule[] = [
         question: "문제는 몇 개 만들까요?",
         help: "보통 20~33개를 많이 써요. 숫자로 적어주세요.",
       },
+      {
+        key: "time",
+        label: "시험시간(분)",
+        type: "number",
+        default: 50,
+        min: 10,
+        max: 180,
+        question: "시험시간은 몇 분으로 할까요?",
+        help: "분 단위로 적어주세요. 보통 45~60분이에요.",
+      },
     ],
     guide: [
       {
@@ -123,13 +158,12 @@ const MODULES: GenerationModule[] = [
       },
       {
         key: "scope",
-        label: "출제 범위 / 단원",
+        label: "단원 / 범위 또는 주제 (선택)",
         type: "text",
-        required: true,
-        placeholder: "예: 교재 3~4단원, 2학기 중간 범위",
-        question: "어느 범위에서 낼까요?",
-        help: "교재 단원이나 다룰 주제 범위요. 모르면 넘어가도 돼요.",
-        skipValue: "교재 전체 범위에서 골고루",
+        placeholder: "예: 교재 3~4단원 · 광합성 · 2학기 중간 범위",
+        question: "어느 범위·주제에서 낼까요? (선택)",
+        help: "자료를 올렸다면 비워도 돼요. 자료 없이 만들 땐 여기에 적은 주제로 만들어요.",
+        skipValue: "",
       },
       {
         key: "types",
@@ -153,9 +187,10 @@ const MODULES: GenerationModule[] = [
     systemPrompt: [
       "You are an expert exam author who creates full mock-exam papers (모의고사/시험지) on a professional, fixed blueprint. Generate a brand-new exam every time.",
       "",
-      "CRITICAL — original content only:",
-      "- Never copy passages, sentences, or items from any source, including any reference example. Invent new passages, new vocabulary, and new questions on every run.",
-      "- A reference example, if present, shows STRUCTURE, DIFFICULTY, and EXPLANATION TONE only — match its format and quality, never its content.",
+      "Content sourcing:",
+      "- When the user provides their own source material (pasted text or uploaded photos/PDF), BUILD THE EXAM FROM THAT MATERIAL — draw passages, vocabulary, and questions from what they gave (a separate 자료 기반 directive may be appended; follow it).",
+      "- Otherwise (topic only), invent brand-new passages, vocabulary, and questions on every run.",
+      "- Never copy from a reference example: it shows STRUCTURE, DIFFICULTY, and EXPLANATION TONE only — match its format and quality, never its content.",
       "",
       "Document structure (clean Markdown):",
       "1. Header: a title line, then a meta line like '총 N문항 · 시험시간 M분 · 100점 만점 | 출제 범위: ...', then a difficulty label (난이도 하·기초 / 중·표준 / 상·심화).",

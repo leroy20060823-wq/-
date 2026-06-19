@@ -110,7 +110,7 @@ function asyncHandler(
 router.get("/modules", (_req, res) => {
   res.json({
     modules: listModules().map(
-      ({ id, name, description, purpose, group, options, guide, inputPlaceholder, wizard }) => ({
+      ({ id, name, description, purpose, group, options, guide, inputPlaceholder, wizard, source }) => ({
         id,
         name,
         description,
@@ -120,6 +120,10 @@ router.get("/modules", (_req, res) => {
         guide: guide ?? [],
         inputPlaceholder: inputPlaceholder ?? null,
         wizard: wizard ?? false,
+        // Only the UI-relevant bits (never the system directives).
+        source: source?.enabled
+          ? { enabled: true, label: source.label ?? null, hint: source.hint ?? null }
+          : null,
       }),
     ),
   });
@@ -166,6 +170,13 @@ router.post(
       config.allowedModels,
       config.maxInputChars,
       config.maxFieldChars,
+      {
+        maxSourceChars: config.maxSourceChars,
+        maxAttachments: config.maxAttachments,
+        maxImageBytes: config.maxImageBytes,
+        maxPdfBytes: config.maxPdfBytes,
+        maxTotalUploadBytes: config.maxTotalUploadBytes,
+      },
     );
     if (!parsed.ok) {
       res.status(400).json({ error: parsed.error });
@@ -186,6 +197,13 @@ router.post(
       config.allowedModels,
       config.maxInputChars,
       config.maxFieldChars,
+      {
+        maxSourceChars: config.maxSourceChars,
+        maxAttachments: config.maxAttachments,
+        maxImageBytes: config.maxImageBytes,
+        maxPdfBytes: config.maxPdfBytes,
+        maxTotalUploadBytes: config.maxTotalUploadBytes,
+      },
     );
     if (!parsed.ok) {
       res.status(400).json({ error: parsed.error });

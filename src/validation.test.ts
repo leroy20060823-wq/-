@@ -119,6 +119,67 @@ test("a module without options yields no option values", () => {
   assert.deepEqual(normalizeOptionValues(notes, { anything: "1" }), {});
 });
 
+const PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
+test("accepts a valid image attachment and switches to grounded mode", () => {
+  const r = parseGenerateRequest(
+    { module: "exam", input: "영어 시험", attachments: [{ kind: "image", mediaType: "image/png", data: PNG_B64 }] },
+    ALLOWED,
+  );
+  assert.equal(r.ok, true);
+  if (r.ok) {
+    assert.equal(r.options.attachments?.length, 1);
+    assert.equal(r.options.attachments?.[0]?.kind, "image");
+  }
+});
+
+test("allows attachment-only or source-only requests (no form text)", () => {
+  const imgOnly = parseGenerateRequest(
+    { module: "exam", input: "", attachments: [{ kind: "image", mediaType: "image/jpeg", data: PNG_B64 }] },
+    ALLOWED,
+  );
+  assert.equal(imgOnly.ok, true);
+  const srcOnly = parseGenerateRequest({ module: "exam", input: "", sourceText: "지문 내용" }, ALLOWED);
+  assert.equal(srcOnly.ok, true);
+  if (srcOnly.ok) assert.equal(srcOnly.options.sourceText, "지문 내용");
+});
+
+test("rejects too many attachments", () => {
+  const many = Array.from({ length: 11 }, () => ({ kind: "image", mediaType: "image/png", data: PNG_B64 }));
+  const r = parseGenerateRequest({ module: "exam", input: "x", attachments: many }, ALLOWED, 8000, 3000, {
+    maxAttachments: 10,
+  });
+  assert.equal(r.ok, false);
+  if (!r.ok) assert.match(r.error, /최대 10개/);
+});
+
+test("rejects an unsupported attachment media type", () => {
+  const r = parseGenerateRequest(
+    { module: "exam", input: "x", attachments: [{ kind: "image", mediaType: "image/svg+xml", data: PNG_B64 }] },
+    ALLOWED,
+  );
+  assert.equal(r.ok, false);
+});
+
+test("rejects an oversized image (per-file cap)", () => {
+  const big = "A".repeat(2000); // ~1.5KB decoded
+  const r = parseGenerateRequest(
+    { module: "exam", input: "x", attachments: [{ kind: "image", mediaType: "image/png", data: big }] },
+    ALLOWED,
+    8000,
+    3000,
+    { maxImageBytes: 1000 },
+  );
+  assert.equal(r.ok, false);
+  if (!r.ok) assert.match(r.error, /너무 커요/);
+});
+
+test("rejects a request with neither text nor material", () => {
+  const r = parseGenerateRequest({ module: "exam", input: "" }, ALLOWED);
+  assert.equal(r.ok, false);
+  if (!r.ok) assert.match(r.error, /입력하거나 자료/);
+});
+
 test("parseGenerateRequest attaches normalized optionValues", () => {
   const result = parseGenerateRequest(
     { module: "quiz", input: "광합성", options: { difficulty: "상", count: "5", type: "단답형" } },

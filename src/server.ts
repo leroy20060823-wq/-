@@ -20,6 +20,10 @@ app.disable("x-powered-by");
 const publicDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
 
 app.use(cors());
+// Generation endpoints can carry base64 photos/PDF, so they get a larger JSON
+// limit; everything else stays tight. This path-scoped parser runs first and
+// sets req.body, so the global 1mb parser below skips these routes.
+app.use("/api/generate", express.json({ limit: `${config.maxUploadMb}mb` }));
 app.use(express.json({ limit: "1mb" }));
 
 // Serve the demo frontend (public/index.html) at the site root.
