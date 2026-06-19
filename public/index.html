@@ -201,6 +201,22 @@
             <button id="exam-pdf-btn" type="button" class="btn-primary">PDF 내려받기</button>
             <span id="exam-pdf-status" class="hint"></span>
           </div>
+          <div id="doc-export" class="doc-export" hidden>
+            <div class="doc-paper">
+              <span class="doc-paper-label">용지 크기</span>
+              <div class="chips" id="paper-chips" role="group" aria-label="용지 크기">
+                <button type="button" class="chip active" data-paper="a4">A4</button>
+                <button type="button" class="chip" data-paper="letter">Letter</button>
+                <button type="button" class="chip" data-paper="b5">B5</button>
+              </div>
+            </div>
+            <div class="doc-export-actions">
+              <button id="download-docx" type="button" class="btn-primary">📄 .docx (Word) 다운로드</button>
+              <button id="download-docpdf" type="button" class="btn-ghost">🖨 PDF로 저장</button>
+              <span id="doc-export-status" class="hint"></span>
+            </div>
+            <span class="doc-export-note">Word에서 열어 편집할 수 있어요. 한글(HWP)에서도 열립니다.</span>
+          </div>
           <div id="loading" class="loading" hidden>
             <span class="spinner" aria-hidden="true"></span>
             <div class="loading-body">
@@ -211,7 +227,6 @@
           </div>
           <div id="result-actions" class="result-actions" hidden>
             <button id="download-pptx" type="button" class="btn-primary" hidden>📊 .pptx 다운로드</button>
-            <button id="download-text" type="button" class="btn-primary">다운로드</button>
             <button id="tweak-btn" type="button" class="btn-ghost">조금 고쳐서 다시 만들기</button>
             <button id="feedback-open" type="button" class="btn-ghost">의견 남기기</button>
             <span id="pptx-hint" class="pptx-hint" hidden>PowerPoint·구글 슬라이드·키노트에서 열어 바로 편집할 수 있는 발표 파일이에요.</span>

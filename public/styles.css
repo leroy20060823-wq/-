@@ -2753,3 +2753,50 @@ body[data-guidance="lite"] .guide-fields {
   min-width: 150px;
   text-align: center;
 }
+
+/* ============================================================
+   Document export bar (.docx / PDF + paper size) — for document modules
+   ============================================================ */
+.doc-export {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  background: #f3ecdc;
+  border: 1px solid #e4d9bf;
+  border-radius: 12px;
+}
+.doc-export[hidden] { display: none; }
+.doc-paper {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.doc-paper-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #192744;
+}
+.doc-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.doc-export-note {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+#doc-export-status {
+  flex-basis: 100%;
+  margin: 0;
+}
+@media (max-width: 600px) {
+  .doc-export-actions .btn-primary,
+  .doc-export-actions .btn-ghost {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}

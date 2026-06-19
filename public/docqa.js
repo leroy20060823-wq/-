@@ -21,9 +21,10 @@
 
 /* ---------- Geometry registry (CSS px @96dpi) ---------- */
 export const PAGE = {
-  // A4 = 210×297mm, Letter = 8.5×11in. footer reserves space for the running foot.
+  // A4 = 210×297mm, Letter = 8.5×11in, B5 = 176×250mm (px @96dpi).
   a4: { w: 794, h: 1123, margin: 64, footer: 30 },
   letter: { w: 816, h: 1056, margin: 64, footer: 30 },
+  b5: { w: 665, h: 945, margin: 56, footer: 28 },
 };
 
 /* ---------- Typography scale (single source of truth) ---------- */

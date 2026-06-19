@@ -4,6 +4,7 @@ import { parseDeck, renderDeck, capDeck } from "./slides.js";
 import { renderPagedDocument, resolveColors, bestText, blend } from "./docqa.js";
 import { createSourceInput } from "./attachments.js";
 import { exportPptx } from "./pptx.js";
+import { exportDocx } from "./docx.js";
 
 marked.use({ gfm: true, breaks: false });
 
@@ -94,6 +95,16 @@ const examBrandEl = document.getElementById("exam-brand");
 const examMottoEl = document.getElementById("exam-motto");
 const examPdfBtn = document.getElementById("exam-pdf-btn");
 const examPdfStatus = document.getElementById("exam-pdf-status");
+const docExport = document.getElementById("doc-export");
+const paperChips = document.getElementById("paper-chips");
+const downloadDocxBtn = document.getElementById("download-docx");
+const downloadDocPdfBtn = document.getElementById("download-docpdf");
+const docExportStatus = document.getElementById("doc-export-status");
+let docPaper = "a4"; // A4 | letter | b5
+// Modules whose output is a document (everything except slides). PPT → .pptx.
+function isDocModule(id) {
+  return !!id && id !== "ppt";
+}
 // Convenience pass (A1–A4)
 const loadingMsg = document.getElementById("loading-msg");
 const loadingSub = document.getElementById("loading-sub");
@@ -317,6 +328,8 @@ function resetOutput() {
   examPdfBar.hidden = true;
   if (examPdfStatus) examPdfStatus.textContent = "";
   if (resultActions) resultActions.hidden = true;
+  if (docExport) docExport.hidden = true;
+  if (docExportStatus) docExportStatus.textContent = "";
   clearLoadingTimers();
 }
 
@@ -376,7 +389,7 @@ async function showDoc(moduleId) {
   viewToggle.hidden = false;
   try {
     await renderPagedDocument(docPagesEl, outputEl, {
-      page: "a4",
+      page: docPaper,
       fonts: ["Noto Sans KR", "Noto Serif KR"],
       footer: { left: docTitle },
     });
@@ -1264,6 +1277,9 @@ function finishWizard() {
 
 function updateModuleDesc() {
   const current = modules.find((m) => m.id === moduleSelect.value);
+  // Switching tools clears the previous tool's result (and its format-specific
+  // export bars) so nothing stale lingers across modules.
+  resetOutput();
   if (moduleIntro) moduleIntro.textContent = current ? `이 도구로 ${josa(current.name, "을/를")} 만들어 드려요.` : "";
   modulePurpose.textContent = current?.purpose ?? "";
   moduleDesc.textContent = current?.description ?? "";
@@ -1507,6 +1523,7 @@ async function generate(event) {
       await showPreview(current?.id);
       setStatus(prevStatus);
       showResultActions(current?.id);
+      showDocControls(current?.id);
       maybeAutoFeedback(current?.id);
     }
   } catch (err) {
@@ -1516,6 +1533,7 @@ async function generate(event) {
       copyBtn.hidden = raw.length === 0;
       setStatus("멈췄어요");
       showResultActions(current?.id);
+      showDocControls(current?.id);
     } else {
       showError("연결이 고르지 않아요. 인터넷 상태를 확인하고 다시 시도해 주세요.");
       setStatus("문제가 생겼어요");
@@ -1544,6 +1562,7 @@ async function loadSample() {
     setStatus("예시 미리보기 (실제 생성 결과가 아닙니다)");
     if (raw.trim()) {
       await showPreview(id);
+      showDocControls(id); // sample is exportable to .docx now (no API key needed)
     }
   } catch (err) {
     showError("예시를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
@@ -1630,13 +1649,21 @@ function showResultActions(moduleId) {
     resultActions.hidden = true;
     return;
   }
-  // PPT → editable .pptx (no .txt). Exam → polished PDF (its own bar, no .txt).
-  // Everything else → a text download.
+  // PPT → editable .pptx. Document modules → .docx (its own bar, see showDocControls).
+  // The plain .txt download is gone entirely.
   const isPpt = moduleId === "ppt";
   if (downloadPptxBtn) downloadPptxBtn.hidden = !isPpt;
   if (pptxHint) pptxHint.hidden = !isPpt;
-  downloadTextBtn.hidden = isPpt || moduleId === "exam";
+  if (downloadTextBtn) downloadTextBtn.hidden = true;
   resultActions.hidden = false;
+}
+
+// Document export controls (paper size + .docx / PDF). Shown for every document
+// module (not PPT) whenever there's content — including the static sample, so it
+// is fully testable without an API key.
+function showDocControls(moduleId) {
+  if (!docExport) return;
+  docExport.hidden = !(isDocModule(moduleId) && raw.trim());
 }
 
 function sanitizeFilename(s) {
@@ -1813,7 +1840,7 @@ function closeSampleModal() {
 form.addEventListener("submit", generate);
 form.addEventListener("input", scheduleSaveDraft);
 form.addEventListener("change", scheduleSaveDraft);
-downloadTextBtn.addEventListener("click", downloadResultText);
+downloadTextBtn?.addEventListener("click", downloadResultText);
 tweakBtn.addEventListener("click", tweakAndRetry);
 
 // Editable .pptx export (client-side). Reuses the chosen design + the same
@@ -1843,6 +1870,78 @@ async function runPptxExport(btn, deckModel, theme, filename) {
 downloadPptxBtn?.addEventListener("click", () => {
   const model = deckModelFromMarkdown(raw) || sampleDeckModel();
   runPptxExport(downloadPptxBtn, model, selectedPptTheme || DEFAULT_DECK_THEME, model.title);
+});
+
+/* ---------- Document export (.docx / PDF) ---------- */
+// Render the current result Markdown to a detached, sanitized DOM the exporters
+// walk — independent of the on-screen view state.
+function renderedDocEl() {
+  const el = document.createElement("div");
+  el.innerHTML = DOMPurify.sanitize(marked.parse(raw || ""));
+  return el;
+}
+function docTitleFromRaw() {
+  const el = renderedDocEl();
+  const h = el.querySelector("h1, h2, h3");
+  const g = gatherGuide();
+  return (
+    (h && h.textContent.trim()) ||
+    (g.subject || g.topic || getCurrentModule()?.name || "문서").toString().trim() ||
+    "문서"
+  );
+}
+// Paper-size chips → update state + (if the doc preview is showing) re-render it
+// at the new page size so preview and export stay in sync.
+paperChips?.addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip[data-paper]");
+  if (!chip) return;
+  docPaper = chip.dataset.paper;
+  paperChips.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c === chip));
+  if (previewKind === "doc") showDoc(getCurrentModule()?.id);
+});
+downloadDocxBtn?.addEventListener("click", async () => {
+  if (!raw.trim()) {
+    showError("내려받을 내용이 없어요. 먼저 만들어 주세요.");
+    return;
+  }
+  const label = downloadDocxBtn.textContent;
+  downloadDocxBtn.disabled = true;
+  downloadDocxBtn.textContent = "Word 파일 만드는 중…";
+  if (docExportStatus) docExportStatus.textContent = "";
+  try {
+    await exportDocx(renderedDocEl(), { paper: docPaper, title: docTitleFromRaw() });
+  } catch (err) {
+    console.error("[docx] export failed:", err);
+    if (docExportStatus) docExportStatus.textContent = "Word 파일을 만들지 못했어요. 잠시 후 다시 시도해 주세요.";
+  } finally {
+    downloadDocxBtn.disabled = false;
+    downloadDocxBtn.textContent = label;
+  }
+});
+// "PDF로 저장" — browser print of a clean, paper-sized copy (no Python). The user
+// chooses "PDF로 저장" in the print dialog.
+downloadDocPdfBtn?.addEventListener("click", () => {
+  if (!raw.trim()) return;
+  const sizeCss = docPaper === "letter" ? "letter" : docPaper === "b5" ? "B5" : "A4";
+  const title = docTitleFromRaw();
+  const win = window.open("", "_blank");
+  if (!win) {
+    if (docExportStatus) docExportStatus.textContent = "팝업이 차단됐어요. 팝업을 허용한 뒤 다시 시도해 주세요.";
+    return;
+  }
+  const body = DOMPurify.sanitize(marked.parse(raw || ""));
+  win.document.write(
+    `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${title.replace(/[<>]/g, "")}</title>` +
+      `<style>@page{size:${sizeCss};margin:18mm}` +
+      `body{font-family:'맑은 고딕','Malgun Gothic','Apple SD Gothic Neo',sans-serif;color:#22252b;line-height:1.7;font-size:11pt}` +
+      `h1{color:#192744;font-size:18pt;margin:0 0 .4em}h2{color:#192744;font-size:14pt;margin:1em 0 .35em}h3{color:#192744;font-size:12pt;margin:.9em 0 .3em}` +
+      `table{border-collapse:collapse;width:100%;margin:.6em 0}th,td{border:1px solid #d8d2c4;padding:6px 9px;text-align:left;vertical-align:top}` +
+      `thead th{background:#192744;color:#fff}ul,ol{padding-left:1.3em}li{margin:.2em 0}blockquote{margin:.5em 0;padding:.4em .9em;border-left:3px solid #a8894e;background:#f3ecdc}` +
+      `</style></head><body>${body}</body></html>`,
+  );
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 400);
 });
 draftNewBtn.addEventListener("click", () => {
   clearDraft(moduleSelect.value);
