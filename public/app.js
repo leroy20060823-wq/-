@@ -1106,7 +1106,7 @@ async function generate(event) {
   }
 
   setGenerating(true);
-  setStatus("생성 중…");
+  setStatus("만드는 중…");
   loadingEl.hidden = false;
   controller = new AbortController();
 
@@ -1123,7 +1123,7 @@ async function generate(event) {
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      throw new Error(data.error ?? `요청 실패 (HTTP ${res.status})`);
+      throw new Error(data.error ?? "잠시 문제가 생겼어요. 잠시 후 다시 시도해 주세요.");
     }
 
     let finished = false;
@@ -1137,14 +1137,13 @@ async function generate(event) {
         finished = true;
         revealOutputOnce();
         renderNow();
-        const { inputTokens, outputTokens } = evt.usage ?? {};
-        setStatus(`완료 · ${evt.model} · 입력 ${inputTokens} / 출력 ${outputTokens} 토큰`);
+        setStatus("다 만들었어요 ✓");
         copyBtn.hidden = raw.length === 0;
       } else if (evt.type === "error") {
         finished = true;
         hadError = true;
         showError(evt.error);
-        setStatus("오류");
+        setStatus("문제가 생겼어요");
       }
     });
 
@@ -1169,10 +1168,10 @@ async function generate(event) {
       renderNow();
       loadingEl.hidden = true;
       copyBtn.hidden = raw.length === 0;
-      setStatus("중지됨");
+      setStatus("멈췄어요");
     } else {
       showError(err instanceof Error ? err.message : String(err));
-      setStatus("오류");
+      setStatus("문제가 생겼어요");
     }
   } finally {
     setGenerating(false);
@@ -1210,7 +1209,7 @@ async function checkHealth() {
     const data = await res.json();
     if (data.generation === "disabled") {
       demoBanner.textContent =
-        "현재 미리보기 모드예요 — '예시 보기'로 결과 형식을 확인할 수 있어요. (서버에 API 키를 넣으면 실제 생성이 켜집니다.)";
+        "지금은 둘러보기 모드예요. '예시 보기'를 누르면 어떤 결과가 나오는지 미리 볼 수 있어요.";
       demoBanner.hidden = false;
     }
   } catch {

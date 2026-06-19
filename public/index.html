@@ -111,7 +111,7 @@
 
         <form id="form" class="card-panel">
           <label class="field">
-            <span class="label">모듈</span>
+            <span class="label">무엇을 만들까요?</span>
             <select id="module" required></select>
             <span id="module-purpose" class="module-purpose"></span>
             <span id="module-desc" class="hint"></span>
@@ -133,9 +133,9 @@
           <div id="module-options" class="options-row"></div>
 
           <div id="ppt-design" class="ppt-design" hidden>
-            <span class="label">디자인 추천 — 폰트 + 색 팔레트</span>
+            <span class="label">디자인 고르기 (글꼴·색)</span>
             <div class="ppt-design-actions">
-              <button id="ppt-recommend" type="button" class="btn-ghost">추천 받기</button>
+              <button id="ppt-recommend" type="button" class="btn-ghost">어울리는 디자인 추천</button>
               <button id="ppt-all" type="button" class="btn-ghost">전체 보기</button>
               <span id="ppt-design-status" class="hint"></span>
             </div>
@@ -144,19 +144,19 @@
           </div>
 
           <label class="field" id="extra-field">
-            <span class="label" id="input-label">요청 입력</span>
+            <span class="label" id="input-label">무엇을 만들까요?</span>
             <textarea
               id="input"
               rows="3"
               maxlength="8000"
-              placeholder="만들고 싶은 것을 적어주세요"
+              placeholder="예: 환경 오염을 주제로, 비교급 문법을 강조해 주세요"
             ></textarea>
           </label>
 
           <div class="actions" id="actions-row">
-            <button id="submit" type="submit" class="btn-primary">생성</button>
+            <button id="submit" type="submit" class="btn-primary">만들기</button>
             <button id="demo" type="button" class="btn-ghost">예시 보기</button>
-            <button id="stop" type="button" class="btn-ghost" hidden>중지</button>
+            <button id="stop" type="button" class="btn-ghost" hidden>그만하기</button>
             <span id="status" class="status" role="status" aria-live="polite"></span>
           </div>
         </form>
