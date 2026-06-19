@@ -1,7 +1,7 @@
 import { marked } from "./vendor/marked.esm.js";
 import DOMPurify from "./vendor/purify.es.mjs";
 import { parseDeck, renderDeck } from "./slides.js";
-import { renderPagedDocument, resolveColors } from "./docqa.js";
+import { renderPagedDocument, resolveColors, bestText, blend } from "./docqa.js";
 import { createSourceInput } from "./attachments.js";
 
 marked.use({ gfm: true, breaks: false });
@@ -772,18 +772,141 @@ function renderLivePreview(theme) {
     `<div class="theme-fontnote">${escapeHtml(theme.name)} · 제목 ${escapeHtml(theme.heading.webFont)} / 본문 ${escapeHtml(theme.body.webFont)}</div>`;
 }
 
-// Reliable per-design example modal (content-aware, CSS-rendered — never depends
-// on a thumbnail PNG, so it always displays).
+// Fixed, realistic Korean sample content — identical across all designs so the
+// only thing that changes is the design itself (fair comparison, no lorem ipsum).
+const SHOWCASE = {
+  eyebrow: "PRODUCT LAUNCH",
+  title: "푸른들 정수기 2026",
+  subtitle: "물, 그 이상의 깨끗함",
+  contentTitle: "이번 시즌 핵심",
+  bullets: ["3단계 미네랄 정수 시스템", "전력 사용 30% 절감", "월 구독형 자동 필터 관리"],
+  compareTitle: "한눈에 비교",
+  compareLeft: { h: "기존 제품", items: ["느린 정수 속도", "필터 수동 교체", "높은 전력 사용"] },
+  compareRight: { h: "푸른들 2026", items: ["2배 빠른 정수", "교체 시기 자동 알림", "전력 30% 절감"] },
+  sectionNo: "02",
+  sectionName: "시장 기회",
+  statNum: "+38%",
+  statLabel: "전년 대비 친환경 가전 수요 성장",
+  bars: [42, 58, 71, 100],
+  quote: "좋은 물은 가장 단순한 사치입니다.",
+  quoteBy: "— 브랜드 디렉터, 김하늘",
+};
+
+function designTokens(theme) {
+  const c = resolveColors((theme && theme.palette) || {});
+  return { ...c, panel: blend(c.bg, c.ink, 0.07), onAccent: bestText(c.accent) };
+}
+
+// Six distinct slide archetypes, each re-skinned from the design's tokens, so a
+// design's character is obvious at a glance. Uses container-query units (cqw) so
+// proportions stay consistent and text never overflows regardless of size.
+function showcaseSlides(theme) {
+  const t = designTokens(theme);
+  const tf = `'${cssFamily(theme.heading?.webFont || "Noto Sans KR")}','Noto Sans KR',sans-serif`;
+  const bf = `'${cssFamily(theme.body?.webFont || "Noto Sans KR")}','Noto Sans KR',sans-serif`;
+  const S = SHOWCASE;
+  const esc = escapeHtml;
+
+  // 1) Cover / title
+  const cover =
+    `<div class="dslide ds-cover" style="background:${t.bg};color:${t.ink}">` +
+    `<span class="ds-eyebrow" style="color:${t.accent}">${esc(S.eyebrow)}</span>` +
+    `<span class="ds-bar" style="background:${t.accent}"></span>` +
+    `<div class="ds-title" style="font-family:${tf}">${esc(S.title)}</div>` +
+    `<div class="ds-sub" style="font-family:${bf};color:${t.sub}">${esc(S.subtitle)}</div>` +
+    `</div>`;
+
+  // 2) Content with bullets
+  const content =
+    `<div class="dslide ds-content" style="background:${t.bg};color:${t.ink}">` +
+    `<div class="ds-h" style="font-family:${tf}"><span class="ds-h-bar" style="background:${t.accent}"></span>${esc(S.contentTitle)}</div>` +
+    `<ul class="ds-bullets" style="font-family:${bf}">` +
+    S.bullets.map((b) => `<li><span class="ds-dot" style="background:${t.accent}"></span><span style="color:${t.ink}">${esc(b)}</span></li>`).join("") +
+    `</ul></div>`;
+
+  // 3) Two-column comparison
+  const col = (data, accent) =>
+    `<div class="ds-col" style="background:${accent ? t.accent : t.panel};color:${accent ? t.onAccent : t.ink}">` +
+    `<div class="ds-col-h" style="font-family:${bf}">${esc(data.h)}</div>` +
+    data.items.map((it) => `<div class="ds-col-item" style="font-family:${bf}">${esc(it)}</div>`).join("") +
+    `</div>`;
+  const compare =
+    `<div class="dslide ds-cols" style="background:${t.bg};color:${t.ink}">` +
+    `<div class="ds-h" style="font-family:${tf}"><span class="ds-h-bar" style="background:${t.accent}"></span>${esc(S.compareTitle)}</div>` +
+    `<div class="ds-cols-grid">${col(S.compareLeft, false)}${col(S.compareRight, true)}</div>` +
+    `</div>`;
+
+  // 4) Section divider (accent color block)
+  const divider =
+    `<div class="dslide ds-divider" style="background:${t.accent};color:${t.onAccent}">` +
+    `<div class="ds-div-num" style="font-family:${tf}">${esc(S.sectionNo)}</div>` +
+    `<div class="ds-div-name" style="font-family:${tf}">${esc(S.sectionName)}</div>` +
+    `</div>`;
+
+  // 5) Data / stat (big number + simple bar chart)
+  const stat =
+    `<div class="dslide ds-stat" style="background:${t.bg};color:${t.ink}">` +
+    `<div class="ds-stat-left">` +
+    `<div class="ds-stat-num" style="font-family:${tf};color:${t.accent}">${esc(S.statNum)}</div>` +
+    `<div class="ds-stat-label" style="font-family:${bf};color:${t.sub}">${esc(S.statLabel)}</div>` +
+    `</div>` +
+    `<div class="ds-bars">` +
+    S.bars.map((h, i) => `<span class="ds-bar-col" style="height:${h}%;background:${i === S.bars.length - 1 ? t.accent : blend(t.bg, t.ink, 0.22)}"></span>`).join("") +
+    `</div></div>`;
+
+  // 6) Quote
+  const quote =
+    `<div class="dslide ds-quote" style="background:${t.panel};color:${t.ink}">` +
+    `<span class="ds-quote-mark" style="font-family:${tf};color:${t.accent}">“</span>` +
+    `<div class="ds-quote-text" style="font-family:${tf}">${esc(S.quote)}</div>` +
+    `<div class="ds-quote-by" style="font-family:${bf};color:${t.sub}">${esc(S.quoteBy)}</div>` +
+    `</div>`;
+
+  return [cover, content, compare, divider, stat, quote];
+}
+
+function setupCarousel(scope, count) {
+  const track = scope.querySelector(".dshow-track");
+  const counter = scope.querySelector(".dshow-count");
+  const dots = [...scope.querySelectorAll(".dshow-dot")];
+  let i = 0;
+  const go = (n) => {
+    i = Math.max(0, Math.min(count - 1, n));
+    track.style.transform = `translateX(-${i * 100}%)`;
+    counter.textContent = `${i + 1} / ${count}`;
+    dots.forEach((d, di) => d.classList.toggle("on", di === i));
+  };
+  scope.querySelector(".dshow-prev").onclick = () => go(i - 1);
+  scope.querySelector(".dshow-next").onclick = () => go(i + 1);
+  dots.forEach((d) => (d.onclick = () => go(Number(d.dataset.i))));
+  go(0);
+}
+
+// Reliable per-design example modal: a flip-through showcase of 6 slide archetypes,
+// re-skinned from the design's tokens (CSS-rendered, never depends on a PNG).
 function openDesignModal(themeId) {
   const theme = themesById[themeId];
   if (!theme || !designModal) return;
   loadFont(theme.heading);
   loadFont(theme.body);
-  const { titleSlide, contentSlide } = pptContentSlides(theme);
+  const slides = showcaseSlides(theme);
   if (designModalTitle) designModalTitle.textContent = `${theme.name} — 예시`;
-  designModalBody.innerHTML = designSlide(theme, titleSlide) + designSlide(theme, contentSlide);
+  designModalBody.innerHTML =
+    `<div class="dshow">` +
+    `<div class="dshow-viewport"><div class="dshow-track">` +
+    slides.map((s) => `<div class="dshow-slide">${s}</div>`).join("") +
+    `</div></div>` +
+    `<div class="dshow-nav">` +
+    `<button type="button" class="dshow-prev" aria-label="이전 슬라이드">‹</button>` +
+    `<span class="dshow-count">1 / ${slides.length}</span>` +
+    `<button type="button" class="dshow-next" aria-label="다음 슬라이드">›</button>` +
+    `</div>` +
+    `<div class="dshow-dots">` +
+    slides.map((_, n) => `<button type="button" class="dshow-dot${n === 0 ? " on" : ""}" data-i="${n}" aria-label="${n + 1}번째 슬라이드"></button>`).join("") +
+    `</div></div>`;
   designModal.dataset.theme = themeId;
   designModal.hidden = false;
+  setupCarousel(designModalBody, slides.length);
 }
 function closeDesignModal() {
   if (designModal) designModal.hidden = true;
@@ -1693,6 +1816,13 @@ designModalPick?.addEventListener("click", () => {
   const id = designModal.dataset.theme;
   if (id) selectPptTheme(id);
   closeDesignModal();
+});
+// Arrow keys page the showcase carousel while the modal is open.
+document.addEventListener("keydown", (e) => {
+  if (!designModal || designModal.hidden) return;
+  if (e.key === "ArrowLeft") designModalBody.querySelector(".dshow-prev")?.click();
+  else if (e.key === "ArrowRight") designModalBody.querySelector(".dshow-next")?.click();
+  else if (e.key === "Escape") closeDesignModal();
 });
 // Live-update the inline preview as the user edits the PPT topic/message/audience.
 form.addEventListener("input", (e) => {

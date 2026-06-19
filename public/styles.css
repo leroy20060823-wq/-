@@ -2655,3 +2655,81 @@ body[data-guidance="lite"] .guide-fields {
 .design-slides .slide-mock {
   width: 100%;
 }
+
+/* ============================================================
+   PPT design showcase ("예시 보기") — flip-through gallery of
+   6 slide archetypes, re-skinned live from each design's tokens.
+   ============================================================ */
+.dshow { display: flex; flex-direction: column; gap: 12px; }
+.dshow-viewport { overflow: hidden; border-radius: 12px; border: 1px solid var(--border-soft); }
+.dshow-track { display: flex; transition: transform 0.25s ease; }
+.dshow-slide { flex: 0 0 100%; min-width: 100%; }
+.dshow-nav { display: flex; align-items: center; justify-content: center; gap: 18px; }
+.dshow-prev,
+.dshow-next {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid var(--border-soft); background: var(--bg-card);
+  color: var(--ink); cursor: pointer; font-size: 1.4rem; line-height: 1;
+  display: grid; place-items: center;
+}
+.dshow-prev:hover,
+.dshow-next:hover { border-color: var(--clay); color: var(--clay); }
+.dshow-count { min-width: 54px; text-align: center; font-variant-numeric: tabular-nums; color: var(--ink-soft); font-weight: 600; }
+.dshow-dots { display: flex; justify-content: center; gap: 7px; }
+.dshow-dot { width: 9px; height: 9px; border-radius: 50%; border: none; background: var(--border-soft); cursor: pointer; padding: 0; }
+.dshow-dot.on { background: var(--clay); }
+
+/* One showcase slide: fixed 16:9, own container for cqw text sizing → proportions
+   stay consistent and content can't overflow regardless of modal width. */
+.dslide {
+  position: relative;
+  container-type: inline-size;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 6.5cqw 7.5cqw;
+  display: flex;
+  flex-direction: column;
+}
+
+/* cover */
+.ds-cover { justify-content: center; gap: 2cqw; }
+.ds-eyebrow { font-size: 2.6cqw; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; }
+.ds-bar { width: 11cqw; height: 1.3cqw; border-radius: 1cqw; }
+.ds-cover .ds-title { font-size: 9cqw; font-weight: 800; line-height: 1.08; }
+.ds-sub { font-size: 3.8cqw; font-weight: 500; }
+
+/* shared section heading (content / comparison) */
+.ds-h { display: flex; align-items: center; gap: 2.4cqw; font-size: 5.2cqw; font-weight: 800; margin-bottom: 4cqw; }
+.ds-h-bar { width: 1.4cqw; height: 5.2cqw; border-radius: 1cqw; flex: none; }
+
+/* content bullets */
+.ds-bullets { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3cqw; }
+.ds-bullets li { display: flex; align-items: center; gap: 2.6cqw; font-size: 3.8cqw; line-height: 1.3; }
+.ds-dot { width: 2.2cqw; height: 2.2cqw; border-radius: 50%; flex: none; }
+
+/* two-column comparison */
+.ds-cols-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw; flex: 1; min-height: 0; }
+.ds-col { border-radius: 2.4cqw; padding: 3.4cqw; display: flex; flex-direction: column; gap: 2cqw; }
+.ds-col-h { font-size: 3.4cqw; font-weight: 800; }
+.ds-col-item { font-size: 3cqw; line-height: 1.25; opacity: 0.92; }
+
+/* section divider (accent block) */
+.ds-divider { justify-content: center; gap: 0.5cqw; }
+.ds-div-num { font-size: 22cqw; font-weight: 800; line-height: 1; opacity: 0.9; }
+.ds-div-name { font-size: 7cqw; font-weight: 800; }
+
+/* data / stat */
+.ds-stat { flex-direction: row; align-items: center; gap: 5cqw; }
+.ds-stat-left { flex: 1; display: flex; flex-direction: column; gap: 2cqw; }
+.ds-stat-num { font-size: 17cqw; font-weight: 800; line-height: 1; }
+.ds-stat-label { font-size: 3.4cqw; line-height: 1.3; }
+.ds-bars { flex: 0 0 32%; height: 64%; display: flex; align-items: flex-end; gap: 2.4cqw; }
+.ds-bar-col { flex: 1; border-radius: 1cqw 1cqw 0 0; min-height: 6%; }
+
+/* quote */
+.ds-quote { justify-content: center; gap: 1.5cqw; }
+.ds-quote-mark { font-size: 15cqw; line-height: 0.5; height: 7cqw; }
+.ds-quote-text { font-size: 5.4cqw; font-weight: 700; line-height: 1.3; }
+.ds-quote-by { font-size: 3.2cqw; }
