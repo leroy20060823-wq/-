@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { anthropic } from "../anthropic.js";
 import { config } from "../config.js";
+import { routeModel } from "../routing.js";
 import type { GenerationModule } from "../modules.js";
 
 /** A user-supplied source-material file (photo / PDF) sent to the model. */
@@ -45,8 +46,17 @@ export interface GenerateResult {
   usage: Usage;
 }
 
+// Pick the model. An explicit caller override (validated against allowedModels)
+// wins; otherwise the rule-based router chooses from module + 난이도 + input size.
 function resolveModel(options: GenerateOptions): string {
-  return options.model ?? options.module.model ?? config.defaultModel;
+  if (options.model) return options.model;
+  const difficulty = options.optionValues?.difficulty;
+  const inputLen = (options.input?.length ?? 0) + (options.sourceText?.length ?? 0);
+  return (
+    routeModel(options.module.id, typeof difficulty === "string" ? difficulty : undefined, inputLen).model ||
+    options.module.model ||
+    config.defaultModel
+  );
 }
 
 // Output ceiling: honor the module's preference but never above the hard cap

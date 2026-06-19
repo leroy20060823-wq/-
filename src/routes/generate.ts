@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { config } from "../config.js";
 import { listModules } from "../modules.js";
+import { moduleTier } from "../routing.js";
 import { generate, generateStream } from "../services/generator.js";
 import { parseGenerateRequest, type GenerateBody } from "../validation.js";
 import { createGlobalDailyLimiter } from "../rateLimit.js";
@@ -120,6 +121,8 @@ router.get("/modules", (_req, res) => {
         guide: guide ?? [],
         inputPlaceholder: inputPlaceholder ?? null,
         wizard: wizard ?? false,
+        // Base routing tier (so the client can show the right loading note).
+        tier: moduleTier(id),
         // Only the UI-relevant bits (never the system directives).
         source: source?.enabled
           ? { enabled: true, label: source.label ?? null, hint: source.hint ?? null }

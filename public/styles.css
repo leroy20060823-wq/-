@@ -2800,3 +2800,9 @@ body[data-guidance="lite"] .guide-fields {
     width: 100%;
   }
 }
+
+/* Secondary credibility detail inside an FAQ answer */
+.faq-detail {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}

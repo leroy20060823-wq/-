@@ -1469,7 +1469,9 @@ async function generate(event) {
 
   setGenerating(true);
   setStatus("만드는 중…");
-  startLoading();
+  // Match the loading note to the task weight (same rules the server routes by).
+  const weight = taskWeight(module, gatherOptions().difficulty, input.length + sourceText.length);
+  startLoading(weight);
   controller = new AbortController();
 
   try {
@@ -1621,11 +1623,13 @@ function clearLoadingTimers() {
   loadingTimers.forEach(clearTimeout);
   loadingTimers = [];
 }
-function startLoading() {
+function startLoading(weight) {
   resultActions.hidden = true;
   loadingEl.hidden = false;
-  loadingMsg.textContent = "만들고 있어요…";
-  loadingSub.textContent = "보통 30초쯤 걸려요";
+  // Heavier (Opus) tasks set the expectation that they take a bit longer.
+  const heavy = weight === "heavy";
+  loadingMsg.textContent = heavy ? "더 꼼꼼하게 만드는 중이라 조금 더 걸려요" : "만들고 있어요…";
+  loadingSub.textContent = heavy ? "정확도를 위해 더 좋은 AI가 만들고 있어요" : "보통 30초쯤 걸려요";
   clearLoadingTimers();
   // Cold start (Render free tier spins down) → reassure if nothing has come back yet.
   loadingTimers.push(
@@ -1639,6 +1643,17 @@ function startLoading() {
       loadingSub.textContent = "내용이 길면 시간이 더 걸려요. 조금만 기다려 주세요.";
     }, 22000),
   );
+}
+
+// Mirror of src/routing.ts taskWeight (module base tier + 난이도 + input size) —
+// only used to choose the loading note. The model itself is chosen server-side.
+function taskWeight(moduleId, difficulty, inputLen) {
+  const m = modules.find((x) => x.id === moduleId);
+  let tier = (m && m.tier) || "standard";
+  if (difficulty === "상") tier = "heavy";
+  else if (difficulty === "하") tier = tier === "heavy" ? "standard" : tier;
+  if ((inputLen || 0) > 12000 && tier !== "heavy") tier = "heavy";
+  return tier === "heavy" ? "heavy" : "light";
 }
 function stopLoading() {
   clearLoadingTimers();
