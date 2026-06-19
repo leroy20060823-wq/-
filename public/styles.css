@@ -6,7 +6,8 @@
   --bg-cream: #f7f4ec;
   --bg-card: #ffffff;
   --ink: #2a2722;
-  --ink-soft: #6b675e;
+  /* Slightly darker secondary ink for better contrast on cream (older eyes). */
+  --ink-soft: #5a554b;
   --sage: #7ba05b;
   --sky: #6f95c9;
   --clay: #c2613a;
@@ -2379,4 +2380,117 @@ body[data-guidance="lite"] .guide-fields {
 .help-contact p {
   margin: 0 0 12px;
   color: var(--ink);
+}
+
+/* ============================================================
+   Accessibility & mobile (C9 responsive, C10 text-size, tap targets)
+   ============================================================ */
+.textsize {
+  display: inline-flex;
+  gap: 4px;
+}
+.ts-btn {
+  min-width: 40px;
+  min-height: 40px;
+  padding: 4px 10px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--ink);
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-soft);
+  border-radius: 9px;
+  line-height: 1;
+}
+.ts-btn:hover {
+  border-color: var(--sage);
+}
+.ts-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Generous default tap targets for primary controls */
+.btn-primary,
+.btn-ghost {
+  min-height: 44px;
+}
+
+@media (max-width: 600px) {
+  .nav-right {
+    gap: 8px;
+  }
+  /* On small phones, hide the secondary login/help text to keep room for the
+     text-size toggle + start button; help is still reachable from the footer. */
+  .nav-login {
+    display: none;
+  }
+  .ts-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  /* Forms: full-width controls + big tap targets */
+  .actions {
+    gap: 10px;
+  }
+  .actions .btn-primary,
+  .actions .btn-ghost,
+  .result-actions .btn-primary,
+  .result-actions .btn-ghost {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  .actions .status {
+    flex-basis: 100%;
+  }
+  .source-btn {
+    flex: 1 1 100%;
+    min-height: 52px;
+    font-size: 1rem;
+  }
+  .exam-pdf input {
+    flex: 1 1 100%;
+  }
+  .exam-pdf .btn-primary {
+    width: 100%;
+  }
+  .chip {
+    padding: 10px 16px;
+    font-size: 0.95rem;
+  }
+  .step-btn {
+    width: 46px;
+    height: 46px;
+  }
+  .step-input {
+    height: 46px;
+    width: 60px;
+  }
+  .count-row {
+    max-width: none;
+  }
+  .output-head {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .modal {
+    padding: 12px;
+  }
+  .modal-card {
+    max-height: 92vh;
+    padding: 18px 16px 16px;
+  }
+  .hero-title {
+    font-size: clamp(2rem, 9vw, 2.8rem);
+  }
+}
+
+/* Avoid iOS zoom-on-focus: inputs must be >=16px on small screens */
+@media (max-width: 600px) {
+  input,
+  textarea,
+  select,
+  .step-input {
+    font-size: 16px;
+  }
 }

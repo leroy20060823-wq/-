@@ -1275,6 +1275,35 @@ async function checkHealth() {
   }
 }
 
+/* ---------- C10: text-size toggle (가− / 가＋) ---------- */
+const TEXT_KEY = "aio_textsize";
+const TEXT_LEVELS = [100, 113, 128]; // root font-size %
+const textSmallerBtn = document.getElementById("text-smaller");
+const textLargerBtn = document.getElementById("text-larger");
+let textLevel = 0;
+function applyTextSize(level) {
+  textLevel = Math.max(0, Math.min(TEXT_LEVELS.length - 1, level));
+  document.documentElement.style.fontSize = TEXT_LEVELS[textLevel] + "%";
+  try {
+    localStorage.setItem(TEXT_KEY, String(textLevel));
+  } catch {
+    /* ignore */
+  }
+  if (textSmallerBtn) textSmallerBtn.disabled = textLevel === 0;
+  if (textLargerBtn) textLargerBtn.disabled = textLevel === TEXT_LEVELS.length - 1;
+}
+function initTextSize() {
+  let saved = 0;
+  try {
+    saved = Number(localStorage.getItem(TEXT_KEY)) || 0;
+  } catch {
+    saved = 0;
+  }
+  applyTextSize(saved);
+}
+textSmallerBtn?.addEventListener("click", () => applyTextSize(textLevel - 1));
+textLargerBtn?.addEventListener("click", () => applyTextSize(textLevel + 1));
+
 /* ---------- A4: friendly "generating" state ---------- */
 let loadingTimers = [];
 function clearLoadingTimers() {
@@ -1650,6 +1679,7 @@ function maybeShowOnboarding() {
   onboardingEl.hidden = false;
 }
 
+initTextSize();
 applyRoute();
 loadModules();
 checkHealth();
