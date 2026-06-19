@@ -1,7 +1,7 @@
 import { marked } from "./vendor/marked.esm.js";
 import DOMPurify from "./vendor/purify.es.mjs";
 import { parseDeck, renderDeck } from "./slides.js";
-import { renderPagedDocument } from "./docqa.js";
+import { renderPagedDocument, resolveColors } from "./docqa.js";
 import { createSourceInput } from "./attachments.js";
 
 marked.use({ gfm: true, breaks: false });
@@ -68,6 +68,11 @@ const pptAllBtn = document.getElementById("ppt-all");
 const pptThemesEl = document.getElementById("ppt-themes");
 const pptPreview = document.getElementById("ppt-preview");
 const pptDesignStatus = document.getElementById("ppt-design-status");
+const designModal = document.getElementById("design-modal");
+const designModalBody = document.getElementById("design-modal-body");
+const designModalTitle = document.getElementById("design-modal-title");
+const designModalClose = document.getElementById("design-modal-close");
+const designModalPick = document.getElementById("design-modal-pick");
 const submitBtn = document.getElementById("submit");
 const demoBtn = document.getElementById("demo");
 const demoBanner = document.getElementById("demo-banner");
@@ -697,18 +702,97 @@ function loadFont(font) {
   document.head.appendChild(link);
 }
 
+// Contrast-safe colors for a design (so text is readable on ANY palette,
+// including dark designs) + the design's fonts.
+function designColors(theme) {
+  return resolveColors((theme && theme.palette) || {});
+}
+
+// Render one sample slide using the design's tokens + the user's content.
+function designSlide(theme, data) {
+  const c = designColors(theme);
+  const titleFont = cssFamily(theme.heading?.webFont || "Noto Sans KR");
+  const bodyFont = cssFamily(theme.body?.webFont || "Noto Sans KR");
+  const big = data.kind === "title";
+  const sub = data.subtitle
+    ? `<div class="slide-sub" style="font-family:'${bodyFont}',sans-serif;color:${c.sub}">${escapeHtml(data.subtitle)}</div>`
+    : "";
+  const bullets = (data.bullets || [])
+    .map(
+      (b) =>
+        `<div class="slide-bullet" style="font-family:'${bodyFont}',sans-serif;color:${c.sub}">${escapeHtml(b)}</div>`,
+    )
+    .join("");
+  return (
+    `<div class="slide-mock${big ? " big" : ""}" style="background:${c.bg};color:${c.ink}">` +
+    `<div class="slide-bar" style="background:${c.accent}"></div>` +
+    `<div class="slide-title" style="font-family:'${titleFont}','Noto Sans KR',sans-serif;color:${c.ink}">${escapeHtml(data.title || "")}</div>` +
+    sub +
+    bullets +
+    `</div>`
+  );
+}
+
+// Tiny generic mini-slide for cards without a rendered thumbnail (fallback presets).
 function cssMiniSlide(p) {
   loadFont(p.heading);
   loadFont(p.body);
-  const pal = p.palette;
-  return (
-    `<div class="slide-mock" style="background:${pal.bg};color:${pal.ink}">` +
-    `<div class="slide-bar" style="background:${pal.accent}"></div>` +
-    `<div class="slide-title" style="font-family:'${cssFamily(p.heading.webFont)}',sans-serif">제목을 여기에</div>` +
-    `<div class="slide-bullet" style="font-family:'${cssFamily(p.body.webFont)}',sans-serif;color:${pal.sub}">핵심 포인트 하나</div>` +
-    `<div class="slide-bullet" style="font-family:'${cssFamily(p.body.webFont)}',sans-serif;color:${pal.sub}">핵심 포인트 둘</div>` +
-    `</div>`
-  );
+  return designSlide(p, { kind: "content", title: "제목을 여기에", bullets: ["핵심 포인트 하나", "핵심 포인트 둘"] });
+}
+
+// Build content-aware sample slides from the user's current PPT input.
+function pptContentSlides(theme) {
+  const g = gatherGuide();
+  const topic = (g.topic || "").trim() || "발표 제목을 입력해 보세요";
+  const audience = (g.audience || "").trim();
+  const message = (g.message || "").trim();
+  const titleSlide = {
+    kind: "title",
+    title: topic,
+    subtitle: audience ? `${audience} 대상` : message || "부제목이 여기에 들어가요",
+  };
+  const bullets = [];
+  if (message) bullets.push(message);
+  bullets.push("핵심 내용 예시 ①");
+  bullets.push("핵심 내용 예시 ②");
+  if (bullets.length < 3) bullets.push("핵심 내용 예시 ③");
+  const contentSlide = { kind: "content", title: topic, bullets: bullets.slice(0, 3) };
+  return { titleSlide, contentSlide };
+}
+
+function renderLivePreview(theme) {
+  if (!theme) return;
+  loadFont(theme.heading);
+  loadFont(theme.body);
+  const { titleSlide } = pptContentSlides(theme);
+  pptPreview.hidden = false;
+  pptPreview.innerHTML =
+    `<span class="ppt-preview-label">선택한 디자인 미리보기 — 입력하신 내용이 이 디자인에 들어간 모습이에요</span>` +
+    designSlide(theme, titleSlide) +
+    `<div class="theme-fontnote">${escapeHtml(theme.name)} · 제목 ${escapeHtml(theme.heading.webFont)} / 본문 ${escapeHtml(theme.body.webFont)}</div>`;
+}
+
+// Reliable per-design example modal (content-aware, CSS-rendered — never depends
+// on a thumbnail PNG, so it always displays).
+function openDesignModal(themeId) {
+  const theme = themesById[themeId];
+  if (!theme || !designModal) return;
+  loadFont(theme.heading);
+  loadFont(theme.body);
+  const { titleSlide, contentSlide } = pptContentSlides(theme);
+  if (designModalTitle) designModalTitle.textContent = `${theme.name} — 예시`;
+  designModalBody.innerHTML = designSlide(theme, titleSlide) + designSlide(theme, contentSlide);
+  designModal.dataset.theme = themeId;
+  designModal.hidden = false;
+}
+function closeDesignModal() {
+  if (designModal) designModal.hidden = true;
+}
+function selectPptTheme(themeId) {
+  selectedPptTheme = themesById[themeId] || null;
+  pptThemesEl.querySelectorAll(".theme-card").forEach((c) => c.classList.toggle("selected", c.dataset.theme === themeId));
+  pptDesignStatus.textContent = selectedPptTheme ? `'${selectedPptTheme.name}' 선택됨` : "";
+  if (selectedPptTheme) renderLivePreview(selectedPptTheme);
 }
 
 function themeCard(preset, reason) {
@@ -721,35 +805,20 @@ function themeCard(preset, reason) {
     ? `<img class="theme-thumb" src="${escapeHtml(preset.thumbnail)}" alt="" loading="lazy">`
     : cssMiniSlide(preset);
   return (
+    `<div class="theme-card-wrap">` +
     `<button type="button" class="theme-card" data-theme="${escapeHtml(preset.id)}">${top}` +
     `<div class="theme-meta">` +
     `<div class="theme-name">${escapeHtml(preset.name)}</div>` +
     (reason ? `<div class="theme-reason">${escapeHtml(reason)}</div>` : "") +
     `<div class="theme-fontnote">${escapeHtml(tags)}</div>` +
-    `</div></button>`
+    `</div></button>` +
+    `<button type="button" class="theme-sample" data-sample-theme="${escapeHtml(preset.id)}">예시 보기</button>` +
+    `</div>`
   );
 }
 
 function renderThemeCards(items) {
   pptThemesEl.innerHTML = items.map((it) => themeCard(it.preset, it.reason)).join("");
-}
-
-function renderLivePreview(theme) {
-  loadFont(theme.heading);
-  loadFont(theme.body);
-  const g = gatherGuide();
-  const title = (g.topic || "").trim() || "신제품 발표회";
-  const pal = theme.palette;
-  pptPreview.hidden = false;
-  pptPreview.innerHTML =
-    `<span class="ppt-preview-label">선택한 디자인 미리보기</span>` +
-    `<div class="slide-mock big" style="background:${pal.bg};color:${pal.ink}">` +
-    `<div class="slide-bar" style="background:${pal.accent}"></div>` +
-    `<div class="slide-title" style="font-family:'${cssFamily(theme.heading.webFont)}',sans-serif">${escapeHtml(title)}</div>` +
-    `<div class="slide-bullet" style="font-family:'${cssFamily(theme.body.webFont)}',sans-serif;color:${pal.sub}">핵심 포인트 하나</div>` +
-    `<div class="slide-bullet" style="font-family:'${cssFamily(theme.body.webFont)}',sans-serif;color:${pal.sub}">핵심 포인트 둘</div>` +
-    `</div>` +
-    `<div class="theme-fontnote">${escapeHtml(theme.name)} · 제목 ${escapeHtml(theme.heading.webFont)} / 본문 ${escapeHtml(theme.body.webFont)}</div>`;
 }
 
 function resetPptDesign() {
@@ -759,6 +828,7 @@ function resetPptDesign() {
   pptPreview.hidden = true;
   pptPreview.innerHTML = "";
   pptDesignStatus.textContent = "";
+  closeDesignModal();
 }
 
 async function recommendPptThemes() {
@@ -1605,12 +1675,30 @@ toWizardBtn.addEventListener("click", () => {
 pptRecommendBtn.addEventListener("click", recommendPptThemes);
 pptAllBtn.addEventListener("click", showAllThemes);
 pptThemesEl.addEventListener("click", (e) => {
+  const sample = e.target.closest("[data-sample-theme]");
+  if (sample) {
+    openDesignModal(sample.dataset.sampleTheme);
+    return;
+  }
   const card = e.target.closest("[data-theme]");
   if (!card) return;
-  selectedPptTheme = themesById[card.dataset.theme] || null;
-  pptThemesEl.querySelectorAll(".theme-card").forEach((c) => c.classList.toggle("selected", c === card));
-  pptDesignStatus.textContent = selectedPptTheme ? `'${selectedPptTheme.name}' 선택됨` : "";
-  if (selectedPptTheme) renderLivePreview(selectedPptTheme);
+  selectPptTheme(card.dataset.theme);
+});
+// Design example modal wiring
+designModalClose?.addEventListener("click", closeDesignModal);
+designModal?.addEventListener("click", (e) => {
+  if (e.target === designModal) closeDesignModal();
+});
+designModalPick?.addEventListener("click", () => {
+  const id = designModal.dataset.theme;
+  if (id) selectPptTheme(id);
+  closeDesignModal();
+});
+// Live-update the inline preview as the user edits the PPT topic/message/audience.
+form.addEventListener("input", (e) => {
+  if (getCurrentModule()?.id === "ppt" && selectedPptTheme && e.target.closest("#guide-fields")) {
+    renderLivePreview(selectedPptTheme);
+  }
 });
 moduleSelect.addEventListener("change", updateModuleDesc);
 stopBtn.addEventListener("click", () => controller?.abort());

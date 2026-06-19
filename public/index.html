@@ -291,6 +291,19 @@
       </nav>
     </footer>
 
+    <!-- PPT design example modal (content-aware, CSS-rendered) -->
+    <div id="design-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="design-modal-title">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h2 class="modal-title" id="design-modal-title">예시</h2>
+          <button id="design-modal-close" class="modal-close" type="button" aria-label="닫기">✕</button>
+        </div>
+        <p class="modal-note">입력하신 제목·주제가 이 디자인에 들어간 예시예요. 실제로 만들면 더 많은 슬라이드로 완성돼요.</p>
+        <div id="design-modal-body" class="modal-body design-slides"></div>
+        <button id="design-modal-pick" class="btn-primary" type="button">이 디자인으로 선택</button>
+      </div>
+    </div>
+
     <!-- Sample preview modal (A1) -->
     <div id="sample-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="sample-modal-title">
       <div class="modal-card">
