@@ -1167,6 +1167,183 @@ body[data-guidance="lite"] .guide-fields {
   font-size: 0.92rem;
 }
 
+/* ---------------- Rendered slide deck (PPT) ---------------- */
+.output-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.view-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  overflow: hidden;
+  background: #fcfbf7;
+}
+
+.view-toggle[hidden] {
+  display: none;
+}
+
+.view-toggle .seg {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  padding: 5px 14px;
+}
+
+.view-toggle .seg.active {
+  background: var(--clay);
+  color: #fff;
+}
+
+.deck {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  max-height: 70vh;
+  overflow: auto;
+  padding: 4px;
+}
+
+.deck[hidden] {
+  display: none;
+}
+
+/* A frame holds one slide; the slide is rendered at a fixed 1280×720 and scaled
+   down via transform, so measurement happens in stable design pixels. */
+.deck-frame {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(42, 39, 34, 0.06);
+}
+
+/* Off-screen measuring area — laid out at full width so measurements are real. */
+.deck-measure {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 1280px;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.deck-slide,
+.deck-measure .deck-slide {
+  position: relative;
+  width: 1280px;
+  height: 720px;
+  box-sizing: border-box;
+  overflow: hidden; /* belt-and-suspenders: auto-fit guarantees content fits */
+  background: var(--s-bg, #fff);
+  color: var(--s-ink, #14110c);
+  font-family: var(--body-font, "Noto Sans KR"), "Noto Sans KR", sans-serif;
+}
+
+.deck-flow {
+  position: absolute;
+  left: 84px; /* SLIDE.padX */
+  right: 84px;
+  top: 70px; /* SLIDE.padTop */
+  height: calc(720px - 70px - 96px); /* H - padTop - padBottom */
+  display: flex;
+  flex-direction: column;
+  gap: 22px; /* SLIDE.flowGap */
+  overflow: hidden;
+}
+
+.deck-flow.is-title {
+  justify-content: center;
+  gap: 26px;
+}
+
+.deck-bar {
+  flex: none;
+  width: 64px;
+  height: 7px;
+  border-radius: 4px;
+  background: var(--s-accent, #2f6db5);
+}
+
+.deck-title {
+  margin: 0;
+  font-family: var(--title-font, "Noto Sans KR"), "Noto Serif KR", "Noto Sans KR", serif;
+  font-weight: 800;
+  font-size: var(--title-size, 48px);
+  line-height: var(--title-lh, 1.16);
+  color: var(--s-ink, #14110c);
+  /* Korean-aware wrapping: keep words whole, break only when unavoidable. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  line-break: strict;
+}
+
+.deck-subtitle {
+  margin: 0;
+  font-size: var(--subtitle-size, 27px);
+  line-height: 1.34;
+  color: var(--s-sub, #5b6b82);
+  font-weight: 500;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.deck-bullets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px; /* SLIDE.bulletGap */
+}
+
+.deck-bullet {
+  position: relative;
+  padding-left: 1.3em;
+  font-size: var(--body-size, 25px);
+  line-height: 1.5;
+  color: var(--s-ink, #14110c);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  line-break: strict;
+}
+
+.deck-bullet::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 0.42em;
+  height: 0.42em;
+  border-radius: 50%;
+  background: var(--s-accent, #2f6db5);
+}
+
+.is-title .deck-bullet {
+  padding-left: 0;
+}
+
+.is-title .deck-bullet::before {
+  display: none;
+}
+
+.deck-foot {
+  position: absolute;
+  right: 84px;
+  bottom: 40px;
+  font-size: 16px;
+  color: var(--s-sub, #5b6b82);
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+}
+
 .error {
   margin: 12px 0 0;
   color: var(--clay-deep);

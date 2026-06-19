@@ -157,12 +157,19 @@
         <section class="card-panel output-card">
           <div class="output-head">
             <span class="label">결과</span>
-            <button id="copy" type="button" class="link" hidden>복사</button>
+            <div class="output-actions">
+              <div class="view-toggle" id="view-toggle" hidden>
+                <button id="view-slides" type="button" class="seg">슬라이드</button>
+                <button id="view-text" type="button" class="seg">텍스트</button>
+              </div>
+              <button id="copy" type="button" class="link" hidden>복사</button>
+            </div>
           </div>
           <div id="loading" class="loading" hidden>
             <span class="spinner" aria-hidden="true"></span>
             <span>생성하는 중…</span>
           </div>
+          <div id="deck" class="deck" hidden aria-label="생성된 슬라이드"></div>
           <div id="output" class="output markdown" tabindex="0" aria-live="polite"></div>
           <p id="error" class="error" hidden></p>
         </section>

@@ -1,5 +1,6 @@
 import { marked } from "./vendor/marked.esm.js";
 import DOMPurify from "./vendor/purify.es.mjs";
+import { parseDeck, renderDeck } from "./slides.js";
 
 marked.use({ gfm: true, breaks: false });
 
@@ -70,8 +71,20 @@ const stopBtn = document.getElementById("stop");
 const statusEl = document.getElementById("status");
 const loadingEl = document.getElementById("loading");
 const outputEl = document.getElementById("output");
+const deckEl = document.getElementById("deck");
+const viewToggle = document.getElementById("view-toggle");
+const viewSlidesBtn = document.getElementById("view-slides");
+const viewTextBtn = document.getElementById("view-text");
 const errorEl = document.getElementById("error");
 const copyBtn = document.getElementById("copy");
+
+// Fallback design theme for the slide renderer when the user hasn't picked one.
+const DEFAULT_DECK_THEME = {
+  name: "기본",
+  palette: { bg: "#FFFFFF", surface: "#EEF3F9", ink: "#16203A", sub: "#5B6B82", accent: "#2F6DB5" },
+  heading: { webFont: "Noto Sans KR", weights: [700] },
+  body: { webFont: "Noto Sans KR", weights: [400] },
+};
 const wizardEl = document.getElementById("wizard");
 const toWizardBtn = document.getElementById("to-wizard");
 const extraField = document.getElementById("extra-field");
@@ -157,7 +170,39 @@ function resetOutput() {
   raw = "";
   outputEl.innerHTML = "";
   outputEl.hidden = true;
+  deckEl.hidden = true;
+  deckEl.innerHTML = "";
+  viewToggle.hidden = true;
   copyBtn.hidden = true;
+}
+
+/* ---------- Slide deck view (PPT) ---------- */
+// Show either the rendered slides or the raw text. The deck is the default for
+// PPT; "텍스트" reveals the underlying markdown (and stays available for copy).
+function setDeckView(mode) {
+  const slides = mode === "slides";
+  deckEl.hidden = !slides;
+  outputEl.hidden = slides;
+  viewSlidesBtn.classList.toggle("active", slides);
+  viewTextBtn.classList.toggle("active", !slides);
+}
+
+async function showDeck(markdown, theme) {
+  const deck = parseDeck(markdown);
+  if (!deck) {
+    // Couldn't parse a slide structure — keep the plain markdown view.
+    viewToggle.hidden = true;
+    return;
+  }
+  viewToggle.hidden = false;
+  try {
+    await renderDeck(deckEl, deck, theme || DEFAULT_DECK_THEME);
+    setDeckView("slides");
+  } catch (err) {
+    console.error("[deck] render failed:", err);
+    viewToggle.hidden = true;
+    setDeckView("text");
+  }
 }
 
 /* ---------- Options ---------- */
@@ -715,6 +760,7 @@ async function generate(event) {
     }
 
     let finished = false;
+    let hadError = false;
     await readStream(res, (evt) => {
       if (evt.type === "delta") {
         revealOutputOnce();
@@ -729,6 +775,7 @@ async function generate(event) {
         copyBtn.hidden = raw.length === 0;
       } else if (evt.type === "error") {
         finished = true;
+        hadError = true;
         showError(evt.error);
         setStatus("오류");
       }
@@ -739,6 +786,14 @@ async function generate(event) {
       renderNow();
       loadingEl.hidden = true;
       copyBtn.hidden = raw.length === 0;
+    }
+
+    // PPT: turn the finished markdown outline into rendered, fitted slides.
+    if (!hadError && current?.id === "ppt" && raw.trim()) {
+      const prevStatus = statusEl.textContent;
+      setStatus("슬라이드 구성 중…");
+      await showDeck(raw, selectedPptTheme || DEFAULT_DECK_THEME);
+      setStatus(prevStatus);
     }
   } catch (err) {
     if (err.name === "AbortError") {
@@ -772,6 +827,9 @@ async function loadSample() {
     renderNow();
     copyBtn.hidden = raw.length === 0;
     setStatus("예시 미리보기 (실제 생성 결과가 아닙니다)");
+    if (id === "ppt" && raw.trim()) {
+      await showDeck(raw, selectedPptTheme || DEFAULT_DECK_THEME);
+    }
   } catch (err) {
     showError(err instanceof Error ? err.message : String(err));
     setStatus("");
@@ -837,6 +895,9 @@ copyBtn.addEventListener("click", async () => {
     /* clipboard may be unavailable; ignore */
   }
 });
+
+viewSlidesBtn.addEventListener("click", () => setDeckView("slides"));
+viewTextBtn.addEventListener("click", () => setDeckView("text"));
 
 /* ---------- First-visit onboarding survey ---------- */
 const ONBOARD_KEY = "aio_onboarded";
