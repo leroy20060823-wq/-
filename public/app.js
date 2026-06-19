@@ -85,6 +85,22 @@ const examBrandEl = document.getElementById("exam-brand");
 const examMottoEl = document.getElementById("exam-motto");
 const examPdfBtn = document.getElementById("exam-pdf-btn");
 const examPdfStatus = document.getElementById("exam-pdf-status");
+// Convenience pass (A1–A4)
+const loadingMsg = document.getElementById("loading-msg");
+const loadingSub = document.getElementById("loading-sub");
+const resultActions = document.getElementById("result-actions");
+const downloadTextBtn = document.getElementById("download-text");
+const tweakBtn = document.getElementById("tweak-btn");
+const draftNote = document.getElementById("draft-note");
+const draftNewBtn = document.getElementById("draft-new");
+const samplePreview = document.getElementById("sample-preview");
+const sampleSnippet = document.getElementById("sample-snippet");
+const sampleExpandBtn = document.getElementById("sample-expand");
+const sampleModal = document.getElementById("sample-modal");
+const sampleModalBody = document.getElementById("sample-modal-body");
+const sampleModalClose = document.getElementById("sample-modal-close");
+const sampleModalMake = document.getElementById("sample-modal-make");
+const sampleModalTitle = document.getElementById("sample-modal-title");
 
 // Fallback design theme for the slide renderer when the user hasn't picked one.
 const DEFAULT_DECK_THEME = {
@@ -107,7 +123,12 @@ const SOURCE_TOPIC_NOTE =
 const SOURCE_GROUNDED_NOTE = "✓ 올려주신 자료를 바탕으로 만들어요.";
 
 // One reusable source-material input (photo / paste / file), shared across modules.
-const sourceInput = createSourceInput({ onChange: () => updateSourceNote() });
+const sourceInput = createSourceInput({
+  onChange: () => {
+    updateSourceNote();
+    scheduleSaveDraft();
+  },
+});
 
 function mountSourceTo(container) {
   if (container && sourceInput.el.parentNode !== container) container.appendChild(sourceInput.el);
@@ -212,6 +233,8 @@ function resetOutput() {
   copyBtn.hidden = true;
   examPdfBar.hidden = true;
   if (examPdfStatus) examPdfStatus.textContent = "";
+  if (resultActions) resultActions.hidden = true;
+  clearLoadingTimers();
 }
 
 /* ---------- Preview view (slides for PPT, paged document for the rest) ---------- */
@@ -970,6 +993,15 @@ function updateModuleDesc() {
   // Default input mode per guidance: guided → step-by-step wizard, lite → compact form.
   classicMode = guidanceLevel === "lite";
   applyInputMode(current);
+
+  // A1 sample preview + A2 restore any autosaved draft for this module.
+  if (current) {
+    updateSamplePreview(current.id);
+    restoreDraft(current.id);
+  } else {
+    samplePreview.hidden = true;
+    draftNote.hidden = true;
+  }
 }
 
 const CARD_GROUPS = [
@@ -986,6 +1018,7 @@ function cardHtml(m) {
     `<span class="card-icon" style="background:${theme.tile};color:${theme.accent}">${icon}</span>` +
     `<span class="card-name">${escapeHtml(m.name)}</span>` +
     `<span class="card-desc">${escapeHtml(tagline)}</span>` +
+    `<span class="card-sample" data-sample="${escapeHtml(m.id)}" role="button" tabindex="0">이런 게 나와요</span>` +
     `</button>`
   );
 }
@@ -1065,6 +1098,7 @@ async function readStream(res, onEvent) {
 function revealOutputOnce() {
   if (outputEl.hidden) {
     outputEl.hidden = false;
+    clearLoadingTimers();
     loadingEl.hidden = true;
   }
 }
@@ -1107,7 +1141,7 @@ async function generate(event) {
 
   setGenerating(true);
   setStatus("만드는 중…");
-  loadingEl.hidden = false;
+  startLoading();
   controller = new AbortController();
 
   try {
@@ -1139,6 +1173,7 @@ async function generate(event) {
         renderNow();
         setStatus("다 만들었어요 ✓");
         copyBtn.hidden = raw.length === 0;
+        clearDraft(module); // saved successfully — drop the autosaved draft
       } else if (evt.type === "error") {
         finished = true;
         hadError = true;
@@ -1161,19 +1196,21 @@ async function generate(event) {
       setStatus(current?.id === "ppt" ? "슬라이드 구성 중…" : "문서 정리 중…");
       await showPreview(current?.id);
       setStatus(prevStatus);
+      showResultActions(current?.id);
     }
   } catch (err) {
     if (err.name === "AbortError") {
       revealOutputOnce();
       renderNow();
-      loadingEl.hidden = true;
       copyBtn.hidden = raw.length === 0;
       setStatus("멈췄어요");
+      showResultActions(current?.id);
     } else {
       showError(err instanceof Error ? err.message : String(err));
       setStatus("문제가 생겼어요");
     }
   } finally {
+    stopLoading();
     setGenerating(false);
     controller = null;
   }
@@ -1217,8 +1254,244 @@ async function checkHealth() {
   }
 }
 
+/* ---------- A4: friendly "generating" state ---------- */
+let loadingTimers = [];
+function clearLoadingTimers() {
+  loadingTimers.forEach(clearTimeout);
+  loadingTimers = [];
+}
+function startLoading() {
+  resultActions.hidden = true;
+  loadingEl.hidden = false;
+  loadingMsg.textContent = "만들고 있어요…";
+  loadingSub.textContent = "보통 30초쯤 걸려요";
+  clearLoadingTimers();
+  // Cold start (Render free tier spins down) → reassure if nothing has come back yet.
+  loadingTimers.push(
+    setTimeout(() => {
+      loadingSub.textContent = "처음 깨우는 중이라 조금 더 걸릴 수 있어요…";
+    }, 8000),
+  );
+  loadingTimers.push(
+    setTimeout(() => {
+      loadingMsg.textContent = "거의 다 됐어요…";
+      loadingSub.textContent = "내용이 길면 시간이 더 걸려요. 조금만 기다려 주세요.";
+    }, 22000),
+  );
+}
+function stopLoading() {
+  clearLoadingTimers();
+  loadingEl.hidden = true;
+}
+
+/* ---------- A3: result actions (download / tweak) ---------- */
+function showResultActions(moduleId) {
+  if (!raw.trim()) {
+    resultActions.hidden = true;
+    return;
+  }
+  // Exam downloads as a polished PDF (its own bar); everything else as text.
+  downloadTextBtn.hidden = moduleId === "exam";
+  resultActions.hidden = false;
+}
+
+function sanitizeFilename(s) {
+  return (
+    String(s || "")
+      .replace(/[^\w가-힣 .-]/g, "")
+      .trim()
+      .slice(0, 40) || "결과"
+  );
+}
+function downloadResultText() {
+  if (!raw.trim()) return;
+  const g = gatherGuide();
+  const current = getCurrentModule();
+  const base = sanitizeFilename(g.subject || g.topic || current?.name || "결과");
+  const blob = new Blob([raw], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${base}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+function tweakAndRetry() {
+  location.hash = "#generate";
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+  setStatus("설정을 조금 바꾼 뒤 '만들기'를 다시 눌러 주세요.");
+}
+
+/* ---------- A2: auto-save form input ---------- */
+const DRAFT_PREFIX = "aio_draft_";
+let draftTimer = 0;
+function moduleHasSource() {
+  const m = getCurrentModule();
+  return !!(m && m.source && m.source.enabled);
+}
+function collectFormState() {
+  const counts = {};
+  guideFieldsEl.querySelectorAll(".counts").forEach((c) => {
+    const hidden = c.querySelector("input[type='hidden'][data-guide-key]");
+    if (!hidden) return;
+    const items = {};
+    c.querySelectorAll(".count-item").forEach((inp) => {
+      items[inp.dataset.countItem] = inp.value;
+    });
+    counts[hidden.getAttribute("data-guide-key")] = items;
+  });
+  return {
+    v: 1,
+    guide: gatherGuide(),
+    options: gatherOptions(),
+    counts,
+    extra: inputEl.value,
+    sourceText: moduleHasSource() ? sourceInput.getSourceText() : "",
+    ts: Date.now(),
+  };
+}
+function scheduleSaveDraft() {
+  const id = moduleSelect.value;
+  if (!id) return;
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(DRAFT_PREFIX + id, JSON.stringify(collectFormState()));
+    } catch {
+      /* storage may be full/blocked; ignore */
+    }
+  }, 400);
+}
+function clearDraft(id) {
+  try {
+    localStorage.removeItem(DRAFT_PREFIX + id);
+  } catch {
+    /* ignore */
+  }
+  draftNote.hidden = true;
+}
+function setKeyedValue(scope, attr, key, value) {
+  const el = scope.querySelector(`[${attr}="${key}"]`);
+  if (!el) return;
+  el.value = value;
+  const chips = el.parentElement && el.parentElement.querySelector(".chips");
+  if (chips) chips.querySelectorAll(".chip").forEach((b) => b.classList.toggle("active", b.dataset.chip === String(value)));
+}
+function applyFormState(state) {
+  if (!state) return;
+  for (const [k, v] of Object.entries(state.guide || {})) setKeyedValue(guideFieldsEl, "data-guide-key", k, v);
+  for (const [k, v] of Object.entries(state.options || {})) setKeyedValue(moduleOptionsEl, "data-opt-key", k, v);
+  for (const [fk, items] of Object.entries(state.counts || {})) {
+    const hidden = guideFieldsEl.querySelector(`.counts input[type='hidden'][data-guide-key="${fk}"]`);
+    const c = hidden && hidden.closest(".counts");
+    if (!c) continue;
+    for (const [ik, val] of Object.entries(items)) {
+      const inp = c.querySelector(`.count-item[data-count-item="${ik}"]`);
+      if (inp) inp.value = val;
+    }
+    refreshCounts(c);
+  }
+  if (typeof state.extra === "string") inputEl.value = state.extra;
+}
+function restoreDraft(id) {
+  let saved = null;
+  try {
+    saved = localStorage.getItem(DRAFT_PREFIX + id);
+  } catch {
+    saved = null;
+  }
+  if (!saved) {
+    draftNote.hidden = true;
+    return;
+  }
+  let state;
+  try {
+    state = JSON.parse(saved);
+  } catch {
+    draftNote.hidden = true;
+    return;
+  }
+  applyFormState(state);
+  if (state.sourceText && moduleHasSource()) {
+    sourceInput.setSourceText(state.sourceText);
+    updateSourceNote();
+  }
+  const meaningful =
+    Object.values(state.guide || {}).some((v) => String(v).trim()) ||
+    String(state.extra || "").trim() ||
+    String(state.sourceText || "").trim();
+  draftNote.hidden = !meaningful;
+}
+
+/* ---------- A1: sample preview ("이런 게 나와요") ---------- */
+const sampleCache = new Map();
+async function fetchSample(id) {
+  if (sampleCache.has(id)) return sampleCache.get(id);
+  let content = "";
+  try {
+    const res = await fetch(`/api/modules/${encodeURIComponent(id)}/sample`);
+    if (res.ok) content = (await res.json()).content || "";
+  } catch {
+    content = "";
+  }
+  sampleCache.set(id, content);
+  return content;
+}
+async function updateSamplePreview(id) {
+  const content = await fetchSample(id);
+  if (moduleSelect.value !== id) return; // module changed while fetching
+  if (!content.trim()) {
+    samplePreview.hidden = true;
+    return;
+  }
+  const snippet = content.split("\n").slice(0, 8).join("\n").slice(0, 600);
+  sampleSnippet.innerHTML = DOMPurify.sanitize(marked.parse(snippet));
+  samplePreview.hidden = false;
+}
+async function openSampleModal(id) {
+  const m = modules.find((x) => x.id === id);
+  sampleModalTitle.textContent = m ? `${m.name} — 이런 게 나와요` : "이런 게 나와요";
+  sampleModalBody.innerHTML = "<p class='hint'>예시를 불러오는 중…</p>";
+  sampleModal.dataset.module = id;
+  sampleModal.hidden = false;
+  const content = await fetchSample(id);
+  sampleModalBody.innerHTML = content.trim()
+    ? DOMPurify.sanitize(marked.parse(content))
+    : "<p class='hint'>이 도구의 예시는 곧 추가돼요.</p>";
+}
+function closeSampleModal() {
+  sampleModal.hidden = true;
+}
+
 /* ---------- Wiring ---------- */
 form.addEventListener("submit", generate);
+form.addEventListener("input", scheduleSaveDraft);
+form.addEventListener("change", scheduleSaveDraft);
+downloadTextBtn.addEventListener("click", downloadResultText);
+tweakBtn.addEventListener("click", tweakAndRetry);
+draftNewBtn.addEventListener("click", () => {
+  clearDraft(moduleSelect.value);
+  updateModuleDesc(); // re-render with defaults (no draft to restore)
+});
+sampleExpandBtn.addEventListener("click", () => {
+  loadSample();
+  document.querySelector(".output-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+sampleModalClose.addEventListener("click", closeSampleModal);
+sampleModal.addEventListener("click", (e) => {
+  if (e.target === sampleModal) closeSampleModal();
+});
+sampleModalMake.addEventListener("click", () => {
+  const id = sampleModal.dataset.module;
+  if (id) {
+    moduleSelect.value = id;
+    updateModuleDesc();
+  }
+  closeSampleModal();
+  location.hash = "#generate";
+});
 demoBtn.addEventListener("click", loadSample);
 toWizardBtn.addEventListener("click", () => {
   classicMode = false;
@@ -1246,6 +1519,12 @@ heroForm.addEventListener("submit", (e) => {
 });
 
 cardsEl.addEventListener("click", (e) => {
+  const sample = e.target.closest("[data-sample]");
+  if (sample) {
+    e.preventDefault();
+    openSampleModal(sample.dataset.sample);
+    return;
+  }
   const card = e.target.closest("[data-module]");
   if (!card) return;
   moduleSelect.value = card.dataset.module;

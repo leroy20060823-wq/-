@@ -188,6 +188,9 @@ export function createSourceInput(opts = {}) {
     getSourceText: () => textEl.value.trim(),
     count: () => items.length,
     hasText: () => !!textEl.value.trim(),
+    setSourceText: (t) => {
+      textEl.value = t || "";
+    },
     isEmpty: () => items.length === 0 && !textEl.value.trim(),
     reset: () => {
       items.length = 0;

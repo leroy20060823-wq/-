@@ -117,6 +117,19 @@
             <span id="module-desc" class="hint"></span>
           </label>
 
+          <p id="draft-note" class="draft-note" hidden>
+            <span>이전에 입력하던 내용을 불러왔어요.</span>
+            <button id="draft-new" type="button" class="link">새로 시작</button>
+          </p>
+
+          <div id="sample-preview" class="sample-preview" hidden>
+            <div class="sample-head">
+              <span class="sample-title">이런 게 나와요</span>
+              <button id="sample-expand" type="button" class="link">전체 예시 보기</button>
+            </div>
+            <div id="sample-snippet" class="sample-snippet"></div>
+          </div>
+
           <button id="to-wizard" type="button" class="btn-ghost to-wizard" hidden>← 단계별로 쉽게 입력하기</button>
 
           <div id="wizard" class="wizard" hidden></div>
@@ -181,7 +194,15 @@
           </div>
           <div id="loading" class="loading" hidden>
             <span class="spinner" aria-hidden="true"></span>
-            <span>생성하는 중…</span>
+            <div class="loading-body">
+              <span id="loading-msg" class="loading-msg">만들고 있어요…</span>
+              <span id="loading-sub" class="loading-sub">보통 30초쯤 걸려요</span>
+              <span class="loading-bar" aria-hidden="true"><i></i></span>
+            </div>
+          </div>
+          <div id="result-actions" class="result-actions" hidden>
+            <button id="download-text" type="button" class="btn-primary">다운로드</button>
+            <button id="tweak-btn" type="button" class="btn-ghost">조금 고쳐서 다시 만들기</button>
           </div>
           <div id="deck" class="deck" hidden aria-label="생성된 슬라이드"></div>
           <div id="docpages" class="docpages" hidden aria-label="문서 미리보기"></div>
@@ -215,6 +236,19 @@
         <a href="mailto:leroy20060823@gmail.com">문의</a>
       </nav>
     </footer>
+
+    <!-- Sample preview modal (A1) -->
+    <div id="sample-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="sample-modal-title">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h2 class="modal-title" id="sample-modal-title">이런 게 나와요</h2>
+          <button id="sample-modal-close" class="modal-close" type="button" aria-label="닫기">✕</button>
+        </div>
+        <p class="modal-note">미리 만들어 둔 예시예요. 실제로 만들면 입력에 맞춰 새로 나와요.</p>
+        <div id="sample-modal-body" class="modal-body markdown"></div>
+        <button id="sample-modal-make" class="btn-primary" type="button">이 도구로 만들어 보기</button>
+      </div>
+    </div>
 
     <!-- First-visit onboarding (shown once) -->
     <div id="onboarding" class="onboarding" hidden role="dialog" aria-modal="true" aria-labelledby="onboarding-title">

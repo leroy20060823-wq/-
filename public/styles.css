@@ -2126,3 +2126,185 @@ body[data-guidance="lite"] .guide-fields {
     min-width: 0;
   }
 }
+
+/* ============================================================
+   Convenience pass (A1–A4): loading, result actions, drafts,
+   sample preview + modal. Warm cream + sage/sky/clay only.
+   ============================================================ */
+
+/* A4 — friendly generating state */
+.loading-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.loading-msg {
+  font-weight: 700;
+  color: var(--ink);
+}
+.loading-sub {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.loading-bar {
+  display: block;
+  margin-top: 6px;
+  height: 6px;
+  width: 100%;
+  max-width: 260px;
+  border-radius: 999px;
+  background: var(--border-soft);
+  overflow: hidden;
+}
+.loading-bar i {
+  display: block;
+  height: 100%;
+  width: 40%;
+  border-radius: 999px;
+  background: var(--sage);
+  animation: loadingSlide 1.3s ease-in-out infinite;
+}
+@keyframes loadingSlide {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(320%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-bar i { animation-duration: 3s; }
+}
+
+/* A3 — result actions */
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.result-actions[hidden] {
+  display: none;
+}
+
+/* A2 — autosaved draft note */
+.draft-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+  padding: 9px 13px;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  background: #f3ecdc;
+  border: 1px solid #e4d9bf;
+  border-radius: 10px;
+}
+.draft-note[hidden] {
+  display: none;
+}
+
+/* A1 — sample preview on the module screen */
+.sample-preview {
+  margin: 0 0 18px;
+  padding: 14px;
+  background: #fcfbf7;
+  border: 1px dashed var(--border-soft);
+  border-radius: 12px;
+}
+.sample-preview[hidden] {
+  display: none;
+}
+.sample-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.sample-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--sage);
+}
+.sample-snippet {
+  max-height: 220px;
+  overflow: hidden;
+  position: relative;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);
+  mask-image: linear-gradient(to bottom, #000 70%, transparent);
+}
+.sample-snippet :first-child {
+  margin-top: 0;
+}
+
+/* Sample card affordance on the landing cards */
+.card-sample {
+  margin-top: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--sky);
+}
+.card-sample:hover {
+  text-decoration: underline;
+}
+
+/* Generic modal (sample preview) */
+.modal[hidden] {
+  display: none;
+}
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: auto;
+  background: rgba(42, 39, 34, 0.45);
+}
+.modal-card {
+  width: 100%;
+  max-width: 640px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(80, 70, 50, 0.25);
+  padding: 22px 22px 20px;
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.modal-title {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--ink);
+}
+.modal-close {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: var(--ink-soft);
+  padding: 4px 8px;
+}
+.modal-note {
+  margin: 6px 0 12px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.modal-body {
+  overflow: auto;
+  flex: 1;
+  background: #fcfbf7;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
