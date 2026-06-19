@@ -2541,3 +2541,71 @@ body[data-guidance="lite"] .guide-fields {
   resize: vertical;
   box-sizing: border-box;
 }
+
+/* Gentle non-blocking feedback nudge (never an overlay — sits in a corner) */
+.fb-nudge {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 45;
+  width: min(320px, calc(100vw - 24px));
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(80, 70, 50, 0.18);
+  padding: 16px 16px 14px;
+  animation: nudgeIn 0.25s ease;
+}
+.fb-nudge[hidden] {
+  display: none;
+}
+@keyframes nudgeIn {
+  from { transform: translateY(14px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fb-nudge { animation: none; }
+}
+.fb-nudge-x {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  padding: 4px 6px;
+  line-height: 1;
+}
+.fb-nudge-title {
+  margin: 0 18px 2px 0;
+  font-weight: 700;
+  color: var(--ink);
+}
+.fb-nudge-sub {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.fb-nudge-actions {
+  display: flex;
+  gap: 8px;
+}
+.fb-nudge-actions .btn-primary,
+.fb-nudge-actions .btn-ghost {
+  flex: 1;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .fb-nudge {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+  }
+}

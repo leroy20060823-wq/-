@@ -177,6 +177,60 @@ function escapeHtml(s) {
   );
 }
 
+/* ---------- Korean particle (josa) helper ---------- */
+// Pick the right particle for a dynamic word from its final sound (받침 유무),
+// so the UI never shows the dual "을(를)" form.
+const LATIN_FINAL_CONSONANT = new Set(["l", "m", "n"]); // 엘/엠/엔 read with a 받침
+const DIGIT_FINAL = {
+  "0": { c: true, r: false }, // 영(ㅇ)
+  "1": { c: true, r: true }, // 일(ㄹ)
+  "2": { c: false, r: false }, // 이
+  "3": { c: true, r: false }, // 삼(ㅁ)
+  "4": { c: false, r: false }, // 사
+  "5": { c: false, r: false }, // 오
+  "6": { c: true, r: false }, // 육(ㄱ)
+  "7": { c: true, r: true }, // 칠(ㄹ)
+  "8": { c: true, r: true }, // 팔(ㄹ)
+  "9": { c: false, r: false }, // 구
+};
+function finalInfo(word) {
+  const w = String(word || "")
+    .trim()
+    .replace(/['")\]}》」』.\s]+$/, ""); // ignore trailing quotes/brackets/space
+  const ch = w.slice(-1);
+  if (!ch) return { hasFinal: false, isRieul: false };
+  const code = ch.charCodeAt(0);
+  if (code >= 0xac00 && code <= 0xd7a3) {
+    const f = (code - 0xac00) % 28;
+    return { hasFinal: f !== 0, isRieul: f === 8 };
+  }
+  if (ch >= "0" && ch <= "9") return { hasFinal: DIGIT_FINAL[ch].c, isRieul: DIGIT_FINAL[ch].r };
+  const lower = ch.toLowerCase();
+  if (lower >= "a" && lower <= "z") return { hasFinal: LATIN_FINAL_CONSONANT.has(lower), isRieul: lower === "l" };
+  return { hasFinal: false, isRieul: false }; // symbols/unknown → treat as vowel
+}
+function particleOf(word, type) {
+  const { hasFinal, isRieul } = finalInfo(word);
+  switch (type) {
+    case "을/를":
+      return hasFinal ? "을" : "를";
+    case "이/가":
+      return hasFinal ? "이" : "가";
+    case "은/는":
+      return hasFinal ? "은" : "는";
+    case "와/과":
+      return hasFinal ? "과" : "와";
+    case "로":
+    case "으로":
+      return !hasFinal || isRieul ? "로" : "으로";
+    default:
+      return "";
+  }
+}
+function josa(word, type) {
+  return `${word}${particleOf(word, type)}`;
+}
+
 /* ---------- View routing (hash-based) ---------- */
 const PAGE_TITLES = {
   home: "올인원 AI — 질문에 답만 하면 완성",
@@ -980,7 +1034,7 @@ function finishWizard() {
 
 function updateModuleDesc() {
   const current = modules.find((m) => m.id === moduleSelect.value);
-  if (moduleIntro) moduleIntro.textContent = current ? `이 도구로 ${current.name}을(를) 만들어 드려요.` : "";
+  if (moduleIntro) moduleIntro.textContent = current ? `이 도구로 ${josa(current.name, "을/를")} 만들어 드려요.` : "";
   modulePurpose.textContent = current?.purpose ?? "";
   moduleDesc.textContent = current?.description ?? "";
   renderGuide(current);
@@ -1135,7 +1189,7 @@ async function generate(event) {
 
   const missing = firstMissingRequired(current, guideValues);
   if (missing) {
-    showError(`'${missing.label}'을(를) 입력해 주세요.`);
+    showError(`'${missing.label}'${particleOf(missing.label, "을/를")} 입력해 주세요.`);
     const el = guideFieldsEl.querySelector(`[data-guide-key="${missing.key}"]`);
     el?.focus();
     return;
@@ -1320,7 +1374,7 @@ function startLoading() {
   // Cold start (Render free tier spins down) → reassure if nothing has come back yet.
   loadingTimers.push(
     setTimeout(() => {
-      loadingSub.textContent = "처음 깨우는 중이라 조금 더 걸릴 수 있어요…";
+      loadingSub.textContent = "처음이라 조금 더 걸릴 수 있어요. 잠시만요!";
     }, 8000),
   );
   loadingTimers.push(
@@ -1605,6 +1659,10 @@ const feedbackStatus = document.getElementById("feedback-status");
 const feedbackOpenBtn = document.getElementById("feedback-open");
 const fbStars = document.getElementById("fb-stars");
 const fbComment = document.getElementById("fb-comment");
+const feedbackNudge = document.getElementById("feedback-nudge");
+const fbNudgeOpen = document.getElementById("fb-nudge-open");
+const fbNudgeLater = document.getElementById("fb-nudge-later");
+const fbNudgeClose = document.getElementById("fb-nudge-close");
 let fbState = { rating: null, usable: null, easyForm: null, reuse: null };
 
 function resetFeedback() {
@@ -1622,15 +1680,32 @@ function openFeedback(moduleId) {
 function closeFeedback() {
   feedbackModal.hidden = true;
 }
+function hideNudge() {
+  if (feedbackNudge) feedbackNudge.hidden = true;
+}
+function dismissNudge() {
+  hideNudge();
+  try {
+    sessionStorage.setItem("aio_fb_done", "1"); // dismissed → don't nag again this session
+  } catch {
+    /* ignore */
+  }
+}
+// After a real result, show a small NON-blocking nudge (never covers the result),
+// slightly delayed, at most once per session, easily dismissed.
 function maybeAutoFeedback(moduleId) {
-  // Once per browser session, after a real result — never nagging.
+  if (!feedbackNudge) return;
   try {
     if (sessionStorage.getItem("aio_fb_shown") || sessionStorage.getItem("aio_fb_done")) return;
     sessionStorage.setItem("aio_fb_shown", "1");
   } catch {
     return;
   }
-  setTimeout(() => openFeedback(moduleId), 1500);
+  setTimeout(() => {
+    if (sessionStorage.getItem("aio_fb_done")) return;
+    feedbackNudge.dataset.module = moduleId || "";
+    feedbackNudge.hidden = false;
+  }, 2500);
 }
 
 fbStars.addEventListener("click", (e) => {
@@ -1654,6 +1729,13 @@ feedbackModal.addEventListener("click", (e) => {
 });
 feedbackClose.addEventListener("click", closeFeedback);
 feedbackOpenBtn.addEventListener("click", () => openFeedback());
+fbNudgeOpen?.addEventListener("click", () => {
+  const id = feedbackNudge?.dataset.module || "";
+  hideNudge();
+  openFeedback(id);
+});
+fbNudgeLater?.addEventListener("click", dismissNudge);
+fbNudgeClose?.addEventListener("click", dismissNudge);
 feedbackSubmit.addEventListener("click", async () => {
   const payload = { ...fbState, comment: fbComment.value.trim(), module: feedbackModal.dataset.module || "" };
   const hasAny = payload.rating !== null || payload.usable || payload.easyForm || payload.reuse || payload.comment;
