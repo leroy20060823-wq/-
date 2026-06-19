@@ -1,8 +1,9 @@
 import { marked } from "./vendor/marked.esm.js";
 import DOMPurify from "./vendor/purify.es.mjs";
-import { parseDeck, renderDeck } from "./slides.js";
+import { parseDeck, renderDeck, capDeck } from "./slides.js";
 import { renderPagedDocument, resolveColors, bestText, blend } from "./docqa.js";
 import { createSourceInput } from "./attachments.js";
+import { exportPptx } from "./pptx.js";
 
 marked.use({ gfm: true, breaks: false });
 
@@ -73,6 +74,7 @@ const designModalBody = document.getElementById("design-modal-body");
 const designModalTitle = document.getElementById("design-modal-title");
 const designModalClose = document.getElementById("design-modal-close");
 const designModalPick = document.getElementById("design-modal-pick");
+const designModalPptxBtn = document.getElementById("design-modal-pptx");
 const submitBtn = document.getElementById("submit");
 const demoBtn = document.getElementById("demo");
 const demoBanner = document.getElementById("demo-banner");
@@ -97,6 +99,8 @@ const loadingMsg = document.getElementById("loading-msg");
 const loadingSub = document.getElementById("loading-sub");
 const resultActions = document.getElementById("result-actions");
 const downloadTextBtn = document.getElementById("download-text");
+const downloadPptxBtn = document.getElementById("download-pptx");
+const pptxHint = document.getElementById("pptx-hint");
 const tweakBtn = document.getElementById("tweak-btn");
 const draftNote = document.getElementById("draft-note");
 const draftNewBtn = document.getElementById("draft-new");
@@ -795,6 +799,39 @@ const SHOWCASE = {
 function designTokens(theme) {
   const c = resolveColors((theme && theme.palette) || {});
   return { ...c, panel: blend(c.bg, c.ink, 0.07), onAccent: bestText(c.accent) };
+}
+
+// Deck model for the .pptx export — the SAME fixed sample content as the HTML
+// showcase, so the downloaded presentation matches the preview. Uses all six
+// archetypes. (AI content flows through deckModelFromMarkdown into the same export.)
+function sampleDeckModel() {
+  const S = SHOWCASE;
+  return {
+    title: S.title,
+    slides: [
+      { layout: "cover", eyebrow: S.eyebrow, title: S.title, subtitle: S.subtitle },
+      { layout: "bullets", title: S.contentTitle, bullets: S.bullets },
+      { layout: "twocol", title: S.compareTitle, left: S.compareLeft, right: S.compareRight },
+      { layout: "section", no: S.sectionNo, name: S.sectionName },
+      { layout: "stat", num: S.statNum, label: S.statLabel, bars: S.bars },
+      { layout: "quote", quote: S.quote, by: S.quoteBy },
+    ],
+  };
+}
+
+// Map a generated PPT outline (Markdown) → the same deck model the exporter uses.
+// First slide → cover; the rest → bullets. Capped per slide (overflow flows onto
+// a new slide) so text never overflows. Returns null when there's nothing to map.
+function deckModelFromMarkdown(raw) {
+  const deck = parseDeck(raw);
+  if (!deck) return null;
+  const capped = capDeck(deck);
+  const slides = capped.map((s, i) =>
+    i === 0 && s.kind === "title"
+      ? { layout: "cover", eyebrow: "", title: s.title, subtitle: s.subtitle || "" }
+      : { layout: "bullets", title: s.title, bullets: s.bullets || [] },
+  );
+  return { title: capped[0]?.title || "발표", slides };
 }
 
 // Six distinct slide archetypes, each re-skinned from the design's tokens, so a
@@ -1593,8 +1630,12 @@ function showResultActions(moduleId) {
     resultActions.hidden = true;
     return;
   }
-  // Exam downloads as a polished PDF (its own bar); everything else as text.
-  downloadTextBtn.hidden = moduleId === "exam";
+  // PPT → editable .pptx (no .txt). Exam → polished PDF (its own bar, no .txt).
+  // Everything else → a text download.
+  const isPpt = moduleId === "ppt";
+  if (downloadPptxBtn) downloadPptxBtn.hidden = !isPpt;
+  if (pptxHint) pptxHint.hidden = !isPpt;
+  downloadTextBtn.hidden = isPpt || moduleId === "exam";
   resultActions.hidden = false;
 }
 
@@ -1774,6 +1815,35 @@ form.addEventListener("input", scheduleSaveDraft);
 form.addEventListener("change", scheduleSaveDraft);
 downloadTextBtn.addEventListener("click", downloadResultText);
 tweakBtn.addEventListener("click", tweakAndRetry);
+
+// Editable .pptx export (client-side). Reuses the chosen design + the same
+// builder for sample and AI content.
+async function runPptxExport(btn, deckModel, theme, filename) {
+  if (!deckModel || !deckModel.slides || !deckModel.slides.length) {
+    showError("내보낼 슬라이드가 없어요. 먼저 발표를 만들어 주세요.");
+    return;
+  }
+  const label = btn ? btn.textContent : "";
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "PPT 파일 만드는 중…";
+  }
+  try {
+    await exportPptx(deckModel, theme || DEFAULT_DECK_THEME, filename);
+  } catch (err) {
+    console.error("[pptx] export failed:", err);
+    showError("PPT 파일을 만들지 못했어요. 잠시 후 다시 시도해 주세요.");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = label;
+    }
+  }
+}
+downloadPptxBtn?.addEventListener("click", () => {
+  const model = deckModelFromMarkdown(raw) || sampleDeckModel();
+  runPptxExport(downloadPptxBtn, model, selectedPptTheme || DEFAULT_DECK_THEME, model.title);
+});
 draftNewBtn.addEventListener("click", () => {
   clearDraft(moduleSelect.value);
   updateModuleDesc(); // re-render with defaults (no draft to restore)
@@ -1821,6 +1891,10 @@ designModalPick?.addEventListener("click", () => {
   const id = designModal.dataset.theme;
   if (id) selectPptTheme(id);
   closeDesignModal();
+});
+designModalPptxBtn?.addEventListener("click", () => {
+  const theme = themesById[designModal.dataset.theme] || DEFAULT_DECK_THEME;
+  runPptxExport(designModalPptxBtn, sampleDeckModel(), theme, "샘플 발표");
 });
 // Arrow keys page the showcase carousel while the modal is open.
 document.addEventListener("keydown", (e) => {
