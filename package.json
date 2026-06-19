@@ -23,6 +23,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
+    "hwpx-js": "^0.1.2",
     "pptxgenjs": "^4.0.1"
   },
   "devDependencies": {

@@ -5,6 +5,7 @@ import { renderPagedDocument, resolveColors, bestText, blend } from "./docqa.js"
 import { createSourceInput } from "./attachments.js";
 import { exportPptx } from "./pptx.js";
 import { exportDocx } from "./docx.js";
+import { exportHwpx } from "./hwpx.js";
 
 marked.use({ gfm: true, breaks: false });
 
@@ -98,6 +99,7 @@ const examPdfStatus = document.getElementById("exam-pdf-status");
 const docExport = document.getElementById("doc-export");
 const paperChips = document.getElementById("paper-chips");
 const downloadDocxBtn = document.getElementById("download-docx");
+const downloadHwpxBtn = document.getElementById("download-hwpx");
 const downloadDocPdfBtn = document.getElementById("download-docpdf");
 const docExportStatus = document.getElementById("doc-export-status");
 let docPaper = "a4"; // A4 | letter | b5
@@ -1899,25 +1901,29 @@ paperChips?.addEventListener("click", (e) => {
   paperChips.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c === chip));
   if (previewKind === "doc") showDoc(getCurrentModule()?.id);
 });
-downloadDocxBtn?.addEventListener("click", async () => {
+// Shared runner for document exports (.docx / .hwpx) — same content source +
+// paper size, so the two formats come out equivalent.
+async function runDocExport(btn, fn, kind) {
   if (!raw.trim()) {
     showError("내려받을 내용이 없어요. 먼저 만들어 주세요.");
     return;
   }
-  const label = downloadDocxBtn.textContent;
-  downloadDocxBtn.disabled = true;
-  downloadDocxBtn.textContent = "Word 파일 만드는 중…";
+  const label = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = `${kind} 파일 만드는 중…`;
   if (docExportStatus) docExportStatus.textContent = "";
   try {
-    await exportDocx(renderedDocEl(), { paper: docPaper, title: docTitleFromRaw() });
+    await fn(renderedDocEl(), { paper: docPaper, title: docTitleFromRaw() });
   } catch (err) {
-    console.error("[docx] export failed:", err);
-    if (docExportStatus) docExportStatus.textContent = "Word 파일을 만들지 못했어요. 잠시 후 다시 시도해 주세요.";
+    console.error(`[${kind}] export failed:`, err);
+    if (docExportStatus) docExportStatus.textContent = `${kind} 파일을 만들지 못했어요. 잠시 후 다시 시도해 주세요.`;
   } finally {
-    downloadDocxBtn.disabled = false;
-    downloadDocxBtn.textContent = label;
+    btn.disabled = false;
+    btn.textContent = label;
   }
-});
+}
+downloadDocxBtn?.addEventListener("click", () => runDocExport(downloadDocxBtn, exportDocx, "Word"));
+downloadHwpxBtn?.addEventListener("click", () => runDocExport(downloadHwpxBtn, exportHwpx, "한글"));
 // "PDF로 저장" — browser print of a clean, paper-sized copy (no Python). The user
 // chooses "PDF로 저장" in the print dialog.
 downloadDocPdfBtn?.addEventListener("click", () => {
