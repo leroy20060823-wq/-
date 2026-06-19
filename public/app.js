@@ -1258,6 +1258,11 @@ function updateModuleDesc() {
   // Plain-language action button: "시험지 만들기", "단어장 만들기" …
   if (submitBtn) submitBtn.textContent = current ? `${current.name} 만들기` : "만들기";
 
+  // PPT has its own per-design "예시 보기" in the 디자인 고르기 section, so the
+  // generic bottom "예시 보기" (the static-sample deck, which renders poorly for
+  // PPT) is removed here. Other modules keep it.
+  if (demoBtn) demoBtn.hidden = current?.id === "ppt";
+
   // Default input mode per guidance: guided → step-by-step wizard, lite → compact form.
   classicMode = guidanceLevel === "lite";
   applyInputMode(current);
