@@ -2308,3 +2308,75 @@ body[data-guidance="lite"] .guide-fields {
   padding: 16px 18px;
   margin-bottom: 14px;
 }
+
+/* ============================================================
+   Orientation & trust (B7 help/FAQ, B8 module intro)
+   ============================================================ */
+.module-intro {
+  display: block;
+  margin-top: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--sage);
+}
+
+.help-title {
+  margin: 18px 0 6px;
+  font-size: 1.6rem;
+  color: var(--ink);
+}
+.help-sub {
+  margin: 0 0 20px;
+  color: var(--ink-soft);
+}
+.faq {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.faq-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 4px 16px;
+}
+.faq-item summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 12px 0;
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+.faq-item summary::after {
+  content: "+";
+  color: var(--clay);
+  font-size: 1.3rem;
+  font-weight: 400;
+}
+.faq-item[open] summary::after {
+  content: "−";
+}
+.faq-item p {
+  margin: 0 0 14px;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+.help-contact {
+  margin-top: 26px;
+  padding: 20px;
+  text-align: center;
+  background: #f3ecdc;
+  border-radius: 14px;
+}
+.help-contact p {
+  margin: 0 0 12px;
+  color: var(--ink);
+}

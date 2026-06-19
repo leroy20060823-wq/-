@@ -45,6 +45,7 @@ const viewHome = document.getElementById("view-home");
 const viewApp = document.getElementById("view-app");
 const viewTerms = document.getElementById("view-terms");
 const viewPrivacy = document.getElementById("view-privacy");
+const viewHelp = document.getElementById("view-help");
 
 const heroForm = document.getElementById("hero-form");
 const heroInput = document.getElementById("hero-input");
@@ -56,6 +57,7 @@ const form = document.getElementById("form");
 const moduleSelect = document.getElementById("module");
 const modulePurpose = document.getElementById("module-purpose");
 const moduleDesc = document.getElementById("module-desc");
+const moduleIntro = document.getElementById("module-intro");
 const moduleOptionsEl = document.getElementById("module-options");
 const guideFieldsEl = document.getElementById("guide-fields");
 const inputLabel = document.getElementById("input-label");
@@ -176,13 +178,31 @@ function escapeHtml(s) {
 }
 
 /* ---------- View routing (hash-based) ---------- */
+const PAGE_TITLES = {
+  home: "올인원 AI — 질문에 답만 하면 완성",
+  app: "작업실 — 올인원 AI",
+  help: "도움말 — 올인원 AI",
+  terms: "이용약관 — 올인원 AI",
+  privacy: "개인정보처리방침 — 올인원 AI",
+};
 function applyRoute() {
   const h = location.hash;
-  const route = h === "#generate" ? "app" : h === "#terms" ? "terms" : h === "#privacy" ? "privacy" : "home";
+  const route =
+    h === "#generate"
+      ? "app"
+      : h === "#help"
+        ? "help"
+        : h === "#terms"
+          ? "terms"
+          : h === "#privacy"
+            ? "privacy"
+            : "home";
   viewHome.hidden = route !== "home";
   viewApp.hidden = route !== "app";
   viewTerms.hidden = route !== "terms";
   viewPrivacy.hidden = route !== "privacy";
+  if (viewHelp) viewHelp.hidden = route !== "help";
+  document.title = PAGE_TITLES[route] || PAGE_TITLES.home;
   window.scrollTo(0, 0);
   if (route === "app") inputEl.focus();
 }
@@ -960,6 +980,7 @@ function finishWizard() {
 
 function updateModuleDesc() {
   const current = modules.find((m) => m.id === moduleSelect.value);
+  if (moduleIntro) moduleIntro.textContent = current ? `이 도구로 ${current.name}을(를) 만들어 드려요.` : "";
   modulePurpose.textContent = current?.purpose ?? "";
   moduleDesc.textContent = current?.description ?? "";
   renderGuide(current);
