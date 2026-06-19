@@ -2494,3 +2494,50 @@ body[data-guidance="lite"] .guide-fields {
     font-size: 16px;
   }
 }
+
+/* D15 — feedback survey */
+.fb {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.fb-q {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fb-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.fb-stars {
+  display: flex;
+  gap: 4px;
+}
+.fb-star {
+  font-size: 1.8rem;
+  line-height: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--border-soft);
+  padding: 2px;
+}
+.fb-star.on {
+  color: #e8a838;
+}
+.fb-star:hover {
+  color: #e8a838;
+}
+.fb #fb-comment {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 0.95rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  resize: vertical;
+  box-sizing: border-box;
+}

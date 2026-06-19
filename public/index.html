@@ -7,18 +7,22 @@
     <meta name="description" content="질문에 답만 하면 시험지·발표자료·자소서·단어장까지 완성되는 올인원 AI 작업실" />
     <meta name="theme-color" content="#F7F4EC" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
 
-    <!-- Open Graph / Twitter (swap og:image for an absolute PNG URL after deploy) -->
+    <!-- Open Graph / Twitter (PNG for broad share compatibility; set an absolute
+         URL via og:url's host once the final domain is known) -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="올인원 AI" />
-    <meta property="og:title" content="올인원 AI — 모든 영역의 실무를 한 번에" />
+    <meta property="og:title" content="올인원 AI — 질문에 답만 하면 완성" />
     <meta property="og:description" content="처음이어도 괜찮아요. 질문에 답만 하면, 결과물이 완성됩니다." />
-    <meta property="og:image" content="/og.svg" />
+    <meta property="og:image" content="/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:locale" content="ko_KR" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="올인원 AI — 모든 영역의 실무를 한 번에" />
+    <meta name="twitter:title" content="올인원 AI — 질문에 답만 하면 완성" />
     <meta name="twitter:description" content="질문에 답만 하면, 결과물이 완성됩니다." />
-    <meta name="twitter:image" content="/og.svg" />
+    <meta name="twitter:image" content="/og.png" />
 
     <link rel="stylesheet" href="/styles.css" />
   </head>
@@ -208,6 +212,7 @@
           <div id="result-actions" class="result-actions" hidden>
             <button id="download-text" type="button" class="btn-primary">다운로드</button>
             <button id="tweak-btn" type="button" class="btn-ghost">조금 고쳐서 다시 만들기</button>
+            <button id="feedback-open" type="button" class="btn-ghost">의견 남기기</button>
           </div>
           <div id="deck" class="deck" hidden aria-label="생성된 슬라이드"></div>
           <div id="docpages" class="docpages" hidden aria-label="문서 미리보기"></div>
@@ -296,6 +301,59 @@
         <p class="modal-note">미리 만들어 둔 예시예요. 실제로 만들면 입력에 맞춰 새로 나와요.</p>
         <div id="sample-modal-body" class="modal-body markdown"></div>
         <button id="sample-modal-make" class="btn-primary" type="button">이 도구로 만들어 보기</button>
+      </div>
+    </div>
+
+    <!-- Post-use feedback survey (D15) -->
+    <div id="feedback-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="feedback-title">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h2 class="modal-title" id="feedback-title">잠깐, 어떠셨어요?</h2>
+          <button id="feedback-close" class="modal-close" type="button" aria-label="닫기">✕</button>
+        </div>
+        <p class="modal-note">익명이에요. 더 좋게 만드는 데 큰 도움이 돼요. 원하는 것만 답하셔도 돼요.</p>
+        <div class="fb">
+          <div class="fb-q">
+            <span class="fb-label">얼마나 만족하셨나요?</span>
+            <div class="fb-stars" id="fb-stars" role="group" aria-label="만족도 별점">
+              <button type="button" class="fb-star" data-star="1" aria-label="별 1개">★</button>
+              <button type="button" class="fb-star" data-star="2" aria-label="별 2개">★</button>
+              <button type="button" class="fb-star" data-star="3" aria-label="별 3개">★</button>
+              <button type="button" class="fb-star" data-star="4" aria-label="별 4개">★</button>
+              <button type="button" class="fb-star" data-star="5" aria-label="별 5개">★</button>
+            </div>
+          </div>
+          <div class="fb-q">
+            <span class="fb-label">결과물을 바로 쓸 만했나요?</span>
+            <div class="fb-choices chips" data-fb="usable">
+              <button type="button" class="chip" data-val="yes">네</button>
+              <button type="button" class="chip" data-val="some">조금</button>
+              <button type="button" class="chip" data-val="no">아니요</button>
+            </div>
+          </div>
+          <div class="fb-q">
+            <span class="fb-label">입력하기 쉬웠나요?</span>
+            <div class="fb-choices chips" data-fb="easyForm">
+              <button type="button" class="chip" data-val="yes">쉬웠어요</button>
+              <button type="button" class="chip" data-val="ok">보통</button>
+              <button type="button" class="chip" data-val="no">어려웠어요</button>
+            </div>
+          </div>
+          <div class="fb-q">
+            <span class="fb-label">또 쓰실 건가요?</span>
+            <div class="fb-choices chips" data-fb="reuse">
+              <button type="button" class="chip" data-val="yes">네</button>
+              <button type="button" class="chip" data-val="maybe">아마도</button>
+              <button type="button" class="chip" data-val="no">아니요</button>
+            </div>
+          </div>
+          <label class="fb-q">
+            <span class="fb-label">한 줄 의견 (선택)</span>
+            <textarea id="fb-comment" rows="2" maxlength="500" placeholder="좋았던 점이나 아쉬운 점을 자유롭게 적어주세요"></textarea>
+          </label>
+        </div>
+        <button id="feedback-submit" class="btn-primary" type="button">의견 보내기</button>
+        <p id="feedback-status" class="hint"></p>
       </div>
     </div>
 

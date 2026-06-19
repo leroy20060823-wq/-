@@ -1075,7 +1075,7 @@ async function loadModules() {
     updateModuleDesc();
     renderCards();
   } catch (err) {
-    cardsStatus.textContent = err instanceof Error ? err.message : String(err);
+    cardsStatus.textContent = "목록을 불러오지 못했어요. 잠시 후 새로고침해 주세요.";
     submitBtn.disabled = true;
   }
 }
@@ -1218,6 +1218,7 @@ async function generate(event) {
       await showPreview(current?.id);
       setStatus(prevStatus);
       showResultActions(current?.id);
+      maybeAutoFeedback(current?.id);
     }
   } catch (err) {
     if (err.name === "AbortError") {
@@ -1227,7 +1228,7 @@ async function generate(event) {
       setStatus("멈췄어요");
       showResultActions(current?.id);
     } else {
-      showError(err instanceof Error ? err.message : String(err));
+      showError("연결이 고르지 않아요. 인터넷 상태를 확인하고 다시 시도해 주세요.");
       setStatus("문제가 생겼어요");
     }
   } finally {
@@ -1245,7 +1246,7 @@ async function loadSample() {
   setStatus("예시 불러오는 중…");
   try {
     const res = await fetch(`/api/modules/${encodeURIComponent(id)}/sample`);
-    if (!res.ok) throw new Error("예시를 불러오지 못했습니다.");
+    if (!res.ok) throw new Error("예시를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
     const data = await res.json();
     raw = data.content || "";
     outputEl.hidden = false;
@@ -1256,7 +1257,7 @@ async function loadSample() {
       await showPreview(id);
     }
   } catch (err) {
-    showError(err instanceof Error ? err.message : String(err));
+    showError("예시를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
     setStatus("");
   }
 }
@@ -1595,6 +1596,93 @@ copyBtn.addEventListener("click", async () => {
 viewPreviewBtn.addEventListener("click", () => setView("preview"));
 viewTextBtn.addEventListener("click", () => setView("text"));
 examPdfBtn.addEventListener("click", downloadExamPdf);
+
+/* ---------- D15: post-use feedback survey ---------- */
+const feedbackModal = document.getElementById("feedback-modal");
+const feedbackClose = document.getElementById("feedback-close");
+const feedbackSubmit = document.getElementById("feedback-submit");
+const feedbackStatus = document.getElementById("feedback-status");
+const feedbackOpenBtn = document.getElementById("feedback-open");
+const fbStars = document.getElementById("fb-stars");
+const fbComment = document.getElementById("fb-comment");
+let fbState = { rating: null, usable: null, easyForm: null, reuse: null };
+
+function resetFeedback() {
+  fbState = { rating: null, usable: null, easyForm: null, reuse: null };
+  fbStars.querySelectorAll(".fb-star").forEach((b) => b.classList.remove("on"));
+  feedbackModal.querySelectorAll(".fb-choices .chip").forEach((c) => c.classList.remove("active"));
+  if (fbComment) fbComment.value = "";
+  feedbackStatus.textContent = "";
+}
+function openFeedback(moduleId) {
+  resetFeedback();
+  feedbackModal.dataset.module = moduleId || getCurrentModule()?.id || "";
+  feedbackModal.hidden = false;
+}
+function closeFeedback() {
+  feedbackModal.hidden = true;
+}
+function maybeAutoFeedback(moduleId) {
+  // Once per browser session, after a real result — never nagging.
+  try {
+    if (sessionStorage.getItem("aio_fb_shown") || sessionStorage.getItem("aio_fb_done")) return;
+    sessionStorage.setItem("aio_fb_shown", "1");
+  } catch {
+    return;
+  }
+  setTimeout(() => openFeedback(moduleId), 1500);
+}
+
+fbStars.addEventListener("click", (e) => {
+  const b = e.target.closest(".fb-star");
+  if (!b) return;
+  const n = Number(b.dataset.star);
+  fbState.rating = n;
+  fbStars.querySelectorAll(".fb-star").forEach((s) => s.classList.toggle("on", Number(s.dataset.star) <= n));
+});
+feedbackModal.addEventListener("click", (e) => {
+  if (e.target === feedbackModal) {
+    closeFeedback();
+    return;
+  }
+  const chip = e.target.closest(".fb-choices .chip");
+  if (chip) {
+    const group = chip.closest(".fb-choices").dataset.fb;
+    fbState[group] = chip.dataset.val;
+    chip.parentElement.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c === chip));
+  }
+});
+feedbackClose.addEventListener("click", closeFeedback);
+feedbackOpenBtn.addEventListener("click", () => openFeedback());
+feedbackSubmit.addEventListener("click", async () => {
+  const payload = { ...fbState, comment: fbComment.value.trim(), module: feedbackModal.dataset.module || "" };
+  const hasAny = payload.rating !== null || payload.usable || payload.easyForm || payload.reuse || payload.comment;
+  if (!hasAny) {
+    feedbackStatus.textContent = "원하는 항목을 하나만 골라 주셔도 돼요.";
+    return;
+  }
+  feedbackSubmit.disabled = true;
+  feedbackStatus.textContent = "보내는 중…";
+  try {
+    const res = await fetch("/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error();
+    feedbackStatus.textContent = "고맙습니다! 큰 도움이 됐어요 😊";
+    try {
+      sessionStorage.setItem("aio_fb_done", "1");
+    } catch {
+      /* ignore */
+    }
+    setTimeout(closeFeedback, 1200);
+  } catch {
+    feedbackStatus.textContent = "지금은 보내지 못했어요. 잠시 후 다시 시도해 주세요.";
+  } finally {
+    feedbackSubmit.disabled = false;
+  }
+});
 
 /* ---------- First-visit onboarding survey ---------- */
 const ONBOARD_KEY = "aio_onboarded";
