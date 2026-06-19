@@ -1,0 +1,260 @@
+{
+  "brand": "",
+  "motto": "",
+  "subtitle": "기말 대비 모의고사",
+  "title": "고급 영어 종합 모의고사",
+  "titleLatin": "Advanced English Comprehensive Mock Exam",
+  "meta": {
+    "totalQuestions": 13,
+    "timeMinutes": 60,
+    "totalPoints": 100,
+    "scope": "Units 1–8 · 어휘 · 문법 · 독해"
+  },
+  "difficulty": "중상 · 표준",
+  "notice": "본 시험지는 실제 시험과 동일한 형식으로 구성되었습니다. 답안은 별도의 OMR 카드 또는 답안지에 표기하십시오. ★ 표시는 고난도(킬러) 문항을 의미합니다.",
+  "instructions": [
+    "시험 시작 전 문제지의 인쇄 상태와 총 페이지 수를 반드시 확인하십시오.",
+    "모든 답안은 검은색 또는 파란색 펜으로 작성하며, 수정 시에는 두 줄로 그어 정정합니다.",
+    "객관식 문항은 가장 적절한 것 하나만 고르며, 복수 응답은 오답 처리됩니다.",
+    "휴대전화 등 전자기기는 전원을 끄고 가방에 보관하십시오.",
+    "시험 종료 후 감독관의 지시에 따라 답안지를 제출하십시오."
+  ],
+  "fillIn": ["반", "이름", "전공", "학번"],
+  "scoreTable": {
+    "headers": ["파트", "파트명", "유형", "문항 범위", "문항 수", "배점", "총점"],
+    "rows": [
+      ["P1", "어휘 & 문법", "객관식", "1~4", "4", "5점", "20점"],
+      ["P2", "독해 & 추론", "객관식", "5~8", "4", "8점", "32점"],
+      ["P3", "어법 & 표현", "객관식", "9~11", "3", "6점", "18점"],
+      ["P4", "통합 응용", "객관식", "12~13", "2", "15점", "30점"]
+    ],
+    "summary": ["합계", "", "", "", "13", "", "100점"]
+  },
+  "partSummary": [
+    {"code": "P1", "name": "어휘 & 문법", "meta": "객관식 · 20점"},
+    {"code": "P2", "name": "독해 & 추론", "meta": "객관식 · 32점"},
+    {"code": "P3", "name": "어법 & 표현", "meta": "객관식 · 18점"},
+    {"code": "P4", "name": "통합 응용", "meta": "객관식 · 30점 · 킬러 포함"}
+  ],
+  "parts": [
+    {
+      "code": "P1",
+      "name": "어휘 & 문법",
+      "meta": "유형 객관식 · 20점",
+      "blocks": [
+        {
+          "type": "item",
+          "number": 1,
+          "label": "어휘 — 정의",
+          "points": 5,
+          "killer": false,
+          "prompt": "다음 영영 풀이에 해당하는 단어로 가장 적절한 것을 고르시오.",
+          "example": "a person who studies the stars, planets, and other natural objects in space",
+          "choices": ["farmer", "astronomer", "sailor", "painter"]
+        },
+        {
+          "type": "item",
+          "number": 2,
+          "label": "어휘 — 유의어",
+          "points": 5,
+          "killer": false,
+          "prompt": "밑줄 친 단어와 의미가 가장 가까운 것을 고르시오: The committee will scrutinize the proposal carefully.",
+          "choices": ["ignore", "examine", "approve", "postpone"]
+        },
+        {
+          "type": "item",
+          "number": 3,
+          "label": "문법 — 시제",
+          "points": 5,
+          "killer": false,
+          "prompt": "빈칸에 들어갈 가장 적절한 형태를 고르시오: By the time we arrived, the train ____ already.",
+          "choices": ["leaves", "has left", "had left", "will leave"]
+        },
+        {
+          "type": "item",
+          "number": 4,
+          "label": "문법 — 관계사",
+          "points": 5,
+          "killer": false,
+          "prompt": "빈칸에 들어갈 관계사로 가장 적절한 것을 고르시오: This is the book ____ author won the prize.",
+          "choices": ["which", "whose", "who", "where"]
+        }
+      ]
+    },
+    {
+      "code": "P2",
+      "name": "독해 & 추론",
+      "meta": "유형 객관식 · 32점",
+      "blocks": [
+        {
+          "type": "passage",
+          "title": "The Quiet Power of Habits",
+          "tag": "Reading · 비문학",
+          "paragraphs": [
+            "Habits are the small decisions we make and the actions we perform every day, often without conscious thought. According to researchers, nearly half of our daily behaviors are driven by habit rather than by deliberate choice. This means that the quality of our lives is shaped less by occasional dramatic decisions and more by the routines we repeat, almost invisibly, from morning to night.",
+            "What makes habits so powerful is their automaticity. Once a behavior becomes a habit, the brain stops fully participating in the decision; it conserves energy by running a familiar pattern. A useful habit, therefore, frees the mind to focus on harder problems. A harmful one, by contrast, quietly drains time and attention while we look elsewhere, convinced that we are still in control.",
+            "The good news is that habits can be reshaped. The most reliable strategy is not willpower but design: changing the cues in our environment, making good behaviors easier to start, and making bad ones slightly harder. Small adjustments, compounded over months, can transform a life far more dependably than a single burst of motivation ever could."
+          ]
+        },
+        {
+          "type": "item",
+          "number": 5,
+          "label": "독해 — 주제",
+          "points": 8,
+          "killer": false,
+          "prompt": "윗글의 주제로 가장 적절한 것은?",
+          "choices": [
+            "Dramatic decisions matter more than daily routines.",
+            "Habits quietly shape our lives and can be redesigned.",
+            "Willpower is the only way to change behavior.",
+            "The brain never relies on automatic patterns."
+          ]
+        },
+        {
+          "type": "item",
+          "number": 6,
+          "label": "독해 — 추론",
+          "points": 8,
+          "killer": false,
+          "prompt": "윗글에서 글쓴이가 권장하는 행동 변화 방법으로 가장 적절한 것은?",
+          "choices": [
+            "Relying on sudden bursts of motivation",
+            "Avoiding all routines entirely",
+            "Designing the environment and cues around us",
+            "Ignoring small adjustments as ineffective"
+          ]
+        },
+        {
+          "type": "item",
+          "number": 7,
+          "label": "독해 — 어휘 추론",
+          "points": 8,
+          "killer": false,
+          "prompt": "윗글의 밑줄 친 'automaticity'의 의미로 가장 적절한 것은?",
+          "choices": [
+            "the quality of happening without conscious effort",
+            "the tendency to make dramatic choices",
+            "the ability to resist temptation",
+            "the process of learning a new language"
+          ]
+        },
+        {
+          "type": "item",
+          "number": 8,
+          "label": "독해 — 일치",
+          "points": 8,
+          "killer": false,
+          "prompt": "윗글의 내용과 일치하지 않는 것은?",
+          "choices": [
+            "About half of daily behaviors are habitual.",
+            "Habits help the brain conserve energy.",
+            "Harmful habits are always easy to notice.",
+            "Reshaping cues can change behavior over time."
+          ]
+        }
+      ]
+    },
+    {
+      "code": "P3",
+      "name": "어법 & 표현",
+      "meta": "유형 객관식 · 18점",
+      "blocks": [
+        {
+          "type": "item",
+          "number": 9,
+          "label": "어법 — 수일치",
+          "points": 6,
+          "killer": false,
+          "prompt": "어법상 어색한 부분을 고르시오: Each of the students (have) submitted their assignment on time.",
+          "choices": ["have → has", "their → his", "submitted → submit", "on → in"]
+        },
+        {
+          "type": "item",
+          "number": 10,
+          "label": "표현 — 연어",
+          "points": 6,
+          "killer": false,
+          "prompt": "빈칸에 들어갈 가장 자연스러운 표현을 고르시오: She made a ____ effort to finish before the deadline.",
+          "choices": ["strong", "concerted", "loud", "fast"]
+        },
+        {
+          "type": "item",
+          "number": 11,
+          "label": "어법 — 가정법",
+          "points": 6,
+          "killer": false,
+          "prompt": "빈칸에 들어갈 가장 적절한 것을 고르시오: If I ____ more time, I would have studied harder.",
+          "choices": ["have", "had had", "would have", "have had"]
+        }
+      ]
+    },
+    {
+      "code": "P4",
+      "name": "통합 응용",
+      "meta": "유형 객관식 · 30점 · ★Killer 포함",
+      "blocks": [
+        {
+          "type": "item",
+          "number": 12,
+          "label": "통합 — 빈칸 추론",
+          "points": 15,
+          "killer": true,
+          "prompt": "다음 글의 흐름으로 보아 빈칸에 들어갈 말로 가장 적절한 것을 고르시오. 글의 논리적 일관성과 결속성을 종합적으로 판단해야 한다.",
+          "example": "Progress in science depends not on certainty but on the willingness to ____ even our most cherished assumptions.",
+          "choices": ["defend", "question", "memorize", "celebrate"]
+        },
+        {
+          "type": "item",
+          "number": 13,
+          "label": "통합 — 함축 의미",
+          "points": 15,
+          "killer": true,
+          "prompt": "윗글에서 밑줄 친 표현이 함축하는 바로 가장 적절한 것을 고르시오. 표면적 의미가 아닌 맥락상 의미를 추론하시오.",
+          "example": "The map is not the territory, and the model is not the world it describes.",
+          "choices": [
+            "Representations always equal reality.",
+            "Models can never be useful.",
+            "Our descriptions are simplifications, not reality itself.",
+            "Geography is more important than science."
+          ]
+        }
+      ]
+    }
+  ],
+  "answerKey": [
+    {"part": "P1  어휘 & 문법", "answers": [
+      {"n": 1, "a": "B", "killer": false},
+      {"n": 2, "a": "B", "killer": false},
+      {"n": 3, "a": "C", "killer": false},
+      {"n": 4, "a": "B", "killer": false}
+    ]},
+    {"part": "P2  독해 & 추론", "answers": [
+      {"n": 5, "a": "B", "killer": false},
+      {"n": 6, "a": "C", "killer": false},
+      {"n": 7, "a": "A", "killer": false},
+      {"n": 8, "a": "C", "killer": false}
+    ]},
+    {"part": "P3  어법 & 표현", "answers": [
+      {"n": 9, "a": "A", "killer": false},
+      {"n": 10, "a": "B", "killer": false},
+      {"n": 11, "a": "B", "killer": false}
+    ]},
+    {"part": "P4  통합 응용", "answers": [
+      {"n": 12, "a": "B", "killer": true},
+      {"n": 13, "a": "C", "killer": true}
+    ]}
+  ],
+  "explanations": [
+    {"part": "P1  어휘 & 문법", "cards": [
+      {"number": 1, "answer": "B", "explanation": "별, 행성, 우주의 자연 물체를 연구하는 사람은 astronomer(천문학자)이다. farmer(농부), sailor(선원), painter(화가)는 모두 우주 연구와 무관하다.", "key": "영영 풀이에서 핵심어 'stars, planets, space'를 포착하면 직무를 특정할 수 있다.", "wrong": "farmer/sailor/painter는 각각 농업·항해·미술과 관련된 직업으로 정의와 일치하지 않는다."},
+      {"number": 3, "answer": "C", "explanation": "주절 시점(과거, arrived)보다 더 이전에 완료된 사건이므로 과거완료 had left가 적절하다. 'By the time + 과거'는 대과거를 유도하는 대표적 신호이다.", "key": "한 과거 사건이 다른 과거보다 먼저 일어났으면 과거완료(had p.p.)를 쓴다.", "wrong": "has left는 현재완료, will leave는 미래로 시제 일치에 어긋난다."}
+    ]},
+    {"part": "P2  독해 & 추론", "cards": [
+      {"number": 5, "answer": "B", "explanation": "글 전체가 습관이 삶을 조용히 형성하며(2문단), 환경 설계를 통해 다시 만들 수 있다(3문단)는 점을 강조한다. 따라서 'Habits quietly shape our lives and can be redesigned'가 주제로 가장 적절하다.", "key": "주제는 반복되는 핵심 메시지를 포괄해야 한다 — 여기서는 '습관의 영향력 + 재설계 가능성'.", "wrong": "①은 글의 주장과 정반대이고, ③willpower만 강조는 3문단과 모순, ④는 2문단의 자동성 설명과 충돌한다."},
+      {"number": 8, "answer": "C", "explanation": "2문단에서 해로운 습관은 'while we look elsewhere'처럼 우리가 알아채지 못하는 사이에 조용히 시간을 소모한다고 했으므로, '항상 쉽게 알아챌 수 있다'는 ③은 본문과 불일치한다.", "key": "'일치하지 않는 것' 문항은 본문 표현을 그대로 뒤집은 선택지를 찾는다.", "wrong": "①②④는 각각 1·2·3문단의 진술과 직접 대응되어 모두 본문과 일치한다."}
+    ]},
+    {"part": "P4  통합 응용", "cards": [
+      {"number": 12, "answer": "B", "explanation": "과학의 진보는 확실성이 아니라 가장 소중한 가정조차 의심하려는 태도에 달려 있다는 맥락이므로 question(의심하다)이 논리적으로 일관된다. ★Killer 문항으로 역설적 대비 구조를 읽어내야 한다.", "key": "'not A but B' 구조에서 빈칸은 앞의 certainty와 대비되는 비판적 태도를 요구한다.", "wrong": "defend/celebrate는 가정을 옹호·찬양하는 방향이라 흐름과 반대이고, memorize는 진보와 무관하다."}
+    ]}
+  ]
+}

@@ -1344,6 +1344,50 @@ body[data-guidance="lite"] .guide-fields {
   font-variant-numeric: tabular-nums;
 }
 
+/* ---------------- Exam PDF bar ---------------- */
+.exam-pdf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  background: #f3ecdc;
+  border: 1px solid #e4d9bf;
+  border-radius: 10px;
+}
+
+.exam-pdf[hidden] {
+  display: none;
+}
+
+.exam-pdf-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #192744;
+}
+
+.exam-pdf input {
+  flex: 1 1 140px;
+  min-width: 120px;
+  padding: 7px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.85rem;
+  background: #fff;
+}
+
+.exam-pdf .btn-primary {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+}
+
+.exam-pdf .hint {
+  flex-basis: 100%;
+  margin: 0;
+}
+
 /* ---------------- Paged document preview (docqa.js) ---------------- */
 .docpages {
   display: flex;

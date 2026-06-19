@@ -79,6 +79,11 @@ const viewPreviewBtn = document.getElementById("view-preview");
 const viewTextBtn = document.getElementById("view-text");
 const errorEl = document.getElementById("error");
 const copyBtn = document.getElementById("copy");
+const examPdfBar = document.getElementById("exam-pdf");
+const examBrandEl = document.getElementById("exam-brand");
+const examMottoEl = document.getElementById("exam-motto");
+const examPdfBtn = document.getElementById("exam-pdf-btn");
+const examPdfStatus = document.getElementById("exam-pdf-status");
 
 // Fallback design theme for the slide renderer when the user hasn't picked one.
 const DEFAULT_DECK_THEME = {
@@ -179,6 +184,8 @@ function resetOutput() {
   previewKind = null;
   viewToggle.hidden = true;
   copyBtn.hidden = true;
+  examPdfBar.hidden = true;
+  if (examPdfStatus) examPdfStatus.textContent = "";
 }
 
 /* ---------- Preview view (slides for PPT, paged document for the rest) ---------- */
@@ -254,10 +261,55 @@ async function showDoc(moduleId) {
 // Build the right preview for a finished result.
 async function showPreview(moduleId) {
   if (!raw.trim()) return;
+  // The exam module also offers a polished A4 PDF (server-side WeasyPrint).
+  examPdfBar.hidden = moduleId !== "exam";
   if (moduleId === "ppt") {
     await showDeck(raw, selectedPptTheme || DEFAULT_DECK_THEME);
   } else {
     await showDoc(moduleId);
+  }
+}
+
+// Exam → polished A4 PDF download. Brand/motto are optional (neutral defaults).
+async function downloadExamPdf() {
+  if (!raw.trim()) return;
+  const guide = gatherGuide();
+  const opts = gatherOptions();
+  examPdfStatus.textContent = "PDF 만드는 중…";
+  examPdfBtn.disabled = true;
+  try {
+    const res = await fetch("/api/exam/pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        markdown: raw,
+        subject: guide.subject || "",
+        scope: guide.scope || "",
+        difficulty: opts.difficulty || "",
+        brand: examBrandEl.value.trim(),
+        motto: examMottoEl.value.trim(),
+      }),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      examPdfStatus.textContent = d.error || "PDF 생성에 실패했어요.";
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = ((guide.subject || "시험지").trim() || "시험지") + ".pdf";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    examPdfStatus.textContent = "내려받기 완료";
+    setTimeout(() => (examPdfStatus.textContent = ""), 2500);
+  } catch {
+    examPdfStatus.textContent = "PDF 생성에 실패했어요.";
+  } finally {
+    examPdfBtn.disabled = false;
   }
 }
 
@@ -955,6 +1007,7 @@ copyBtn.addEventListener("click", async () => {
 
 viewPreviewBtn.addEventListener("click", () => setView("preview"));
 viewTextBtn.addEventListener("click", () => setView("text"));
+examPdfBtn.addEventListener("click", downloadExamPdf);
 
 /* ---------- First-visit onboarding survey ---------- */
 const ONBOARD_KEY = "aio_onboarded";

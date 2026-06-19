@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { config } from "./config.js";
 import { router } from "./routes/generate.js";
+import { examRouter } from "./routes/exam.js";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api", router);
+app.use("/api", examRouter);
 
 // Centralized error handler (must have 4 args to be treated as an error handler).
 // Log the full error server-side, but return a generic message — never leak

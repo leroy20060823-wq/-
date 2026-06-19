@@ -165,6 +165,13 @@
               <button id="copy" type="button" class="link" hidden>복사</button>
             </div>
           </div>
+          <div id="exam-pdf" class="exam-pdf" hidden>
+            <span class="exam-pdf-label">시험지 PDF (A4)</span>
+            <input id="exam-brand" type="text" maxlength="40" placeholder="기관·브랜드 (선택)" aria-label="기관·브랜드" />
+            <input id="exam-motto" type="text" maxlength="60" placeholder="푸터 문구 (선택)" aria-label="푸터 문구" />
+            <button id="exam-pdf-btn" type="button" class="btn-primary">PDF 내려받기</button>
+            <span id="exam-pdf-status" class="hint"></span>
+          </div>
           <div id="loading" class="loading" hidden>
             <span class="spinner" aria-hidden="true"></span>
             <span>생성하는 중…</span>
