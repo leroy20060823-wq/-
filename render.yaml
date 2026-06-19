@@ -20,7 +20,22 @@ services:
       - key: DEFAULT_MODEL
         value: claude-haiku-4-5
       - key: DEFAULT_MAX_TOKENS
-        value: "8000"
+        value: "4000"
       - key: ALLOWED_MODELS
         value: claude-haiku-4-5,claude-sonnet-4-6
+      # Abuse / cost guards (all optional — these mirror the in-code defaults).
+      - key: MAX_OUTPUT_TOKENS
+        value: "16000"
+      - key: RATE_LIMIT_PER_MIN
+        value: "5"
+      - key: RATE_LIMIT_PER_HOUR
+        value: "20"
+      - key: RATE_LIMIT_PER_DAY_PER_IP
+        value: "30"
+      - key: RATE_LIMIT_PER_DAY_GLOBAL
+        value: "500"
+      - key: MAX_FIELD_CHARS
+        value: "3000"
+      - key: MAX_INPUT_CHARS
+        value: "8000"
     # NOTE: do NOT set PORT — Render injects it and the app reads process.env.PORT.

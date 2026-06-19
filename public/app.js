@@ -181,6 +181,7 @@ function renderOptionControl(opt) {
     opt.default !== undefined ? `value="${escapeHtml(String(opt.default))}"` : "",
     opt.min !== undefined ? `min="${opt.min}"` : "",
     opt.max !== undefined ? `max="${opt.max}"` : "",
+    type === "text" ? `maxlength="1000"` : "",
     opt.placeholder ? `placeholder="${escapeHtml(opt.placeholder)}"` : "",
   ]
     .filter(Boolean)
@@ -217,10 +218,11 @@ function renderGuideControl(f) {
       .join("");
     control = `<select data-guide-key="${key}">${opts}</select>`;
   } else if (f.type === "textarea") {
-    control = `<textarea data-guide-key="${key}" rows="3" placeholder="${ph}"></textarea>`;
+    control = `<textarea data-guide-key="${key}" rows="3" maxlength="3000" placeholder="${ph}"></textarea>`;
   } else {
     const type = f.type === "number" ? "number" : "text";
-    control = `<input type="${type}" data-guide-key="${key}" placeholder="${ph}" />`;
+    const cap = type === "text" ? ' maxlength="3000"' : "";
+    control = `<input type="${type}" data-guide-key="${key}"${cap} placeholder="${ph}" />`;
   }
   const help = f.help ? `<span class="guide-help">${escapeHtml(f.help)}</span>` : "";
   const hint = f.hint ? `<span class="hint">${escapeHtml(f.hint)}</span>` : "";
@@ -438,11 +440,12 @@ function renderWizardStep() {
         .join("") +
       `</div>`;
   } else if (s.type === "textarea") {
-    control = `<textarea class="wizard-input" id="wizard-input" placeholder="${escapeHtml(s.placeholder || "")}">${escapeHtml(String(cur))}</textarea>`;
+    control = `<textarea class="wizard-input" id="wizard-input" maxlength="3000" placeholder="${escapeHtml(s.placeholder || "")}">${escapeHtml(String(cur))}</textarea>`;
   } else {
     const t = s.type === "number" ? "number" : "text";
     const minmax = `${s.min !== undefined ? `min="${s.min}"` : ""} ${s.max !== undefined ? `max="${s.max}"` : ""}`;
-    control = `<input class="wizard-input" id="wizard-input" type="${t}" placeholder="${escapeHtml(s.placeholder || "")}" value="${escapeHtml(String(cur))}" ${minmax}>`;
+    const cap = t === "text" ? ' maxlength="3000"' : "";
+    control = `<input class="wizard-input" id="wizard-input" type="${t}"${cap} placeholder="${escapeHtml(s.placeholder || "")}" value="${escapeHtml(String(cur))}" ${minmax}>`;
   }
 
   wizardEl.innerHTML =

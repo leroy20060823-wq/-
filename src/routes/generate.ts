@@ -1,4 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
+import rateLimit from "express-rate-limit";
 import { appendFile, mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -6,29 +7,58 @@ import { config } from "../config.js";
 import { listModules } from "../modules.js";
 import { generate, generateStream } from "../services/generator.js";
 import { parseGenerateRequest, type GenerateBody } from "../validation.js";
-import { createRateLimiter } from "../rateLimit.js";
+import { createGlobalDailyLimiter } from "../rateLimit.js";
 import { getSample } from "../samples.js";
 import { recommendThemes, recommendFromDesigns, listThemes } from "../design.js";
 import { guidanceFromAnswers, parseSurvey } from "../onboarding.js";
 
 export const router = Router();
 
-// Per-IP abuse protection for the generation endpoints.
-const perMinute = createRateLimiter({
+// Friendly Korean messages (design tone, not raw "429 Too Many Requests").
+const MSG_TOO_FAST = "잠시 후 다시 시도해 주세요.";
+const MSG_DAILY = "오늘 사용량을 다 쓰셨어요. 내일 다시 와 주세요.";
+
+// Per-IP abuse protection for the generation endpoints. Uses express-rate-limit
+// with the default key generator (req.ip) — server.ts sets `trust proxy` so this
+// is the real client IP behind Render's proxy, not the shared proxy address.
+const ipLimiterDefaults = {
+  standardHeaders: "draft-7" as const,
+  legacyHeaders: false,
+};
+const perMinute = rateLimit({
+  ...ipLimiterDefaults,
   windowMs: 60_000,
-  max: config.rateLimitPerMin,
-  message: "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.",
+  limit: config.rateLimitPerMin,
+  message: { error: MSG_TOO_FAST },
 });
-const perDay = createRateLimiter({
+const perHour = rateLimit({
+  ...ipLimiterDefaults,
+  windowMs: 60 * 60_000,
+  limit: config.rateLimitPerHour,
+  message: { error: MSG_TOO_FAST },
+});
+const perDayPerIp = rateLimit({
+  ...ipLimiterDefaults,
   windowMs: 24 * 60 * 60_000,
-  max: config.rateLimitPerDay,
-  message: "오늘 사용량 한도를 초과했습니다. 내일 다시 이용해 주세요.",
+  limit: config.rateLimitPerDayPerIp,
+  message: { error: MSG_DAILY },
 });
-const surveyLimiter = createRateLimiter({
+// Global daily kill switch — pauses generation for everyone once the whole
+// service crosses the daily budget. Runs after the per-IP limits.
+const globalDaily = createGlobalDailyLimiter({
+  max: config.rateLimitPerDayGlobal,
+  message: MSG_DAILY,
+});
+// Light limit on the anonymous survey POST (not a paid endpoint, but still a POST).
+const surveyLimiter = rateLimit({
+  ...ipLimiterDefaults,
   windowMs: 60_000,
-  max: 30,
-  message: "잠시 후 다시 시도해 주세요.",
+  limit: 30,
+  message: { error: MSG_TOO_FAST },
 });
+
+// Middleware chain applied to both generation endpoints.
+const generationGuards = [perMinute, perHour, perDayPerIp, globalDaily];
 
 // Anonymous onboarding survey storage: only the 5 answers + level + timestamp.
 // No IP / name / email / login is recorded. (Render's disk is ephemeral — swap
@@ -128,14 +158,14 @@ router.post("/ppt/recommend", (req, res) => {
 
 router.post(
   "/generate",
-  perMinute,
-  perDay,
+  ...generationGuards,
   asyncHandler(async (req, res) => {
     if (!ensureApiKey(res)) return;
     const parsed = parseGenerateRequest(
       (req.body ?? {}) as GenerateBody,
       config.allowedModels,
       config.maxInputChars,
+      config.maxFieldChars,
     );
     if (!parsed.ok) {
       res.status(400).json({ error: parsed.error });
@@ -148,14 +178,14 @@ router.post(
 
 router.post(
   "/generate/stream",
-  perMinute,
-  perDay,
+  ...generationGuards,
   asyncHandler(async (req, res) => {
     if (!ensureApiKey(res)) return;
     const parsed = parseGenerateRequest(
       (req.body ?? {}) as GenerateBody,
       config.allowedModels,
       config.maxInputChars,
+      config.maxFieldChars,
     );
     if (!parsed.ok) {
       res.status(400).json({ error: parsed.error });
@@ -172,8 +202,13 @@ router.post(
         res.write(`data: ${JSON.stringify(event)}\n\n`);
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Generation failed.";
-      res.write(`data: ${JSON.stringify({ type: "error", error: message })}\n\n`);
+      // Log full detail server-side; never leak stack traces / internals to the client.
+      console.error("[generate/stream] generation error:", err);
+      const event = {
+        type: "error",
+        error: "결과를 만드는 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.",
+      };
+      res.write(`data: ${JSON.stringify(event)}\n\n`);
     } finally {
       res.end();
     }

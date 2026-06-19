@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseGenerateRequest, normalizeOptionValues } from "./validation.js";
+import { parseGenerateRequest, normalizeOptionValues, sanitizeText } from "./validation.js";
 import { getModule } from "./modules.js";
 
 const ALLOWED = ["claude-haiku-4-5", "claude-sonnet-4-6"] as const;
@@ -68,6 +68,32 @@ test("rejects input longer than maxInputChars", () => {
   );
   assert.equal(result.ok, false);
   if (!result.ok) assert.match(result.error, /너무 깁니다/);
+});
+
+test("sanitizeText drops control chars but keeps tab/newline/CR", () => {
+  const NUL = String.fromCharCode(0);
+  const BEL = String.fromCharCode(7);
+  const DEL = String.fromCharCode(127);
+  const dirty = `a${NUL}b${BEL}c${DEL}d\te\nf\rg`;
+  assert.equal(sanitizeText(dirty), "abcd\te\nf\rg");
+});
+
+test("parseGenerateRequest strips control chars from input", () => {
+  const NUL = String.fromCharCode(0);
+  const result = parseGenerateRequest({ module: "exam", input: `안녕${NUL}하세요` }, ALLOWED);
+  assert.equal(result.ok, true);
+  if (result.ok) assert.equal(result.options.input, "안녕하세요");
+});
+
+test("rejects a per-field value longer than maxFieldChars", () => {
+  const result = parseGenerateRequest(
+    { module: "exam", input: "hi", options: { note: "x".repeat(40) } },
+    ALLOWED,
+    8000,
+    20,
+  );
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.match(result.error, /한 항목이 너무 깁니다/);
 });
 
 test("normalizes valid option values (coerces numbers, keeps valid selects)", () => {

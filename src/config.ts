@@ -29,10 +29,20 @@ export const config = {
   anthropicApiKey: apiKey,
   hasApiKey: Boolean(apiKey),
   defaultModel: process.env.DEFAULT_MODEL ?? "claude-haiku-4-5",
-  defaultMaxTokens: intFromEnv("DEFAULT_MAX_TOKENS", 8000),
+  // Default output ceiling per request. Modules may ask for more, but never above
+  // maxOutputTokens — a hard cost cap so a runaway module can't burn the budget.
+  defaultMaxTokens: intFromEnv("DEFAULT_MAX_TOKENS", 4000),
+  maxOutputTokens: intFromEnv("MAX_OUTPUT_TOKENS", 16000),
   allowedModels: listFromEnv("ALLOWED_MODELS", ["claude-haiku-4-5", "claude-sonnet-4-6"]),
-  // Abuse protection (per client IP). Tune via env on deploy.
-  rateLimitPerMin: intFromEnv("RATE_LIMIT_PER_MIN", 10),
-  rateLimitPerDay: intFromEnv("RATE_LIMIT_PER_DAY", 100),
+  // Abuse protection (per client IP — needs trust proxy so req.ip is the real
+  // client). Frequency limits stop bursts; daily caps bound total spend.
+  rateLimitPerMin: intFromEnv("RATE_LIMIT_PER_MIN", 5),
+  rateLimitPerHour: intFromEnv("RATE_LIMIT_PER_HOUR", 20),
+  rateLimitPerDayPerIp: intFromEnv("RATE_LIMIT_PER_DAY_PER_IP", 30),
+  // Global kill switch: once the whole service hits this many generations in a
+  // day, generation pauses for everyone until the next UTC day.
+  rateLimitPerDayGlobal: intFromEnv("RATE_LIMIT_PER_DAY_GLOBAL", 500),
+  // Input limits: per-field cap + overall request cap (in characters).
+  maxFieldChars: intFromEnv("MAX_FIELD_CHARS", 3000),
   maxInputChars: intFromEnv("MAX_INPUT_CHARS", 8000),
 };

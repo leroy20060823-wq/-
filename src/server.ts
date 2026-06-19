@@ -8,8 +8,12 @@ import { router } from "./routes/generate.js";
 const app = express();
 
 // Behind a hosting proxy (Render/Railway), trust the first proxy hop so req.ip
-// reflects the real client for rate limiting.
+// reflects the real client (via X-Forwarded-For) for rate limiting. Without this,
+// every request would look like it came from the proxy's single IP.
 app.set("trust proxy", 1);
+
+// Don't advertise the framework.
+app.disable("x-powered-by");
 
 // Resolves to <project root>/public whether running from dist/ (build) or src/ (tsx).
 const publicDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
@@ -27,10 +31,12 @@ app.get("/health", (_req, res) => {
 app.use("/api", router);
 
 // Centralized error handler (must have 4 args to be treated as an error handler).
+// Log the full error server-side, but return a generic message — never leak
+// stack traces, internal details, or whether an API key exists.
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
-  console.error(err);
-  const message = err instanceof Error ? err.message : "Internal server error.";
-  res.status(500).json({ error: message });
+  console.error("[error]", err);
+  if (res.headersSent) return;
+  res.status(500).json({ error: "잠시 문제가 생겼어요. 잠시 후 다시 시도해 주세요." });
 });
 
 app.listen(config.port, () => {

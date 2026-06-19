@@ -27,6 +27,13 @@ function resolveModel(options: GenerateOptions): string {
   return options.model ?? options.module.model ?? config.defaultModel;
 }
 
+// Output ceiling: honor the module's preference but never above the hard cap
+// (config.maxOutputTokens) — a cost guard so no module can request a huge output.
+function resolveMaxTokens(module: GenerationModule): number {
+  const want = module.maxTokens ?? config.defaultMaxTokens;
+  return Math.min(want, config.maxOutputTokens);
+}
+
 // System prompt + optional few-shot style/quality reference.
 function buildSystemPrompt(module: GenerationModule): string {
   if (!module.referenceExample) return module.systemPrompt;
@@ -61,7 +68,7 @@ function buildUserContent(options: GenerateOptions): string {
 export async function generate(options: GenerateOptions): Promise<GenerateResult> {
   const response = await anthropic.messages.create({
     model: resolveModel(options),
-    max_tokens: options.module.maxTokens ?? config.defaultMaxTokens,
+    max_tokens: resolveMaxTokens(options.module),
     system: buildSystemPrompt(options.module),
     messages: [{ role: "user", content: buildUserContent(options) }],
   });
@@ -94,7 +101,7 @@ export async function* generateStream(
 ): AsyncGenerator<StreamEvent> {
   const stream = anthropic.messages.stream({
     model: resolveModel(options),
-    max_tokens: options.module.maxTokens ?? config.defaultMaxTokens,
+    max_tokens: resolveMaxTokens(options.module),
     system: buildSystemPrompt(options.module),
     messages: [{ role: "user", content: buildUserContent(options) }],
   });

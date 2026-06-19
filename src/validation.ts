@@ -12,10 +12,35 @@ export type ParseResult =
   | { ok: true; options: GenerateOptions }
   | { ok: false; error: string };
 
+/** Per-text-option character cap (short structured fields like "추가 요청사항"). */
+const OPTION_TEXT_CAP = 1000;
+
+// Control characters that are legitimate whitespace and must be kept:
+// tab (0x09), line feed (0x0A), carriage return (0x0D).
+const ALLOWED_CONTROL = new Set([0x09, 0x0a, 0x0d]);
+
+/**
+ * Strip dangerous / invisible control characters (C0 controls + DEL) while
+ * keeping ordinary whitespace. Defends against control-char injection and stray
+ * null bytes without mangling legitimate input. Implemented as a codepoint scan
+ * to avoid embedding raw control bytes in source.
+ */
+export function sanitizeText(value: string): string {
+  let out = "";
+  for (const ch of value) {
+    const code = ch.codePointAt(0) ?? 0;
+    const isControl = code < 0x20 || code === 0x7f;
+    if (isControl && !ALLOWED_CONTROL.has(code)) continue;
+    out += ch;
+  }
+  return out;
+}
+
 /**
  * Normalize user-supplied option values against the module's declared schema.
  * Never throws — unknown keys are dropped, numbers are coerced and clamped,
- * select values must be one of the declared choices, text is trimmed and capped.
+ * select values must be one of the declared choices, text is sanitized,
+ * trimmed and capped.
  */
 export function normalizeOptionValues(
   module: GenerationModule,
@@ -42,8 +67,8 @@ export function normalizeOptionValues(
       const s = String(value);
       if (opt.choices?.some((c) => c.value === s)) out[opt.key] = s;
     } else {
-      const s = String(value).trim();
-      if (s) out[opt.key] = s.slice(0, 200);
+      const s = sanitizeText(String(value)).trim();
+      if (s) out[opt.key] = s.slice(0, OPTION_TEXT_CAP);
     }
   }
   return out;
@@ -51,22 +76,24 @@ export function normalizeOptionValues(
 
 /**
  * Validate an incoming generation request body. Pure (no I/O, no API key) so it
- * can be unit-tested directly. `allowedModels` is injected by the caller.
+ * can be unit-tested directly. `allowedModels`, `maxInputChars` and
+ * `maxFieldChars` are injected by the caller (from config).
  */
 export function parseGenerateRequest(
   body: GenerateBody,
   allowedModels: readonly string[],
   maxInputChars = 8000,
+  maxFieldChars = 3000,
 ): ParseResult {
   const moduleId = typeof body.module === "string" ? body.module.trim() : "";
-  const input = typeof body.input === "string" ? body.input.trim() : "";
+  const input = typeof body.input === "string" ? sanitizeText(body.input).trim() : "";
   const model =
     typeof body.model === "string" && body.model.trim() !== ""
       ? body.model.trim()
       : undefined;
 
   if (!moduleId) return { ok: false, error: "`module` is required." };
-  if (!input) return { ok: false, error: "`input` is required." };
+  if (!input) return { ok: false, error: "내용을 입력해 주세요." };
   if (input.length > maxInputChars) {
     return { ok: false, error: `입력이 너무 깁니다 (최대 ${maxInputChars}자).` };
   }
@@ -79,6 +106,16 @@ export function parseGenerateRequest(
       ok: false,
       error: `Model not allowed: ${model}. Allowed models: ${allowedModels.join(", ")}`,
     };
+  }
+
+  // Per-field guard: reject any single guide/option text field that is too long
+  // (the frontend also caps these, but never trust the client).
+  if (typeof body.options === "object" && body.options !== null) {
+    for (const value of Object.values(body.options as Record<string, unknown>)) {
+      if (typeof value === "string" && value.length > maxFieldChars) {
+        return { ok: false, error: `한 항목이 너무 깁니다 (최대 ${maxFieldChars}자).` };
+      }
+    }
   }
 
   const optionValues = normalizeOptionValues(module, body.options);

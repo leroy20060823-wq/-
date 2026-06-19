@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { Request, Response } from "express";
-import { createRateLimiter } from "./rateLimit.js";
+import { createGlobalDailyLimiter } from "./rateLimit.js";
 
 interface FakeRes {
   statusCode: number;
@@ -31,8 +31,8 @@ function fakeRes(): FakeRes {
   };
 }
 
-test("rate limiter blocks after max within the window", () => {
-  const limiter = createRateLimiter({ windowMs: 60_000, max: 2, message: "too many" });
+test("global daily limiter blocks once the shared cap is reached", () => {
+  const limiter = createGlobalDailyLimiter({ max: 2, message: "done for today" });
   const req = { ip: "1.2.3.4" } as Request;
   let nextCalls = 0;
   const next = () => {
@@ -46,17 +46,20 @@ test("rate limiter blocks after max within the window", () => {
 
   assert.equal(nextCalls, 2);
   assert.equal(blocked.statusCode, 429);
-  assert.deepEqual(blocked.body, { error: "too many" });
+  assert.deepEqual(blocked.body, { error: "done for today" });
   assert.ok(blocked.headers["Retry-After"]);
 });
 
-test("rate limiter counts each IP independently", () => {
-  const limiter = createRateLimiter({ windowMs: 60_000, max: 1, message: "x" });
+test("global daily limiter is shared across all clients (not per-IP)", () => {
+  const limiter = createGlobalDailyLimiter({ max: 1, message: "x" });
   let nextCalls = 0;
   const next = () => {
     nextCalls += 1;
   };
   limiter({ ip: "a" } as Request, fakeRes() as unknown as Response, next);
-  limiter({ ip: "b" } as Request, fakeRes() as unknown as Response, next);
-  assert.equal(nextCalls, 2);
+  const blocked = fakeRes();
+  limiter({ ip: "b" } as Request, blocked as unknown as Response, next);
+
+  assert.equal(nextCalls, 1);
+  assert.equal(blocked.statusCode, 429);
 });
