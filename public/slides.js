@@ -20,6 +20,10 @@
  * in Node. All DOM access lives inside the render functions (browser only).
  */
 
+// Shared QA primitives (color/contrast + font loading) live in docqa.js so the
+// slide renderer and the document renderer don't each reimplement them.
+import { resolveColors, ensureFonts as ensureFontsShared, famName } from "./docqa.js";
+
 /* ---------- Geometry & type scale (single source of truth) ---------- */
 export const SLIDE = {
   W: 1280,
@@ -165,94 +169,14 @@ export function capDeck(deck) {
   return out;
 }
 
-/* ---------- Color / contrast helpers ---------- */
-function rgb(hex) {
-  const h = String(hex || "").replace("#", "");
-  const n = h.length === 3 ? h.split("").map((c) => c + c).join("") : h.slice(0, 6).padEnd(6, "0");
-  return [parseInt(n.slice(0, 2), 16) || 0, parseInt(n.slice(2, 4), 16) || 0, parseInt(n.slice(4, 6), 16) || 0];
-}
-function toHex(r, g, b) {
-  const t = (x) => Math.max(0, Math.min(255, Math.round(x))).toString(16).padStart(2, "0");
-  return "#" + t(r) + t(g) + t(b);
-}
-function lin(c) {
-  const x = c / 255;
-  return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
-}
-function relLum(hex) {
-  const [r, g, b] = rgb(hex);
-  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
-}
-function contrast(a, b) {
-  const la = relLum(a);
-  const lb = relLum(b);
-  const hi = Math.max(la, lb);
-  const lo = Math.min(la, lb);
-  return (hi + 0.05) / (lo + 0.05);
-}
-function blend(a, b, t) {
-  const [r1, g1, b1] = rgb(a);
-  const [r2, g2, b2] = rgb(b);
-  return toHex(r1 + (r2 - r1) * t, g1 + (g2 - g1) * t, b1 + (b2 - b1) * t);
-}
-function bestText(bg) {
-  return contrast(bg, "#14110c") >= contrast(bg, "#ffffff") ? "#14110c" : "#ffffff";
-}
-
-// Guarantee readable text on any palette (requirement 3).
-function resolveColors(pal) {
-  const p = pal || {};
-  const bg = p.bg || "#ffffff";
-  let ink = p.ink || bestText(bg);
-  let sub = p.sub || ink;
-  let accent = p.accent || "#2f6db5";
-
-  if (contrast(bg, ink) < 4.5) ink = bestText(bg);
-  // Sub text should be a touch muted but still legible (>= 3:1).
-  if (contrast(bg, sub) < 3) {
-    sub = blend(ink, bg, 0.32);
-    if (contrast(bg, sub) < 3) sub = ink;
-  }
-  // Accent is used for the bar + bullet dots; keep it visible on the bg.
-  if (contrast(bg, accent) < 1.9) accent = blend(ink, bg, 0.1);
-  return { bg, ink, sub, accent };
-}
-
-/* ---------- Fonts (load before measuring — requirement 4) ---------- */
-const injectedFonts = new Set();
-function fam(name) {
-  return (name || "Noto Sans KR").replace(/'/g, "");
-}
-function injectFontLink(name) {
-  const f = fam(name);
-  if (injectedFonts.has(f)) return;
-  injectedFonts.add(f);
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = `https://fonts.googleapis.com/css2?family=${f.replace(/ /g, "+")}:wght@400;500;700;800;900&display=swap`;
-  document.head.appendChild(link);
-}
-async function ensureFonts(theme) {
-  const families = [theme?.heading?.webFont, theme?.body?.webFont, "Noto Sans KR", "Noto Serif KR"]
-    .filter(Boolean)
-    .filter((v, i, a) => a.indexOf(v) === i);
-  families.forEach(injectFontLink);
-  if (!document.fonts) return;
-  try {
-    await Promise.all(
-      families.flatMap((f) => [
-        document.fonts.load(`800 64px '${fam(f)}'`),
-        document.fonts.load(`400 24px '${fam(f)}'`),
-      ]),
-    );
-  } catch {
-    /* best-effort */
-  }
-  try {
-    await document.fonts.ready;
-  } catch {
-    /* ignore */
-  }
+/* ---------- Fonts: slide-specific wrapper over the shared loader ---------- */
+function ensureFonts(theme) {
+  return ensureFontsShared([
+    theme?.heading?.webFont,
+    theme?.body?.webFont,
+    "Noto Sans KR",
+    "Noto Serif KR",
+  ]);
 }
 
 /* ---------- DOM building ---------- */
@@ -270,8 +194,8 @@ function buildSlide(data, theme) {
   slide.style.setProperty("--s-ink", colors.ink);
   slide.style.setProperty("--s-sub", colors.sub);
   slide.style.setProperty("--s-accent", colors.accent);
-  slide.style.setProperty("--title-font", `'${fam(theme && theme.heading && theme.heading.webFont)}'`);
-  slide.style.setProperty("--body-font", `'${fam(theme && theme.body && theme.body.webFont)}'`);
+  slide.style.setProperty("--title-font", `'${famName(theme && theme.heading && theme.heading.webFont)}'`);
+  slide.style.setProperty("--body-font", `'${famName(theme && theme.body && theme.body.webFont)}'`);
 
   const isTitle = data.kind === "title";
   slide.style.setProperty("--title-size", (isTitle ? TYPE.titleSlide.max : TYPE.title.max) + "px");

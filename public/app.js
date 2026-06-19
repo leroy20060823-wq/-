@@ -1,6 +1,7 @@
 import { marked } from "./vendor/marked.esm.js";
 import DOMPurify from "./vendor/purify.es.mjs";
 import { parseDeck, renderDeck } from "./slides.js";
+import { renderPagedDocument } from "./docqa.js";
 
 marked.use({ gfm: true, breaks: false });
 
@@ -72,8 +73,9 @@ const statusEl = document.getElementById("status");
 const loadingEl = document.getElementById("loading");
 const outputEl = document.getElementById("output");
 const deckEl = document.getElementById("deck");
+const docPagesEl = document.getElementById("docpages");
 const viewToggle = document.getElementById("view-toggle");
-const viewSlidesBtn = document.getElementById("view-slides");
+const viewPreviewBtn = document.getElementById("view-preview");
 const viewTextBtn = document.getElementById("view-text");
 const errorEl = document.getElementById("error");
 const copyBtn = document.getElementById("copy");
@@ -172,36 +174,90 @@ function resetOutput() {
   outputEl.hidden = true;
   deckEl.hidden = true;
   deckEl.innerHTML = "";
+  docPagesEl.hidden = true;
+  docPagesEl.innerHTML = "";
+  previewKind = null;
   viewToggle.hidden = true;
   copyBtn.hidden = true;
 }
 
-/* ---------- Slide deck view (PPT) ---------- */
-// Show either the rendered slides or the raw text. The deck is the default for
-// PPT; "텍스트" reveals the underlying markdown (and stays available for copy).
-function setDeckView(mode) {
-  const slides = mode === "slides";
-  deckEl.hidden = !slides;
-  outputEl.hidden = slides;
-  viewSlidesBtn.classList.toggle("active", slides);
-  viewTextBtn.classList.toggle("active", !slides);
+/* ---------- Preview view (slides for PPT, paged document for the rest) ---------- */
+// The active rich preview ("deck" or "doc"); the raw markdown stays available via
+// the "텍스트" toggle and copy button.
+let previewKind = null;
+
+function activePreviewEl() {
+  return previewKind === "deck" ? deckEl : previewKind === "doc" ? docPagesEl : null;
 }
 
+function setView(mode) {
+  const preview = mode === "preview" && previewKind !== null;
+  const el = activePreviewEl();
+  deckEl.hidden = !(preview && previewKind === "deck");
+  docPagesEl.hidden = !(preview && previewKind === "doc");
+  outputEl.hidden = preview;
+  if (el) void el; // (no-op; keeps intent explicit)
+  viewPreviewBtn.classList.toggle("active", preview);
+  viewTextBtn.classList.toggle("active", !preview);
+}
+
+// PPT → rendered slides.
 async function showDeck(markdown, theme) {
   const deck = parseDeck(markdown);
   if (!deck) {
-    // Couldn't parse a slide structure — keep the plain markdown view.
     viewToggle.hidden = true;
     return;
   }
+  viewPreviewBtn.textContent = "슬라이드";
   viewToggle.hidden = false;
   try {
     await renderDeck(deckEl, deck, theme || DEFAULT_DECK_THEME);
-    setDeckView("slides");
+    previewKind = "deck";
+    setView("preview");
   } catch (err) {
     console.error("[deck] render failed:", err);
     viewToggle.hidden = true;
-    setDeckView("text");
+    previewKind = null;
+    setView("text");
+  }
+}
+
+// Every other module → paginated A4 document with the shared QA loop.
+async function showDoc(moduleId) {
+  // Reuse the already-parsed, sanitized markdown DOM as the layout source.
+  if (!outputEl.firstChild) {
+    viewToggle.hidden = true;
+    return;
+  }
+  const titleEl = outputEl.querySelector("h1, h2, h3");
+  const docTitle =
+    (titleEl && titleEl.textContent.trim()) ||
+    (modules.find((m) => m.id === moduleId)?.name ?? "문서");
+  viewPreviewBtn.textContent = "문서";
+  viewToggle.hidden = false;
+  try {
+    await renderPagedDocument(docPagesEl, outputEl, {
+      page: "a4",
+      fonts: ["Noto Sans KR", "Noto Serif KR"],
+      footer: { left: docTitle },
+    });
+    previewKind = "doc";
+    setView("preview");
+  } catch (err) {
+    console.error("[docqa] render failed:", err);
+    viewToggle.hidden = true;
+    previewKind = null;
+    setView("text");
+  }
+}
+
+// Build the right preview for a finished result.
+async function showPreview(moduleId) {
+  if (!raw.trim()) return;
+  if (moduleId === "ppt") {
+    await showDeck(raw, selectedPptTheme || DEFAULT_DECK_THEME);
+  } else {
+    await showDoc(moduleId);
   }
 }
 
@@ -788,11 +844,12 @@ async function generate(event) {
       copyBtn.hidden = raw.length === 0;
     }
 
-    // PPT: turn the finished markdown outline into rendered, fitted slides.
-    if (!hadError && current?.id === "ppt" && raw.trim()) {
+    // Build the rich preview (slides for PPT, paginated A4 document otherwise),
+    // running the shared layout + QA loop.
+    if (!hadError && raw.trim()) {
       const prevStatus = statusEl.textContent;
-      setStatus("슬라이드 구성 중…");
-      await showDeck(raw, selectedPptTheme || DEFAULT_DECK_THEME);
+      setStatus(current?.id === "ppt" ? "슬라이드 구성 중…" : "문서 정리 중…");
+      await showPreview(current?.id);
       setStatus(prevStatus);
     }
   } catch (err) {
@@ -827,8 +884,8 @@ async function loadSample() {
     renderNow();
     copyBtn.hidden = raw.length === 0;
     setStatus("예시 미리보기 (실제 생성 결과가 아닙니다)");
-    if (id === "ppt" && raw.trim()) {
-      await showDeck(raw, selectedPptTheme || DEFAULT_DECK_THEME);
+    if (raw.trim()) {
+      await showPreview(id);
     }
   } catch (err) {
     showError(err instanceof Error ? err.message : String(err));
@@ -896,8 +953,8 @@ copyBtn.addEventListener("click", async () => {
   }
 });
 
-viewSlidesBtn.addEventListener("click", () => setDeckView("slides"));
-viewTextBtn.addEventListener("click", () => setDeckView("text"));
+viewPreviewBtn.addEventListener("click", () => setView("preview"));
+viewTextBtn.addEventListener("click", () => setView("text"));
 
 /* ---------- First-visit onboarding survey ---------- */
 const ONBOARD_KEY = "aio_onboarded";
