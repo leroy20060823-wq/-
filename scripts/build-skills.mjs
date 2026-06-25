@@ -54,6 +54,9 @@ const KEYWORDS = {
 // Text artifacts → Word + PDF; slides → PowerPoint + PDF. PDF is universally
 // viewable (great for interview samples); 한글(.hwpx) stays available on request.
 const FORMATS = {
+  // 시험지·단어장은 항상 PDF를 먼저(다운로드·인쇄·면접 샘플용), 편집용 워드도 함께.
+  exam: "pdf,docx,md",
+  vocabulary: "pdf,docx,md",
   ppt: "pptx,pdf,md",
   excel: "docx,pdf,md",
 };

@@ -91,8 +91,8 @@ A) farmer  B) astronomer  C) sailor  D) painter
    1. 방금 만든 마크다운 전체를 `outputs/<알맞은-한글-이름>.md`로 저장하세요(Write 도구, 폴더 없으면 생성).
    2. 아래 명령으로 문서 파일을 만드세요(저장소 루트에서 실행):
       ```bash
-      node scripts/export.mjs --in "outputs/<이름>.md" --format docx,pdf --out "outputs/<이름>" --title "<이름>"
+      node scripts/export.mjs --in "outputs/<이름>.md" --format pdf,docx --out "outputs/<이름>" --title "<이름>"
       ```
-   3. 생성된 파일(워드(.docx) · PDF(.pdf) · 마크다운(.md))을 **SendUserFile 도구로 사용자에게 바로 전달**하세요. 경로만 알려주지 말고 파일 자체를 보내야 사용자가 바로 열어볼 수 있습니다.
+   3. 생성된 파일(PDF(.pdf) · 워드(.docx) · 마크다운(.md))을 **SendUserFile 도구로 사용자에게 바로 전달**하세요. 경로만 알려주지 말고 파일 자체를 보내야 사용자가 바로 열어볼 수 있습니다.
 3. 형식 조정: 한글(.hwpx)이 필요하면 `--format`에 `hwpx`를 더하고, 사용자가 한 형식만 원하면 그 형식만 만드세요.
    - `Cannot find module` 류 오류가 나면 먼저 `npm install`을 한 번 실행한 뒤 다시 시도하세요(PDF는 Chromium·번들 한글 폰트를 사용합니다).

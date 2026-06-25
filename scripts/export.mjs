@@ -401,10 +401,15 @@ async function launchChromium() {
   }
 }
 
-async function buildPdf(md, { out }) {
+// Standalone HTML (fonts embedded) — the exact markup the PDF is printed from.
+async function renderHtml(md) {
   const css = await fontCSS();
   const isDeck = /^#{1,3}\s*(?:Slide|슬라이드)\s*\d+/im.test(md);
-  const html = isDeck ? deckHtml(parseDeck(md), css) : docHtml(marked.parse(md), css);
+  return { html: isDeck ? deckHtml(parseDeck(md), css) : docHtml(marked.parse(md), css), isDeck };
+}
+
+async function buildPdf(md, { out }) {
+  const { html, isDeck } = await renderHtml(md);
   const browser = await launchChromium();
   try {
     const page = await browser.newPage();
@@ -435,7 +440,7 @@ function outPathFor(base, fmt) {
   // --out as a base name and append the extension.
   const ext = "." + fmt;
   if (base.toLowerCase().endsWith(ext)) return base;
-  const stripped = base.replace(/\.(docx|hwpx|pptx|pdf|md)$/i, "");
+  const stripped = base.replace(/\.(docx|hwpx|pptx|pdf|html|md)$/i, "");
   return stripped + ext;
 }
 
@@ -456,25 +461,36 @@ async function main() {
 
   await mkdir(path.dirname(path.resolve(a.out)) || ".", { recursive: true });
   const written = [];
+  const failed = [];
+  // Each format is independent: a failure in one (e.g. a transient browser hiccup
+  // for pdf) must not stop the others from being written.
   for (const fmt of formats) {
     const out = outPathFor(a.out, fmt);
-    if (fmt === "md") {
-      await writeFile(out, md, "utf8");
-    } else if (fmt === "docx") {
-      await writeFile(out, await buildDocx(tokens, { title, paper: a.paper }));
-    } else if (fmt === "hwpx") {
-      await writeFile(out, await buildHwpx(tokens, { paper: a.paper }));
-    } else if (fmt === "pptx") {
-      await buildPptx(md, { title, out });
-    } else if (fmt === "pdf") {
-      await buildPdf(md, { out });
-    } else {
-      console.error(`지원하지 않는 형식: ${fmt} (docx, hwpx, pptx, pdf, md 중 선택)`);
-      continue;
+    try {
+      if (fmt === "md") {
+        await writeFile(out, md, "utf8");
+      } else if (fmt === "docx") {
+        await writeFile(out, await buildDocx(tokens, { title, paper: a.paper }));
+      } else if (fmt === "hwpx") {
+        await writeFile(out, await buildHwpx(tokens, { paper: a.paper }));
+      } else if (fmt === "pptx") {
+        await buildPptx(md, { title, out });
+      } else if (fmt === "pdf") {
+        await buildPdf(md, { out });
+      } else if (fmt === "html") {
+        await writeFile(out, (await renderHtml(md)).html, "utf8");
+      } else {
+        console.error(`지원하지 않는 형식: ${fmt} (docx, hwpx, pptx, pdf, html, md 중 선택)`);
+        continue;
+      }
+      written.push(out);
+      console.log(`✓ ${out}`);
+    } catch (e) {
+      failed.push(fmt);
+      console.error(`✗ ${fmt} 실패: ${e?.message || e}`);
     }
-    written.push(out);
-    console.log(`✓ ${out}`);
   }
+  if (failed.length) process.exitCode = 1; // signal partial failure, keep successes
   if (!written.length) process.exit(1);
 }
 
