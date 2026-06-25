@@ -1,0 +1,3 @@
+# Python deps for the exam module's A4 PDF renderer (scripts/exam_pdf.py).
+# Installed into a venv by the Dockerfile. Pinned to the version verified locally.
+weasyprint==69.0

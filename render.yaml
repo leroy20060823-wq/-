@@ -3,13 +3,13 @@
 services:
   - type: web
     name: claude-generation-platform
-    runtime: node
+    # Docker runtime so the image carries Python + WeasyPrint for the 시험지
+    # module's A4 PDF renderer (scripts/exam_pdf.py). Build + start come from
+    # the Dockerfile; NODE_ENV/PYTHON_BIN are set there too.
+    runtime: docker
+    dockerfilePath: ./Dockerfile
     plan: free
     branch: main
-    # Render sets NODE_ENV=production, which makes npm skip devDependencies;
-    # --include=dev keeps TypeScript/tsx available for the build step.
-    buildCommand: npm ci --include=dev && npm run build
-    startCommand: npm start
     healthCheckPath: /health
     autoDeploy: true
     envVars:
