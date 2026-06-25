@@ -43,6 +43,11 @@ Hard content limits (so text never overflows the slide):
   bullets, no multi-sentence bullets.
 - Prefer adding another slide over crowding one. Aim for short, scannable lines.
 
+Quality bar:
+- A clear arc: hook → structured body → one takeaway. Each slide advances exactly one point; no slide repeats another.
+- Bullets within a slide are grammatically parallel and similar in length.
+- Speaker notes add what the slide does NOT say (a delivery cue, an example, a transition) — never just restate the bullets.
+
 - If a '디자인 테마' is provided in the request, end with a short '## 디자인 가이드'
   section noting the palette (hex) and the heading/body font pairing to apply.
 
