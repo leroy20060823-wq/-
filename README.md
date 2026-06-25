@@ -18,6 +18,30 @@ The Anthropic SDK runs **only on the server**. The API key lives in `.env` (or t
 host's env) and is never exposed to the browser. The key is **optional**: without it
 the UI and demo samples still work; live generation returns 401.
 
+## 클로드 코드 스킬로 쓰기 (API 결제 없이)
+
+배포 사이트는 호출마다 Anthropic API 비용이 들지만, 같은 모듈을 **클로드 코드
+슬래시 명령**으로도 쓸 수 있습니다. 이 경우 외부 API 대신 **현재 클로드 세션이
+직접** 자료를 만들어 주므로 추가 결제가 없습니다.
+
+각 생성 모듈(`src/modules.ts`)은 `.claude/skills/<한글이름>/SKILL.md` 스킬로
+**자동 생성**됩니다. 슬래시 명령 이름은 폴더 이름에서 나옵니다(예: `/시험지`,
+`/학습지`, `/단어장`, `/PPT`, `/수업지도안`, `/이력서` …). 모듈의 시스템
+프롬프트가 그대로 들어가 있어 품질 기준이 동일합니다.
+
+```bash
+npm run skills:build        # src/modules.ts → .claude/skills/*/SKILL.md 재생성
+```
+
+```
+/시험지 중2 영어 비교급 단원평가 상 25문항
+/단어장 vapor, summit, harbor, occur, coastal
+```
+
+자세한 목록과 사용법은 [`.claude/skills/README.md`](.claude/skills/README.md)
+참고. 모듈을 추가/수정하면 위 명령으로 스킬을 다시 만드세요(스킬 파일은 손으로
+고치지 말 것 — 다음 빌드에서 덮어써집니다).
+
 ## Stack
 
 - Node.js (>= 18.18), TypeScript, Express
@@ -44,7 +68,8 @@ The page imports `marked` (Markdown → HTML) and `DOMPurify` (sanitization) fro
 `package.json`, refresh the copies with `npm run vendor`.
 
 Other scripts: `npm test` (unit tests, no API key needed), `npm run typecheck`,
-`npm run build` (emits to `dist/`), `npm start` (runs the build).
+`npm run build` (emits to `dist/`), `npm start` (runs the build),
+`npm run skills:build` (regenerates the Claude Code skills from `src/modules.ts`).
 
 ## Environment variables
 
@@ -180,8 +205,10 @@ public/                # demo frontend (static, served at /)
   styles.css
   app.js               # streams + renders Markdown via vendored marked + DOMPurify
   vendor/              # marked + DOMPurify browser builds (copied via npm run vendor)
+.claude/skills/        # generated slash-command skills (one per module) + README
 scripts/
   vendor.mjs           # copies frontend libs from node_modules into public/vendor
+  build-skills.mjs     # src/modules.ts → .claude/skills/*/SKILL.md (npm run skills:build)
 src/
   config.ts            # env loading (key optional) + limits
   anthropic.ts         # shared Anthropic client
