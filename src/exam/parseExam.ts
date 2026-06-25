@@ -83,6 +83,7 @@ export interface ExamMetaInput {
   brand?: string;
   motto?: string;
   subtitle?: string;
+  titleLatin?: string;
   notice?: string;
 }
 
@@ -518,7 +519,7 @@ export function buildExamModel(markdown: string, input: ExamMetaInput = {}): Exa
       motto: input.motto?.trim() || "",
       subtitle: input.subtitle?.trim() || "",
       title,
-      titleLatin: "",
+      titleLatin: input.titleLatin?.trim() || "",
       meta,
       difficulty: difficulty.replace(/^[·\-]\s*/, ""),
       notice: input.notice?.trim() || "",
@@ -537,7 +538,7 @@ export function buildExamModel(markdown: string, input: ExamMetaInput = {}): Exa
       motto: input.motto?.trim() || "",
       subtitle: input.subtitle?.trim() || "",
       title: input.title?.trim() || "모의고사",
-      titleLatin: "",
+      titleLatin: input.titleLatin?.trim() || "",
       meta: { totalQuestions: null, timeMinutes: input.timeMinutes ?? null, totalPoints: 100, scope: input.scope ?? "" },
       difficulty: input.difficulty ?? "",
       notice: input.notice ?? "",

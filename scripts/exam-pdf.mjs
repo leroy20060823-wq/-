@@ -29,6 +29,7 @@ function parseArgs(argv) {
     else if (k === "--scope") a.scope = argv[++i];
     else if (k === "--time") a.time = Number(argv[++i]);
     else if (k === "--subtitle") a.subtitle = argv[++i];
+    else if (k === "--title-latin") a.titleLatin = argv[++i];
     else if (k === "--brand") a.brand = argv[++i];
     else if (k === "--motto") a.motto = argv[++i];
     else if (k === "--notice") a.notice = argv[++i];
@@ -109,6 +110,7 @@ async function main() {
     timeMinutes: a.time,
     difficulty: a.difficulty,
     subtitle: a.subtitle,
+    titleLatin: a.titleLatin,
     brand: a.brand,
     motto: a.motto,
     notice: a.notice,
