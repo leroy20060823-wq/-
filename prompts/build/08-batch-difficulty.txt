@@ -1,0 +1,5 @@
+The reference set shipped 난이도 상/중/하 of the SAME exam. Reproduce as a one-command batch.
+1. Add a batch mode (--levels 하,중,상 on exam-pdf.mjs or a wrapper) that, from one spec, generates three variants sharing the blueprint/문항 범위 but applying the 하/중/상 rubric (vocabulary level, inference ratio, distractor subtlety, killer count).
+2. Ensure each variant keeps the 배점표 at 100, has an internally consistent 정답표, and answer keys legitimately differ where items differ.
+3. Render all three, rasterize the cover + a body page of each, and confirm difficulty actually escalates (not just a label) by running the calibration review on each.
+Done when: one command yields three coherent, genuinely-different-difficulty PDFs. Commit with the three samples and the calibration summary.

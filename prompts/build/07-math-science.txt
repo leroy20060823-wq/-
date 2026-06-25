@@ -1,0 +1,6 @@
+Today's exams assume prose subjects. Add 수학/과학 support.
+1. Add a math-aware item type: item content can carry inline/block math, rendered in WeasyPrint via KaTeX-to-MathML or pre-rendered SVG (pick the most reliable path in WeasyPrint and document it). Verify Hangul + math render together without tofu.
+2. Add minimal figure support (coordinate plane / bar chart / labeled diagram) from a compact spec, rendered as SVG into the item.
+3. Teach the exam prompt the math/science conventions (수식 표기, 단위, 그림 참조) and add a 수학·과학 reference example.
+4. Generate a 고1 수학 (함수·그래프) and a 중3 과학 (전기·단위) sample; rasterize and verify every formula/figure renders correctly in color and grayscale.
+Done when: math + figures render correctly inside the exam layout, the two samples look like real 내신, and nothing overflows. Commit with screenshots.

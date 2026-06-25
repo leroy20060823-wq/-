@@ -1,0 +1,5 @@
+To improve prompts safely you need to MEASURE quality over time, not eyeball one sample.
+1. Assemble a small eval set: 10–15 specs across modules/subjects/difficulties (store the specs, not copyrighted outputs).
+2. Build scripts/eval.mjs that generates each, runs the relevant review prompts, and scores: defect count by severity, self-containment rate, answer-uniqueness rate, explanation-depth pass rate, render success. Emit one JSON scorecard.
+3. Snapshot a baseline; any prompt change can then be measured against it. Document how to read the scorecard.
+Done when: `npm run eval` produces a scorecard, a baseline is committed, and a deliberate prompt regression visibly lowers a metric. Commit the harness + baseline.

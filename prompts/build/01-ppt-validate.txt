@@ -1,0 +1,7 @@
+Validate the PPT (발표자료) module end-to-end and fix what's weak; it has never been visually verified.
+1. Generate FIVE decks via the ppt system prompt: a middle-school science lesson (10 slides), 신입사원 onboarding (12), an investor pitch (15), a 학부모 설명회 (8), and a deliberately content-heavy topic to force overflow ("머신러닝의 모든 것", 20).
+2. Render each to PPTX and slide-style PDF (scripts/export.mjs). Rasterize EVERY slide to PNG and inspect for: title overflow (> ~22 KR chars), > 5 bullets, bullets that wrap past one line or pack two ideas, empty/crowded slides, missing title/summary slide, missing or duplicate speaker notes.
+3. Run the PPT review prompt on each deck via an independent Agent.
+4. Fix root causes: tighten ppt.systemPrompt where the model overflows; fix scripts/export.mjs (buildPptx, deckHtml) where the RENDERER clips text (auto-shrink, wrapping, max-bullet guard). Re-generate and re-inspect until all five are clean.
+5. Wire the design-systems/ themes: let a deck request a theme name; map its palette + heading/body font pairing into both the PPTX builder and the slide-PDF CSS. Render one deck in 3 themes.
+Done when: all five decks render with zero overflow in PPTX and PDF (before/after screenshots), the review agent returns no 중대 issues, and a themed deck renders correctly. Commit with screenshots referenced.

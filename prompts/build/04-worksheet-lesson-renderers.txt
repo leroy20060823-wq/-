@@ -1,0 +1,6 @@
+학습지·퀴즈·수업지도안 render through the generic export.mjs and look ordinary next to exam/vocab. Build dedicated renderers.
+1. scripts/worksheet-pdf.mjs (학습지 + 퀴즈): clean A4 — neutral header band, numbered items with generous working space, a clearly separated 정답 및 해설 section, optional difficulty/points tags. Reuse the font-embed + grayscale-safe approach from vocab-pdf.mjs.
+2. scripts/lesson-pdf.mjs (수업지도안): summary block (과목·대상·차시·시간·학습목표), 준비물 line, the 도입/전개/정리 table (단계|교사 활동|학생 활동|시간|자료·유의점), then 평가 + 지도상 유의점. Stage times must visibly sum to the total.
+3. Parse the modules' Markdown into these layouts with tolerant parsers (like parseExam.ts); wire each skill (build-skills.mjs) to call its renderer and deliver the PDF; neutral branding by default.
+4. Render a sample for each (중2 영어 학습지, 5-question 과학 퀴즈, 중학 영어 비교급 수업지도안), rasterize, inspect in color AND grayscale, iterate until clean.
+Done when: three new renderers exist, skills use them, and samples print cleanly in color and B&W (screenshots). Commit with samples noted.

@@ -1,0 +1,5 @@
+Exams/vocab have one fixed look; the PPT side already has design-systems/. Offer tasteful neutral theme choice for documents.
+1. Define a minimal theme schema { navy, accent, panel, pageBg, ink, gray, headingFont, bodyFont }. Author 8 neutral premium themes (classic navy/brass = current default; charcoal/teal; forest/cream; burgundy/stone; slate/amber; ink/sage; …), each verified to grayscale well.
+2. Thread --theme <name> into exam_pdf.py (CSS variables already exist at :root) and vocab-pdf.mjs; keep the current look as the default theme.
+3. Render the same exam + the same 단어장 in 3 themes each; rasterize and confirm all read cleanly in color and B&W.
+Done when: documents can switch theme via one flag, defaults unchanged, every theme passes the grayscale check. Commit with comparison screenshots.

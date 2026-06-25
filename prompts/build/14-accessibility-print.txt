@@ -1,0 +1,4 @@
+학원 printers vary; add print/accessibility options across the renderers.
+1. Add: large-print (scale fonts up a notch with the QA text-fit loop still active), 2-up / booklet imposition for exams, and an explicit high-contrast B&W mode (drop tints/panels to pure black-on-white for the cheapest laser printers).
+2. Verify by rendering the 고2 exam in every mode, rasterizing, and inspecting that nothing overflows and contrast is strong.
+Done when: the three options work on exams (and large-print on vocab), each verified by screenshots. Commit with samples.

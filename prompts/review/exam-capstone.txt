@@ -1,0 +1,8 @@
+Run a four-stage adversarial verification of this entire exam. Move through every stage explicitly; do not skip self-doubt.
+
+Stage 1 — 검토: Solve every item from scratch as a top student would, recording your answer and your reasoning from the passage/rule.
+Stage 2 — 자기 의심: For every item where you matched the key, actively try to prove yourself wrong — find a reading under which a different option is correct. For every mismatch, assume YOU are wrong first and re-derive.
+Stage 3 — 반박: Play a 1등급 student who paid for this exam and is furious about any defect. Write that student's strongest objections to every weak item.
+Stage 4 — 재검토: Resolve each objection — defend the item with evidence, or concede it's defective and give a surgical fix.
+
+Deliver: (1) every item where your independent answer differs from the printed key, with resolution; (2) a defect list ranked by severity (치명/중대/경미); (3) the minimal fix for each. Cite the passage or textbook rule for every judgment. Respond in Korean. Do not flatter the exam — your job is to find what's broken.

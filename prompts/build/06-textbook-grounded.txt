@@ -1,0 +1,5 @@
+The academy will provide a textbook + their own prompts. Exams must be built strictly from that material, graded against the textbook's OWN rules.
+1. Add a "교재 기반(grounded)" path to the 시험지 skill + generation: when textbook pages/text are attached, every passage/vocab/answer must trace to a printed textbook sentence; the prompt gets a strict "build ONLY from the material below" directive (mirror the existing source grounded directive).
+2. Implement an attach contract (how textbook text/images reach the prompt) and a post-gen check that FLAGS any item whose answer can't be traced to the provided material.
+3. Wire review prompts #1 (self-containment) and #3 (textbook-rule conformance) from scripts/exam-review-protocol.md to receive the textbook and judge against its rules. Add a worked example with a small FAKE textbook so the flow is reproducible without copyrighted material.
+Done when: a grounded exam is demonstrably built from supplied material (no invented facts), out-of-material items are flagged, and review #1/#3 cite textbook sentences. Commit with the worked example.

@@ -1,0 +1,7 @@
+The 엑셀 module emits formulas the model only BELIEVES are correct — the biggest correctness risk. Add real verification.
+1. Add scripts/verify-excel.mjs: extract every formula (code spans starting with `=`) from a generated answer, evaluate each against a small synthetic dataset using a JS spreadsheet engine (hyperformula or equivalent), and print: formula | cell | computed value | matches goal? (O/X) | note. Flag functions the engine can't evaluate instead of passing silently.
+2. Generate 8 representative tasks (월별 합계+차트, SUMIFS 조건집계, VLOOKUP→XLOOKUP, 중복 제거, 텍스트 분리, 날짜 차이, 피벗 안내, IFERROR) and run the verifier; record failures.
+3. For steps the engine can't run (pivot/chart click-steps), run the adversarial Excel review via an Agent — it must hand-compute on a tiny sample, not eyeball.
+4. Strengthen excel.systemPrompt wherever the verifier exposes a recurring failure; regenerate skills.
+5. Add unit tests with KNOWN-ANSWER formulas (e.g. a SUMIFS over a fixed 5-row table returns the known total).
+Done when: the verifier runs all 8 tasks, every shipped formula is proven O or explicitly flagged for human review, and the known-answer tests pass. Report the failure modes found and fixed.

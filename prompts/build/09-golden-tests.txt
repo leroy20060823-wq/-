@@ -1,0 +1,6 @@
+Renderer/parse changes (e.g. 4지선다→5지선다) can silently break output; there are no render-level tests.
+1. Add `npm run test:render`: for scripts/exam_fixture.json and a new vocab fixture, render to PDF and extract a STABLE structural summary — page count, embedded fonts (pdffonts), section headers present, choice glyphs (①②③④⑤), and normalized text layer (pdftotext). Commit golden files; assert against them.
+2. Make it resilient: if WeasyPrint/Chromium/poppler are unavailable, skip with a clear message rather than fail.
+3. Add a tiny visual-diff option (rasterize page 1, compare to a golden PNG within tolerance) for the cover.
+4. Document intentional regeneration (UPDATE_GOLDENS=1).
+Done when: a deliberate breaking change to letter_for or the parser makes test:render fail loudly, and an intentional update regenerates goldens cleanly. Commit the suite + goldens.

@@ -1,0 +1,6 @@
+Only 시험지 has mandatory adversarial review; 단어장·학습지·퀴즈·PPT·엑셀 have none.
+1. Create scripts/review/<module>.md (or one scripts/review-protocols.md with sections) reusing the review prompts: a correctness/self-containment pass, a uniqueness/accuracy pass, and a language/format pass per module.
+2. Add a runner scripts/review.mjs --module <id> --in <artifact.md> that spawns the passes as INDEPENDENT reviewers (Agent; in production these map to separate messages.create calls), collects a defect list ranked 치명/중대/경미, and writes a JSON report.
+3. Insert a mandatory "최종 검토" step into the worksheet/quiz/vocabulary/ppt/excel skills (build-skills.mjs), mirroring the exam skill: review → fix 치명/중대 → render → report. Regenerate skills.
+4. Update CLAUDE.md so the "제작 후 항상 검토" rule covers these modules. Scale depth to the artifact (don't run a 9-pass on a 5-word vocab list).
+Done when: each module has a runnable review, the skills enforce it before delivery, and you've shown it catching ≥1 real defect per module. Commit with the sample reports.

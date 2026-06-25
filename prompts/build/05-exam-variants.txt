@@ -1,0 +1,5 @@
+One exam should yield several artifacts without re-calling the LLM, and the 해설 header should match the reference ('정답 B ★Killer · 고난도 (4점)').
+1. Add --variant student|teacher|key to scripts/exam-pdf.mjs (and the exam model): student = questions only (drop 정답표 + 해설); teacher = full (current); key = standalone answer sheet / OMR grid (number cells + ①②③④⑤ circles + 서술형 채점란). Generate all three from one model, no extra LLM call.
+2. Extend ExplanationCard (parseExam.ts) to carry points and a difficulty label; parse from the 해설 header or join from the matching item. Render next to '정답 X ★Killer' in exam_pdf.py ex-head (e.g. '정답 ② ★Killer · 고난도 (6점)'). Backward compatible (absent → omit).
+3. Re-render the fixture + the 고2 sample; verify the three variants and the richer header by rasterizing cover, a body page, and the 해설 page.
+Done when: three variants render from one generation, the 해설 header shows answer+killer+difficulty+points, tests/typecheck pass. Commit with screenshots of each variant.

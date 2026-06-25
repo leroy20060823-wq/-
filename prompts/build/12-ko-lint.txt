@@ -1,0 +1,5 @@
+Review prompt #8 (한국어 품질) isn't enforced; mechanical issues recur (mixed 지문/본문, repeated 어미, thin explanations).
+1. Add scripts/ko-lint.mjs: regex/heuristics for terminology consistency (flag mixing 지문 vs 본문 within one paper), repeated sentence endings in 해설 (e.g. every line ending '적절.'), and 발문 missing a clear instruction verb.
+2. Hand non-mechanical judgments (explanation completeness, naturalness) to the #8 review prompt via an Agent; merge both into one report.
+3. Run on the 고2 sample and the 영읽쓰B samples; fix recurring issues at the prompt level in src/modules.ts and re-test.
+Done when: the linter flags real issues on existing samples, the prompt fixes reduce them on regeneration, and the pass is wired into the exam review step. Commit with before/after counts.

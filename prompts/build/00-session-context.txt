@@ -1,0 +1,6 @@
+You are working in this repo: a study-material generator (시험지·단어장·학습지·퀴즈·PPT·엑셀 등).
+- Modules & system prompts live in src/modules.ts. Skills are auto-generated from it via `npm run skills:build` into .claude/skills/ — never hand-edit skill files.
+- Renderers: scripts/exam-pdf.mjs (→ src/exam/parseExam.ts → scripts/exam_pdf.py, WeasyPrint); scripts/vocab-pdf.mjs (Chromium); scripts/export.mjs (generic docx/pdf/hwpx/pptx/html).
+- Exam review protocol: scripts/exam-review-protocol.md; project rule in CLAUDE.md.
+- PDFs are A4, fonts embedded from fonts/, and MUST print well in color AND grayscale. Covers are neutral by default (no school/brand/motto unless the user supplies one). Output files go to outputs/ (git-ignored).
+- Working discipline for every task: build → render → rasterize to PNG with headless Chromium (/opt/pw-browsers/chromium-*/chrome-linux/chrome, --no-sandbox, #page=N&zoom=page-fit) → INSPECT the image → adversarially review (spawn an independent Agent) → fix → re-verify → commit. Keep `npm run typecheck`, `npm test`, `npm run build` green. Commit per task.

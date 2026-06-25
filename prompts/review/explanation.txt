@@ -1,0 +1,6 @@
+You are auditing the 정밀 해설지 of a generated exam for DEPTH and helpfulness (answer correctness is a separate pass). For EACH item's explanation:
+1. Real teacher prose — 2+ full sentences in a warm '~요/~죠/~예요' voice with varied endings, NOT keyword fragments.
+2. QUOTES the exact passage phrase / rule that licenses the answer.
+3. '오답 체크' NAMES each major distractor with a specific reason it is wrong (never "나머지는 오답").
+4. 서술형: a full 모범 답안 plus a short 풀이.
+Flag every explanation that is thin, lumps distractors, or fails to cite the text, and rewrite it to standard. Output: 문항 | 부족한 점 | 보강안. Respond in Korean.

@@ -1,0 +1,6 @@
+The homepage uses @anthropic-ai/sdk. Build the validated flow as a clean server service using the prompts in docs/anthropic-sdk-prompts.md.
+1. Implement a server module that per module id runs: compose user turn → stream generation (correct model tier from src/routing.ts) → parse/render → (for exams) run the capstone review as a SEPARATE call → if 치명/중대 found, run a fixer call that returns corrected Markdown → re-render → return the PDF + a short QA summary.
+2. Add prompt caching for the static system prompts (Anthropic prompt caching) and record token usage per stage; expose a per-artifact cost estimate.
+3. Robust error handling + timeouts (WeasyPrint/Chromium failure degrades gracefully: deliver Markdown + a clear message); keep the API key server-side.
+4. Add an integration test that mocks the SDK and asserts the full pipeline shape.
+Done when: one server entry point turns a form payload into a reviewed PDF + QA summary, with caching and graceful failure, and the integration test passes. Commit with the measured cost numbers.

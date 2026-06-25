@@ -1,0 +1,5 @@
+Only exam/vocabulary/resume/cover-letter carry a referenceExample; others drift in quality.
+1. Author a SYNTHETIC, de-identified format-and-quality skeleton for each missing module (worksheet, quiz, study-notes, lesson-plan, ppt, excel) — generic placeholder content only, never copied — injected like the existing ones (under "참고 예시 (스타일·품질 기준)").
+2. Regenerate skills. For each module, generate one artifact WITH and WITHOUT the example and compare quality (structure, tone, completeness) — keep the example only where it measurably helps.
+3. Verify no example leaks real content and that prompts still demand brand-new content each run.
+Done when: each module has a vetted reference example (or a documented reason it's omitted) and the before/after shows improvement. Commit with comparisons summarized.
