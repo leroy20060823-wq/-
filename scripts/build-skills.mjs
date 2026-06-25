@@ -50,6 +50,23 @@ const KEYWORDS = {
   excel: "엑셀, 구글시트, 스프레드시트, 수식, 함수, 차트, excel, sheets",
 };
 
+// Export formats offered per module (besides the always-saved .md source).
+// Text artifacts → Word + 한글; slides → PowerPoint.
+const FORMATS = {
+  ppt: "pptx,md",
+  excel: "docx,md",
+};
+const DEFAULT_FORMATS = "docx,hwpx,md";
+const FORMAT_LABEL = {
+  docx: "워드(.docx)",
+  hwpx: "한글(.hwpx)",
+  pptx: "파워포인트(.pptx)",
+  md: "마크다운(.md)",
+};
+
+// The natural-language router skill (/자료).
+const ROUTER_SLUG = "자료";
+
 // A friendly inline example shown as autocomplete after the slash command.
 const ARG_HINT = {
   exam: "예) 중2 영어 비교급 단원평가 상 25문항 / 고1 수학 함수 50분",
@@ -127,6 +144,11 @@ function buildBody(m) {
     ? `\n\n## 3) 참고 예시 — 스타일·품질 기준 (내용은 절대 복사하지 말 것)\n아래는 **형식과 품질의 기준**일 뿐입니다. 짜임새·난이도·해설 어투만 맞추고, 내용·문장·예문은 매번 새로 만드세요.\n\n\`\`\`markdown\n${m.referenceExample}\n\`\`\``
     : "";
 
+  const outNo = m.referenceExample ? 4 : 3;
+  const fmts = FORMATS[m.id] || DEFAULT_FORMATS;
+  const humanList = fmts.split(",").map((f) => FORMAT_LABEL[f]).join(" · ");
+  const primary = fmts.split(",").filter((f) => f !== "md").join(",") || "md";
+
   return `# ${m.name}
 
 ${m.description}
@@ -144,10 +166,52 @@ ${m.systemPrompt}
 
 **[요청 조건] 적용:** 1)에서 받은 값(난이도·문항 수·길이·도구 등)을 위 지침이 말하는 '[요청 조건]'으로 간주해 정확히 반영하세요. 사용자가 쓴 언어(보통 한국어)로 출력합니다.${ref}
 
-## ${m.referenceExample ? "4" : "3"}) 출력
-- 결과 전체를 깔끔한 마크다운으로 **이 대화에 바로** 출력하세요.
-- 다 만든 뒤 한 줄로 제안하세요: \`파일로 저장(.md)하거나, 특정 부분을 고칠까요?\`
-- 사용자가 저장을 원하면 \`outputs/\` 폴더에 \`.md\` 파일로 저장하세요(폴더가 없으면 만들기).
+## ${outNo}) 출력과 파일 내보내기
+1. 결과 전체를 깔끔한 마크다운으로 **이 대화에 바로** 출력하세요.
+2. 출력한 뒤 한 줄로 제안하세요: \`파일로 저장할까요? (${humanList}) 아니면 고칠 부분이 있나요?\`
+3. **사용자가 파일/저장/인쇄/한글/워드/PPT를 원하거나, 처음부터 형식을 지정했다면** 다음을 수행하세요.
+   1. 방금 만든 마크다운 전체를 \`outputs/<알맞은-한글-이름>.md\`로 저장하세요(Write 도구, 폴더 없으면 생성).
+   2. 아래 명령으로 문서 파일을 만드세요(저장소 루트에서 실행):
+      \`\`\`bash
+      node scripts/export.mjs --in "outputs/<이름>.md" --format ${primary} --out "outputs/<이름>" --title "<이름>"
+      \`\`\`
+   3. 생성된 파일 경로(${humanList})를 알려 주세요. 사용자는 내려받아 인쇄·배포할 수 있어요.
+   - \`Cannot find module\` 류 오류가 나면 먼저 \`npm install\`을 한 번 실행한 뒤 다시 시도하세요.
+`;
+}
+
+function buildRouter(modules) {
+  const rows = modules
+    .map((m) => `| \`/${SLUG[m.id]}\` | ${m.purpose} | ${(KEYWORDS[m.id] || "").split(",").map((s) => s.trim()).filter(Boolean).slice(0, 4).join(", ")} |`)
+    .join("\n");
+  const desc =
+    "무엇을 만들지 자연어로 적으면 알맞은 생성기로 안내·실행합니다(시험지·학습지·퀴즈·단어장·PPT·학습노트·수업지도안·이력서·자기소개서·소설·엑셀). 어떤 명령을 쓸지 모를 때 시작점. 키워드: 자료, 만들기, 생성, 도움, 추천, 라우터, router";
+  const front = [
+    "---",
+    `name: ${ROUTER_SLUG}`,
+    `description: ${yamlString(desc)}`,
+    `argument-hint: ${yamlString("예) 중2 영어 비교급 시험지 만들어줘 / 신입사원 발표 자료 / 자소서 도와줘")}`,
+    "---",
+    "",
+  ].join("\n");
+  return `${front}# 자료 — 무엇이든 만들기 (라우터)
+
+무엇을 만들지 자연어로 적으면, 가장 알맞은 생성기를 골라 **그 자리에서** 만들어 줘요. 어떤 \`/명령\`을 써야 할지 모를 때 여기서 시작하세요.
+
+## 동작 방식
+1. \`$ARGUMENTS\`(사용자가 원하는 결과물)를 읽고, 아래 표에서 **가장 잘 맞는 모듈 하나**를 고르세요. (용도·키워드 참고)
+2. 고른 모듈의 스킬 파일 \`.claude/skills/<명령이름>/SKILL.md\`을 **Read 도구로 읽고**, 그 "생성 지침"을 그대로 따라 결과를 만드세요. 사용자의 입력을 그 스킬의 입력으로 사용합니다.
+3. 어떤 모듈인지 애매하면(후보가 둘 이상이면), 후보 2개만 제시하고 **한 번만** 물어본 뒤 진행하세요.
+4. 다 만든 뒤에는 그 스킬과 동일하게 **파일 내보내기**(워드·한글·PPT)를 제안하세요.
+5. 사용자가 이미 \`/시험지\`처럼 정확한 명령을 알고 있으면 그 명령을 직접 쓰는 게 더 빠르다고 한 줄로 알려 주세요.
+
+## 라우팅 표
+
+| 명령 | 용도 | 대표 키워드 |
+|---|---|---|
+${rows}
+
+> 표에 없는 요청(예: 번역, 단순 질문)은 굳이 한 모듈로 욱여넣지 말고, 일반 대화로 도와주세요.
 `;
 }
 
@@ -183,13 +247,29 @@ function buildReadme(modules) {
 /단어장 vapor, summit, harbor, occur, coastal
 \`\`\`
 
+어떤 명령을 쓸지 모르겠으면 **\`/자료\`** 에 그냥 자연어로 적으세요(예: \`/자료
+중2 영어 비교급 시험지 만들어줘\`). 알맞은 생성기로 안내·실행해 줍니다.
+
 빠진 정보가 있으면 클로드가 꼭 필요한 것만 짧게 물어보고, 나머지는 합리적
 기본값으로 진행합니다. "알아서"라고 하면 전부 기본값으로 만들어요.
+
+## 파일로 내보내기 (인쇄·배포용)
+생성 후 원하면 **워드(.docx)·한글(.hwpx)·파워포인트(.pptx)·마크다운(.md)** 파일로
+저장합니다. "한글로 저장해줘", "워드로 줘", "PPT 파일로" 처럼 말하면 돼요. 내부적으로는
+\`scripts/export.mjs\`(오프라인 Node 변환기)가 \`outputs/\` 폴더에 파일을 만듭니다.
+
+\`\`\`bash
+# 스킬이 자동으로 호출하지만, 직접 쓸 수도 있어요:
+node scripts/export.mjs --in "outputs/시험지.md" --format docx,hwpx --out "outputs/시험지" --title "시험지"
+\`\`\`
+
+> 처음 한 번은 \`npm install\` 이 필요합니다(변환에 \`docx\`·\`hwpx-js\`·\`pptxgenjs\` 사용).
 
 ## 명령 목록
 
 | 명령 | 이름 | 용도 |
 |---|---|---|
+| \`/자료\` | 라우터 | 자연어로 적으면 알맞은 생성기로 안내·실행 |
 ${rows}
 
 ## 다시 생성하기
@@ -210,7 +290,7 @@ await mkdir(SKILLS_DIR, { recursive: true });
 
 // Remove previously generated skill folders (those whose slug we own), so
 // renamed/removed modules don't leave stale commands behind.
-const owned = new Set(Object.values(SLUG));
+const owned = new Set([...Object.values(SLUG), ROUTER_SLUG]);
 if (existsSync(SKILLS_DIR)) {
   for (const entry of await readdir(SKILLS_DIR, { withFileTypes: true })) {
     if (entry.isDirectory() && owned.has(entry.name)) {
@@ -232,6 +312,13 @@ for (const m of modules) {
   console.log(`skill  /${slug}  ←  ${m.id}`);
   count += 1;
 }
+
+// Natural-language router skill (/자료).
+const routerDir = path.join(SKILLS_DIR, ROUTER_SLUG);
+await mkdir(routerDir, { recursive: true });
+await writeFile(path.join(routerDir, "SKILL.md"), buildRouter(modules), "utf8");
+console.log(`skill  /${ROUTER_SLUG}  ←  (router)`);
+count += 1;
 
 await writeFile(path.join(SKILLS_DIR, "README.md"), buildReadme(modules), "utf8");
 console.log(`\n${count} skills written to .claude/skills/`);
