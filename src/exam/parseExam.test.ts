@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildExamModel } from "./parseExam.js";
+import { buildExamModel, type ExamBlock } from "./parseExam.js";
 
 const FULL = [
   "# 영어 읽기와 쓰기 · 기말 대비 모의고사",
@@ -14,15 +14,20 @@ const FULL = [
   "|---|---|---|---|---|---|---|",
   "| P1 | 어휘 & 문법 | 객관식 | 1~2 | 2 | 3점 | 6점 |",
   "| P2 | 독해 | 객관식 | 3~3 | 1 | 4점 | 4점 |",
-  "| 합계 | | | | 3 | | 100점 |",
+  "| P3 | 서술형 | 서술형 | 4~4 | 1 | 5점 | 5점 |",
+  "| 합계 | | | | 4 | | 100점 |",
   "",
   "**1. 어휘 — 정의 [3점]**",
   '다음 정의에 해당하는 단어를 고르세요. "a person who studies the stars"',
-  "A) farmer  B) astronomer  C) sailor  D) painter",
+  "A) farmer",
+  "B) astronomer",
+  "C) sailor",
+  "D) painter",
+  "E) writer",
   "",
   "**2. 문법 — 시제 [3점] ★Killer**",
   "빈칸에 알맞은 것은?",
-  "A) go  B) goes  C) went  D) gone",
+  "A) go  B) goes  C) went  D) gone  E) going",
   "",
   "### The Night Sky — 천문 에세이",
   "The night sky has fascinated humans for millennia.",
@@ -30,7 +35,14 @@ const FULL = [
   "",
   "**3. 독해 — 추론 [4점]**",
   "What can be inferred from the passage?",
-  "A) Stars are close  B) Astronomy is ancient  C) The sky is empty  D) Humans dislike stars",
+  "A) Stars are close  B) Astronomy is ancient  C) The sky is empty  D) Humans dislike stars  E) Stars are loud",
+  "",
+  "## P3. 서술형",
+  "**4. 서술형 — 요지 쓰기 [5점]**",
+  "윗글의 요지를 한 문장으로 쓰세요.",
+  "✏️ ____",
+  "",
+  "마지막까지 최선을 다하세요!",
   "",
   "## 정답표 (Answer Key)",
   "P1 어휘 & 문법",
@@ -60,7 +72,7 @@ test("parses the 배점표 with a summary row", () => {
   const m = buildExamModel(FULL);
   assert.ok(m.scoreTable);
   assert.ok(m.scoreTable!.headers.includes("파트"));
-  assert.equal(m.scoreTable!.rows.length, 2);
+  assert.equal(m.scoreTable!.rows.length, 3);
   assert.ok(m.scoreTable!.summary);
   assert.equal(m.scoreTable!.summary![0], "합계");
 });
@@ -75,10 +87,24 @@ test("buckets items into parts by the 배점표 ranges, parses choices + killer 
   const first = items1[0] as Extract<(typeof items1)[number], { type: "item" }>;
   assert.equal(first.number, 1);
   assert.equal(first.points, 3);
-  assert.deepEqual(first.choices, ["farmer", "astronomer", "sailor", "painter"]);
+  assert.deepEqual(first.choices, ["farmer", "astronomer", "sailor", "painter", "writer"]);
   assert.equal(first.example, "a person who studies the stars");
   const second = items1[1] as Extract<(typeof items1)[number], { type: "item" }>;
   assert.equal(second.killer, true);
+  assert.equal(second.choices.length, 5);
+});
+
+test("parses 서술형 items as a blank (no choices) bucketed into P3", () => {
+  const m = buildExamModel(FULL);
+  const p3 = m.parts.find((p) => p.code === "P3");
+  assert.ok(p3, "P3 should exist");
+  const essay = p3!.blocks.find((b) => b.type === "item") as Extract<ExamBlock, { type: "item" }> | undefined;
+  assert.ok(essay, "P3 should hold the 서술형 item");
+  assert.equal(essay!.number, 4);
+  assert.equal(essay!.blank, true);
+  assert.equal(essay!.choices.length, 0);
+  assert.ok(!/____|✏/.test(essay!.prompt), "the ✏️ blank marker should be stripped from the prompt");
+  assert.ok(!/최선을 다하세요/.test(essay!.prompt), "the closing line must not be glued onto the last item");
 });
 
 test("captures the reading passage in P2", () => {
@@ -104,6 +130,27 @@ test("parses the answer key (with killer mark) and explanation cards", () => {
   assert.equal(c1.answer, "B");
   assert.match(c1.key, /astronomer/);
   assert.match(c1.wrong, /farmer/);
+});
+
+test("parses an inline answer key: '**P1.**  1. A  2. E ★  3. C'", () => {
+  const md = [
+    "# T",
+    "총 3문항 · 100점 만점",
+    "## 정답표 (Answer Key)",
+    "**P1.**  1. A  2. E ★  3. C",
+    "## 정밀 해설지",
+  ].join("\n");
+  const m = buildExamModel(md);
+  const ans = m.answerKey.flatMap((g) => g.answers);
+  assert.deepEqual(
+    ans.find((a) => a.n === 1),
+    { n: 1, a: "A", killer: false },
+  );
+  assert.deepEqual(
+    ans.find((a) => a.n === 2),
+    { n: 2, a: "E", killer: true },
+  );
+  assert.equal(m.answerKey[0]?.part, "P1");
 });
 
 test("respects explicit overrides and neutral branding defaults", () => {

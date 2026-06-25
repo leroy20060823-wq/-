@@ -35,6 +35,8 @@ export type ExamBlock =
       prompt: string;
       example: string | null;
       choices: string[];
+      /** 서술형 (open response): a '✏️ ____' blank instead of options. */
+      blank: boolean;
     };
 export interface ExamPart {
   code: string;
@@ -203,18 +205,35 @@ function parseItem(headerLine: string, bodyLines: string[]): Extract<ExamBlock, 
 
   const choices: string[] = [];
   let example: string | null = null;
+  let blank = false;
   const promptParts: string[] = [];
 
+  // `closed` = the item's content is complete (options or the ✏️ blank seen).
+  // Once closed, a blank line means anything that follows is trailing prose
+  // (e.g. the paper's closing line) — stop so it isn't glued onto the stem.
+  let closed = false;
+  let blankAfterClose = false;
   for (const raw of bodyLines) {
     const line = raw.trim();
-    if (!line) continue;
-    // Choices: "A) ...  B) ...  C) ...  D) ..." possibly several on one line.
-    const choiceMatches = [...line.matchAll(/([A-D])\s*[)\].]\s*([^]*?)(?=(?:\s+[A-D]\s*[)\].])|$)/g)];
-    if (choiceMatches.length >= 2 || /^[A-D]\s*[)\].]/.test(line)) {
+    if (!line) {
+      if (closed) blankAfterClose = true;
+      continue;
+    }
+    if (closed && blankAfterClose) break;
+    // 서술형 answer blank: '✏️ ____' (or a bare underscore run) → flag it, don't show as prompt.
+    if (/✏/.test(line) || /^_{2,}\s*$/.test(line)) {
+      blank = true;
+      closed = true;
+      continue;
+    }
+    // Choices: "A) ...  B) …  E) …" — five options, one per line or several on one line.
+    const choiceMatches = [...line.matchAll(/([A-E])\s*[)\].]\s*([^]*?)(?=(?:\s+[A-E]\s*[)\].])|$)/g)];
+    if (choiceMatches.length >= 2 || /^[A-E]\s*[)\].]/.test(line)) {
       for (const cm of choiceMatches) {
         const text = stripEmphasis((cm[2] ?? "").trim());
         if (text) choices.push(text);
       }
+      closed = true;
       continue;
     }
     // Example / quote box: a quoted sentence or a blockquote line.
@@ -236,7 +255,7 @@ function parseItem(headerLine: string, bodyLines: string[]): Extract<ExamBlock, 
     }
   }
 
-  return { type: "item", number, label: label || "문항", points, killer, prompt, example, choices };
+  return { type: "item", number, label: label || "문항", points, killer, prompt, example, choices, blank };
 }
 
 const ITEM_START = /^\s*\*{0,2}(\d+)\s*[.)]\s+/;
@@ -370,16 +389,21 @@ function parseAnswerKey(lines: string[]): AnswerKeyGroup[] {
   const groups: AnswerKeyGroup[] = [];
   let current: AnswerKeyGroup | null = null;
   for (const raw of lines) {
-    const line = stripEmphasis(raw.trim());
+    let line = stripEmphasis(raw.trim());
     if (!line) continue;
-    const divider = isPartDivider(line);
-    if (divider) {
-      current = { part: [divider.code, divider.name].filter(Boolean).join(" "), answers: [] };
+    // A leading part label (P1, P2 …) may either sit on its own line OR start the
+    // line with the answers following on the SAME line, e.g. 'P1.  1. A  2. C  3. B'.
+    // Split it off so the inline answers aren't swallowed into the part name.
+    const head = line.match(/^(P\s*\d+)\b\s*[.·\-—:]*\s*/i);
+    if (head) {
+      const code = (head[1] ?? "").replace(/\s+/g, "").toUpperCase();
+      current = { part: code, answers: [] };
       groups.push(current);
-      continue;
+      line = line.slice((head[0] ?? "").length).trim();
+      if (!line) continue;
     }
     // killer ★ may sit before the number or after the answer letter.
-    const pairs = [...line.matchAll(/(★?)\s*(\d+)\s*[.)]?\s*([A-Da-d①②③④⑤])\s*(★?)/g)];
+    const pairs = [...line.matchAll(/(★?)\s*(\d+)\s*[.)]?\s*([A-Ea-e①②③④⑤])\s*(★?)/g)];
     if (pairs.length) {
       if (!current) {
         current = { part: "", answers: [] };
@@ -422,7 +446,7 @@ function parseExplanations(lines: string[]): ExplanationGroup[] {
       i++;
       continue;
     }
-    const cm = line.match(/^(\d+)\s*[.)]\s*정답\s*[:：]?\s*([A-Da-d①②③④⑤]|.+?)(?:\s|$)(.*)$/);
+    const cm = line.match(/^(\d+)\s*[.)]\s*정답\s*[:：]?\s*([A-Ea-e①②③④⑤]|.+?)(?:\s|$)(.*)$/);
     if (cm) {
       const card: ExplanationCard = {
         number: Number(cm[1]),

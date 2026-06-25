@@ -98,6 +98,37 @@ def letter_for(index):
     return chr(ord("A") + index) if 0 <= index < 26 else str(index + 1)
 
 
+CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳"
+
+
+def circled(index):
+    """0 -> ①, 1 -> ② … (options render as circled numbers, per the blueprint)."""
+    return CIRCLED[index] if 0 <= index < len(CIRCLED) else str(index + 1)
+
+
+def circled_answer(value):
+    """Map an answer token ('A'/'b'/'①'/'B,D'…) to circled number(s) for display.
+    Non-letter answers (e.g. a 서술형 모범답안) are returned unchanged."""
+    s = str(value or "").strip()
+    if not s:
+        return s
+    if s[0] in CIRCLED:
+        return s
+    out = []
+    for ch in s:
+        up = ch.upper()
+        if "A" <= up <= "Z":
+            out.append(circled(ord(up) - ord("A")))
+        elif ch in CIRCLED:
+            out.append(ch)
+        elif ch in " ,·/":
+            out.append(ch)
+        else:
+            # Mixed/long text (서술형) — not a simple letter list; leave as-is.
+            return s
+    return "".join(out)
+
+
 # --------------------------------------------------------------------------- #
 # CSS
 # --------------------------------------------------------------------------- #
@@ -620,6 +651,23 @@ table.score tr.summary td {{
     flex: none;
 }}
 
+/* 서술형 답안란: a ruled writing area when an item has no options */
+.answer-blank {{
+    margin: 1.5mm 0 1mm 0;
+    min-height: 20mm;
+    border: 1px solid var(--rule, #D7D2C4);
+    border-radius: 3px;
+    background-image: repeating-linear-gradient(
+        180deg,
+        transparent 0,
+        transparent 7.4mm,
+        var(--rule, #E4DFD2) 7.4mm,
+        var(--rule, #E4DFD2) 7.6mm
+    );
+    background-position: 0 6mm;
+    break-inside: avoid;
+}}
+
 /* ============================ ANSWER KEY ============================ */
 .section-header {{
     background: var(--navy);
@@ -965,13 +1013,15 @@ def build_item(block):
     if choices:
         out.append('<div class="choices">')
         for idx, ch in enumerate(choices):
-            letter = letter_for(idx)
             out.append(
                 '<div class="choice">'
-                f'<span class="ch-letter">{letter}.</span>'
+                f'<span class="ch-letter">{circled(idx)}</span>'
                 f"<span>{esc(ch)}</span></div>"
             )
         out.append("</div>")
+    elif block.get("blank") or is_nonempty(prompt):
+        # 서술형 (no options): a ruled answer-writing area.
+        out.append('<div class="answer-blank" aria-label="서술형 답안란"></div>')
 
     out.append("</div>")
     return "\n".join(out)
@@ -1022,7 +1072,7 @@ def build_answer_key(answer_key):
         out.append('<div class="ak-grid">')
         for a in answers:
             n = esc(a.get("n", ""))
-            ans = esc(a.get("a", ""))
+            ans = esc(circled_answer(a.get("a", "")))
             star = ' <span class="ak-star">★</span>' if a.get("killer") else ""
             out.append(
                 '<div class="ak-cell">'
@@ -1050,7 +1100,7 @@ def build_explanations(explanations):
         out.append(f'<div class="ex-part-head">{part}</div>')
         for c in cards:
             number = esc(c.get("number", ""))
-            answer = esc(c.get("answer", ""))
+            answer = esc(circled_answer(c.get("answer", "")))
             explanation = c.get("explanation", "")
             key = c.get("key", "")
             wrong = c.get("wrong", "")
@@ -1305,7 +1355,20 @@ def main(argv=None):
                         help="path to JSON model (else read stdin)")
     parser.add_argument("--out", dest="out_path", default=None, required=False,
                         help="output PDF path")
+    parser.add_argument("--html", dest="html", action="store_true",
+                        help="emit the rendered HTML to stdout and exit (debug/QA)")
     args = parser.parse_args(argv)
+
+    # --html short-circuit: render the HTML only (no WeasyPrint needed). Handy for
+    # tests/QA that just need to confirm structure (①②③④⑤, 서술형 답안란, …).
+    if args.html:
+        try:
+            model = load_model(args.in_path)
+        except Exception as e:
+            print(json.dumps({"ok": False, "error": str(e)}))
+            return 1
+        sys.stdout.write(build_html(model))
+        return 0
 
     if weasyprint is None:
         print(json.dumps({"ok": False,
