@@ -52,6 +52,7 @@ export interface ExplanationCard {
   explanation: string;
   key: string;
   wrong: string;
+  killer: boolean;
 }
 export interface ExplanationGroup {
   part: string;
@@ -425,12 +426,15 @@ function parseExplanations(lines: string[]): ExplanationGroup[] {
     }
     const cm = line.match(/^(\d+)\s*[.)]\s*정답\s*[:：]?\s*([A-Ea-e①②③④⑤]|.+?)(?:\s|$)(.*)$/);
     if (cm) {
+      const killer = /★|killer/i.test(line);
       const card: ExplanationCard = {
         number: Number(cm[1]),
         answer: (cm[2] ?? "").trim(),
-        explanation: stripEmphasis((cm[3] ?? "").replace(/^[—\-·]\s*/, "").trim()),
+        // Drop a leading ★Killer / ★ marker from the prose (it surfaces in the header instead).
+        explanation: stripEmphasis((cm[3] ?? "").replace(/^[—\-·]\s*/, "").replace(/^★\s*killer\b/i, "").replace(/^★\s*/, "").trim()),
         key: "",
         wrong: "",
+        killer,
       };
       i++;
       while (i < lines.length) {

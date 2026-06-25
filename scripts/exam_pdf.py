@@ -1070,10 +1070,11 @@ def build_explanations(explanations):
             explanation = c.get("explanation", "")
             key = c.get("key", "")
             wrong = c.get("wrong", "")
+            killer_html = ' <span class="killer">★Killer</span>' if c.get("killer") else ""
             out.append('<div class="ex-card">')
             out.append('<div class="ex-head">')
             out.append(f'<span class="q-num">{number}</span>')
-            out.append(f'<span class="ex-answer">정답 {answer}</span>')
+            out.append(f'<span class="ex-answer">정답 {answer}{killer_html}</span>')
             out.append("</div>")
             if is_nonempty(explanation):
                 out.append(f'<p class="ex-text">{esc(explanation)}</p>')

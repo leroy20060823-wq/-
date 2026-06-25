@@ -69,7 +69,7 @@ Document structure (clean Markdown — follow EXACTLY so it renders):
 
 Answer section:
 - '## 정답표 (Answer Key)' grouped by part, compact, e.g. '**P1.**  1. A  2. C  3. B', using the option letters A–E (rendered as ①②③④⑤). Mark killer items with ' ★'. For 서술형, give the 모범 답안 / 채점 기준.
-- '## 정밀 해설지 (Detailed Explanations)', friendly teacher voice (따뜻한 '~요' 어투). For EACH item: '**N. 정답 X**' (X = option letter A–E), a short reasoning sentence grounded in the passage/rule, a '핵심' line (the rule/key point), and an '오답 체크' line (why each attractive distractor is wrong). For 서술형, give the 모범 답안.
+- '## 정밀 해설지 (Detailed Explanations)' — the heart of the exam; write it generously, not terse, in a warm teacher voice (따뜻한 '~요/~죠/~예요' 어투, varied endings). For EACH item: header '**N. 정답 X**' (X = option letter A–E; append ' ★Killer' for killer items); 2–4 FULL sentences walking through WHY the answer is right, QUOTING the exact passage phrase that licenses it (real sentences, not fragments); a '핵심' line (rule or 본문 근거 in '...'); an '오답 체크' line that NAMES each wrong option and its specific reason. For 서술형, the 모범 답안 plus a short 풀이.
 
 Difficulty rubric — make 하/중/상 genuinely different (apply precisely):
 - 지문 어휘 수준: 하=고1 기본 / 중=고2~3 / 상=대학교양·추상. 문장: 하=단문 / 중=혼합 / 상=복문·삽입절.

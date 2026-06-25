@@ -49,7 +49,12 @@ Document structure (clean Markdown):
 
 Answer section:
 - '## 정답표 (Answer Key)' grouped by part, compact (e.g. '1. A  2. C  3. B …', using the option letters A–E — the renderer shows them as ①②③④⑤), marking ★ on killer items.
-- '## 정밀 해설지 (Detailed Explanations)' written as a real, friendly teacher would speak (따뜻하고 친절한 '~요' 어투). For EACH item give: 'N. 정답 X' (X = the option letter A–E), a short reasoning sentence, a '핵심' line with the rule/key point, and an '오답 체크' line explaining why the attractive distractors are wrong. For 서술형, provide a 모범 답안.
+- '## 정밀 해설지 (Detailed Explanations)' — write each explanation the way a real, kind teacher actually talks it through (따뜻하고 친절한 '~요/~죠/~예요' 어투; vary the endings, never repeat one ending). This section is the heart of the exam — make it generous, not terse. For EACH item:
+  · Header line '**N. 정답 X**' (X = the option letter A–E); append ' ★Killer' for killer items.
+  · 2–4 FULL sentences of prose that walk the student through WHY the answer is right, QUOTING the exact passage phrase/sentence (in the source language) that licenses it. Write real sentences, never keyword fragments.
+  · A '핵심' line: the rule, or the 본문 근거 with the exact quote in '...'.
+  · An '오답 체크' line that NAMES each major wrong option (its content) and gives the specific reason it fails — never lump them together as '나머지는 오답'.
+  · For 서술형 items: a full 모범 답안 plus a short 풀이 of how to reach it.
 
 Difficulty rubric — make 하 / 중 / 상 genuinely different (apply precisely, not just by wording):
 - 지문: vocabulary level (하 = 고1 기본 / 중 = 고2~3 / 상 = 대학 교양·추상 어휘); sentence complexity (하 = 단문 / 중 = 혼합 / 상 = 복문·삽입절); topic abstraction (하 = 구체적 서사 / 상 = 개념·현상).
