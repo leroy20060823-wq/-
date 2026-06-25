@@ -210,8 +210,8 @@ function parseItem(headerLine: string, bodyLines: string[]): Extract<ExamBlock, 
     const line = raw.trim();
     if (!line) continue;
     // Choices: "A) ...  B) ...  C) ...  D) ..." possibly several on one line.
-    const choiceMatches = [...line.matchAll(/([A-D])\s*[)\].]\s*([^]*?)(?=(?:\s+[A-D]\s*[)\].])|$)/g)];
-    if (choiceMatches.length >= 2 || /^[A-D]\s*[)\].]/.test(line)) {
+    const choiceMatches = [...line.matchAll(/([A-E])\s*[)\].]\s*([^]*?)(?=(?:\s+[A-E]\s*[)\].])|$)/g)];
+    if (choiceMatches.length >= 2 || /^[A-E]\s*[)\].]/.test(line)) {
       for (const cm of choiceMatches) {
         const text = stripEmphasis((cm[2] ?? "").trim());
         if (text) choices.push(text);
@@ -380,7 +380,7 @@ function parseAnswerKey(lines: string[]): AnswerKeyGroup[] {
       continue;
     }
     // killer ★ may sit before the number or after the answer letter.
-    const pairs = [...line.matchAll(/(★?)\s*(\d+)\s*[.)]?\s*([A-Da-d①②③④⑤])\s*(★?)/g)];
+    const pairs = [...line.matchAll(/(★?)\s*(\d+)\s*[.)]?\s*([A-Ea-e①②③④⑤])\s*(★?)/g)];
     if (pairs.length) {
       if (!current) {
         current = { part: "", answers: [] };
@@ -423,7 +423,7 @@ function parseExplanations(lines: string[]): ExplanationGroup[] {
       i++;
       continue;
     }
-    const cm = line.match(/^(\d+)\s*[.)]\s*정답\s*[:：]?\s*([A-Da-d①②③④⑤]|.+?)(?:\s|$)(.*)$/);
+    const cm = line.match(/^(\d+)\s*[.)]\s*정답\s*[:：]?\s*([A-Ea-e①②③④⑤]|.+?)(?:\s|$)(.*)$/);
     if (cm) {
       const card: ExplanationCard = {
         number: Number(cm[1]),

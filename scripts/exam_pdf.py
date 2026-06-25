@@ -93,9 +93,25 @@ def font_url(filename):
     return "file://" + path
 
 
+_CIRCLED = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"]
+
+
 def letter_for(index):
-    """0 -> A, 1 -> B ..."""
-    return chr(ord("A") + index) if 0 <= index < 26 else str(index + 1)
+    """0 -> ①, 1 -> ② ... (Korean 5지선다 convention)."""
+    return _CIRCLED[index] if 0 <= index < len(_CIRCLED) else str(index + 1)
+
+
+# Map an authored answer letter (A–E / a–e) to the circled glyph shown in the
+# choices, so the answer key / explanations stay consistent. Pass through values
+# that are already circled, numeric, or free-form (서술형 모범답안).
+_ANS_MAP = {c: _CIRCLED[i] for i, c in enumerate("ABCDE")}
+_ANS_MAP.update({c: _CIRCLED[i] for i, c in enumerate("abcde")})
+
+
+def display_answer(a):
+    if not isinstance(a, str):
+        return a
+    return _ANS_MAP.get(a.strip(), a)
 
 
 # --------------------------------------------------------------------------- #
@@ -968,7 +984,7 @@ def build_item(block):
             letter = letter_for(idx)
             out.append(
                 '<div class="choice">'
-                f'<span class="ch-letter">{letter}.</span>'
+                f'<span class="ch-letter">{letter}</span>'
                 f"<span>{esc(ch)}</span></div>"
             )
         out.append("</div>")
@@ -1022,7 +1038,7 @@ def build_answer_key(answer_key):
         out.append('<div class="ak-grid">')
         for a in answers:
             n = esc(a.get("n", ""))
-            ans = esc(a.get("a", ""))
+            ans = esc(display_answer(a.get("a", "")))
             star = ' <span class="ak-star">★</span>' if a.get("killer") else ""
             out.append(
                 '<div class="ak-cell">'
@@ -1050,7 +1066,7 @@ def build_explanations(explanations):
         out.append(f'<div class="ex-part-head">{part}</div>')
         for c in cards:
             number = esc(c.get("number", ""))
-            answer = esc(c.get("answer", ""))
+            answer = esc(display_answer(c.get("answer", "")))
             explanation = c.get("explanation", "")
             key = c.get("key", "")
             wrong = c.get("wrong", "")
