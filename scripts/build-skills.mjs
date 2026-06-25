@@ -150,9 +150,10 @@ function buildExportBlock(m, outNo) {
    1. 만든 마크다운 전체를 \`outputs/<한글-이름>.md\`로 저장(Write 도구).
    2. 전용 시험지 PDF 생성(프리미엄 표지·네이비 섹션바·문항 배지 — 컬러·흑백 인쇄 모두 고품질):
       \`\`\`bash
-      node --import tsx scripts/exam-pdf.mjs --in "outputs/<이름>.md" --out "outputs/<이름>.pdf" --title "<시험 제목>" --title-latin "<영문 부제 예: Reading & Writing — Final Exam>" --subtitle "<예: 기말고사 대비 적중 모의고사>" --difficulty "<하|중|상>" --scope "<출제 범위>" --time <시험시간(분)> --brand "<브랜드(선택)>" --motto "<모토(선택)>"
+      node --import tsx scripts/exam-pdf.mjs --in "outputs/<이름>.md" --out "outputs/<이름>.pdf" --title "<시험 제목>" --difficulty "<하|중|상>" --scope "<출제 범위>" --time <시험시간(분)> --subtitle "<예: 중간·기말 대비 모의고사>"
       \`\`\`
-      - 표지를 고급스럽게: \`--title-latin\`(영문 부제)와 \`--subtitle\`은 항상 넣고, \`--brand\`·\`--motto\`는 사용자가 정한 게 있으면 넣으세요(없으면 생략해도 깔끔합니다).
+      - **기본은 중립적·범용 표지**입니다. 디자인 자체가 고급스러우니 특정 학교·기관 색을 넣지 마세요. \`--subtitle\`은 일반적인 문구만 쓰세요.
+      - \`--brand\`(상단 브랜드명)·\`--motto\`(표지 문구)·\`--title-latin\`(영문 부제)는 **사용자가 직접 요청한 경우에만** 추가하세요. 요청이 없으면 임의의 학교명·기관명·문구를 절대 넣지 마세요.
    3. 생성된 \`outputs/<이름>.pdf\`를 **\`SendUserFile\`로 바로 전달**하세요(경로만 알려주지 말 것).
    - 이 렌더러는 Python+WeasyPrint를 쓰며 없으면 자동 설치합니다. 모듈 오류가 나면 먼저 \`npm install\`.
 3. 편집본(워드)이 필요하면: \`node scripts/export.mjs --in "outputs/<이름>.md" --format docx --out "outputs/<이름>"\`.`;
@@ -162,10 +163,11 @@ function buildExportBlock(m, outNo) {
 1. 결과 전체를 깔끔한 마크다운으로 **이 대화에 바로** 출력하세요. (한 항목 = \`**N · word** [발음] · 품사 — 뜻\` / 영어 예문 / 한국어 해석)
 2. 이어서 **전용 단어장 렌더러로 PDF를 만들어 \`SendUserFile\`로 바로 전달**하세요.
    1. 만든 마크다운 전체를 \`outputs/<한글-이름>.md\`로 저장(Write 도구).
-   2. 전용 단어장 PDF 생성(마룬 헤더·품사 배지·네이비 섹션바 디자인):
+   2. 전용 단어장 PDF 생성(마룬 헤더·품사 배지·네이비 섹션바 디자인 — 컬러·흑백 모두 고품질):
       \`\`\`bash
-      node scripts/vocab-pdf.mjs --in "outputs/<이름>.md" --out "outputs/<이름>.pdf" --title "<단어장 제목>" --subtitle "기말고사 대비 핵심 단어장" --brand "READING & WRITING"
+      node scripts/vocab-pdf.mjs --in "outputs/<이름>.md" --out "outputs/<이름>.pdf" --title "<단어장 제목>"
       \`\`\`
+      - **기본은 중립적·범용**입니다. \`--brand\`(상단 라벨)·\`--subtitle\`는 사용자가 직접 요청한 경우에만 추가하고, 임의의 학교·기관명은 넣지 마세요.
    3. 생성된 \`outputs/<이름>.pdf\`를 **\`SendUserFile\`로 바로 전달**하세요.
    - 오류가 나면 먼저 \`npm install\` 후 다시 시도하세요.
 3. 편집본(워드)이 필요하면: \`node scripts/export.mjs --in "outputs/<이름>.md" --format docx --out "outputs/<이름>"\`.`;

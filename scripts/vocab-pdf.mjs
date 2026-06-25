@@ -88,8 +88,9 @@ async function fontCSS() {
 function render(model, css, opts) {
   const { title, sections } = model;
   const NAVY = "#192744", MAROON = "#9B2742", GRAY = "#6B7280", INK = "#23262e";
-  const brand = opts.brand ? `${escapeHtml(opts.brand)}` : "READING &amp; WRITING";
-  const subtitle = opts.subtitle ? escapeHtml(opts.subtitle) : "기말고사 대비 핵심 단어장";
+  // Neutral by default — no school/personal branding. Pass --brand/--subtitle to personalize.
+  const brand = opts.brand ? `${escapeHtml(opts.brand)}` : "VOCABULARY";
+  const subtitle = opts.subtitle ? escapeHtml(opts.subtitle) : "핵심 단어 정리";
   const legend = "n 명사 · v 동사 · adj 형용사 · adv 부사 · phr 구동사 · prep 전치사";
 
   const entryHtml = (e) => `

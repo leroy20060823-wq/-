@@ -68,10 +68,11 @@ After climbing for hours, the tired hikers finally reached the snowy summit.
 1. 결과 전체를 깔끔한 마크다운으로 **이 대화에 바로** 출력하세요. (한 항목 = `**N · word** [발음] · 품사 — 뜻` / 영어 예문 / 한국어 해석)
 2. 이어서 **전용 단어장 렌더러로 PDF를 만들어 `SendUserFile`로 바로 전달**하세요.
    1. 만든 마크다운 전체를 `outputs/<한글-이름>.md`로 저장(Write 도구).
-   2. 전용 단어장 PDF 생성(마룬 헤더·품사 배지·네이비 섹션바 디자인):
+   2. 전용 단어장 PDF 생성(마룬 헤더·품사 배지·네이비 섹션바 디자인 — 컬러·흑백 모두 고품질):
       ```bash
-      node scripts/vocab-pdf.mjs --in "outputs/<이름>.md" --out "outputs/<이름>.pdf" --title "<단어장 제목>" --subtitle "기말고사 대비 핵심 단어장" --brand "READING & WRITING"
+      node scripts/vocab-pdf.mjs --in "outputs/<이름>.md" --out "outputs/<이름>.pdf" --title "<단어장 제목>"
       ```
+      - **기본은 중립적·범용**입니다. `--brand`(상단 라벨)·`--subtitle`는 사용자가 직접 요청한 경우에만 추가하고, 임의의 학교·기관명은 넣지 마세요.
    3. 생성된 `outputs/<이름>.pdf`를 **`SendUserFile`로 바로 전달**하세요.
    - 오류가 나면 먼저 `npm install` 후 다시 시도하세요.
 3. 편집본(워드)이 필요하면: `node scripts/export.mjs --in "outputs/<이름>.md" --format docx --out "outputs/<이름>"`.
