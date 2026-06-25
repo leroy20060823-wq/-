@@ -85,14 +85,14 @@ A) farmer  B) astronomer  C) sailor  D) painter
 오답 체크  A. farmer(농부)·C. sailor(선원)·D. painter(화가)는 '별 연구'와 무관한 매력적인 오답이에요.
 ```
 
-## 4) 출력과 파일 (바로 보기)
-1. 결과 전체를 깔끔한 마크다운으로 **이 대화에 바로** 출력하세요.
-2. 이어서 **자동으로 파일을 만들어 사용자에게 바로 전달**하세요. (사용자가 "파일은 됐어 / 화면만 보여줘"라고 한 경우에만 생략) — 면접 샘플처럼 즉시 열어볼 수 있어야 하니까요.
-   1. 방금 만든 마크다운 전체를 `outputs/<알맞은-한글-이름>.md`로 저장하세요(Write 도구, 폴더 없으면 생성).
-   2. 아래 명령으로 문서 파일을 만드세요(저장소 루트에서 실행):
+## 4) 출력과 파일 (전용 시험지 디자인 · 바로 보기)
+1. 결과 전체(헤더·배점표·문항·정답표·정밀 해설지)를 깔끔한 마크다운으로 **이 대화에 바로** 출력하세요.
+2. 이어서 **전용 시험지 렌더러로 PDF를 만들어 `SendUserFile`로 바로 전달**하세요. (사용자가 "화면만"이라고 한 경우만 생략)
+   1. 만든 마크다운 전체를 `outputs/<한글-이름>.md`로 저장(Write 도구).
+   2. 전용 시험지 PDF 생성(브랜드 표지·네이비 섹션바·문항 배지 디자인):
       ```bash
-      node scripts/export.mjs --in "outputs/<이름>.md" --format pdf,docx --out "outputs/<이름>" --title "<이름>"
+      node --import tsx scripts/exam-pdf.mjs --in "outputs/<이름>.md" --out "outputs/<이름>.pdf" --title "<시험 제목>" --difficulty "<하|중|상>" --scope "<출제 범위>" --time <시험시간(분)> --subtitle "중간·기말 대비 모의고사"
       ```
-   3. 생성된 파일(PDF(.pdf) · 워드(.docx) · 마크다운(.md))을 **SendUserFile 도구로 사용자에게 바로 전달**하세요. 경로만 알려주지 말고 파일 자체를 보내야 사용자가 바로 열어볼 수 있습니다.
-3. 형식 조정: 한글(.hwpx)이 필요하면 `--format`에 `hwpx`를 더하고, 사용자가 한 형식만 원하면 그 형식만 만드세요.
-   - `Cannot find module` 류 오류가 나면 먼저 `npm install`을 한 번 실행한 뒤 다시 시도하세요(PDF는 Chromium·번들 한글 폰트를 사용합니다).
+   3. 생성된 `outputs/<이름>.pdf`를 **`SendUserFile`로 바로 전달**하세요(경로만 알려주지 말 것).
+   - 이 렌더러는 Python+WeasyPrint를 쓰며 없으면 자동 설치합니다. 모듈 오류가 나면 먼저 `npm install`.
+3. 편집본(워드)이 필요하면: `node scripts/export.mjs --in "outputs/<이름>.md" --format docx --out "outputs/<이름>"`.

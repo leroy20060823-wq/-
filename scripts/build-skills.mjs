@@ -139,6 +139,52 @@ function renderSource(source) {
   return `\n**자료 첨부${label}** — 사용자가 교재 사진·본문·파일을 주면 **그 내용 그대로** 출제·정리하고(자료 기반 모드), 없으면 주제만으로 새로 창작하세요(주제 모드). ${source.hint ?? ""}`.trimEnd();
 }
 
+// The "출력과 파일" section. 시험지·단어장 have dedicated, design-matched
+// renderers (the same look as the reference PDFs); everything else uses the
+// generic Markdown→file exporter.
+function buildExportBlock(m, outNo) {
+  if (m.id === "exam") {
+    return `## ${outNo}) 출력과 파일 (전용 시험지 디자인 · 바로 보기)
+1. 결과 전체(헤더·배점표·문항·정답표·정밀 해설지)를 깔끔한 마크다운으로 **이 대화에 바로** 출력하세요.
+2. 이어서 **전용 시험지 렌더러로 PDF를 만들어 \`SendUserFile\`로 바로 전달**하세요. (사용자가 "화면만"이라고 한 경우만 생략)
+   1. 만든 마크다운 전체를 \`outputs/<한글-이름>.md\`로 저장(Write 도구).
+   2. 전용 시험지 PDF 생성(브랜드 표지·네이비 섹션바·문항 배지 디자인):
+      \`\`\`bash
+      node --import tsx scripts/exam-pdf.mjs --in "outputs/<이름>.md" --out "outputs/<이름>.pdf" --title "<시험 제목>" --difficulty "<하|중|상>" --scope "<출제 범위>" --time <시험시간(분)> --subtitle "중간·기말 대비 모의고사"
+      \`\`\`
+   3. 생성된 \`outputs/<이름>.pdf\`를 **\`SendUserFile\`로 바로 전달**하세요(경로만 알려주지 말 것).
+   - 이 렌더러는 Python+WeasyPrint를 쓰며 없으면 자동 설치합니다. 모듈 오류가 나면 먼저 \`npm install\`.
+3. 편집본(워드)이 필요하면: \`node scripts/export.mjs --in "outputs/<이름>.md" --format docx --out "outputs/<이름>"\`.`;
+  }
+  if (m.id === "vocabulary") {
+    return `## ${outNo}) 출력과 파일 (전용 단어장 디자인 · 바로 보기)
+1. 결과 전체를 깔끔한 마크다운으로 **이 대화에 바로** 출력하세요. (한 항목 = \`**N · word** [발음] · 품사 — 뜻\` / 영어 예문 / 한국어 해석)
+2. 이어서 **전용 단어장 렌더러로 PDF를 만들어 \`SendUserFile\`로 바로 전달**하세요.
+   1. 만든 마크다운 전체를 \`outputs/<한글-이름>.md\`로 저장(Write 도구).
+   2. 전용 단어장 PDF 생성(마룬 헤더·품사 배지·네이비 섹션바 디자인):
+      \`\`\`bash
+      node scripts/vocab-pdf.mjs --in "outputs/<이름>.md" --out "outputs/<이름>.pdf" --title "<단어장 제목>" --subtitle "기말고사 대비 핵심 단어장" --brand "READING & WRITING"
+      \`\`\`
+   3. 생성된 \`outputs/<이름>.pdf\`를 **\`SendUserFile\`로 바로 전달**하세요.
+   - 오류가 나면 먼저 \`npm install\` 후 다시 시도하세요.
+3. 편집본(워드)이 필요하면: \`node scripts/export.mjs --in "outputs/<이름>.md" --format docx --out "outputs/<이름>"\`.`;
+  }
+  const fmts = FORMATS[m.id] || DEFAULT_FORMATS;
+  const humanList = fmts.split(",").map((f) => FORMAT_LABEL[f]).join(" · ");
+  const primary = fmts.split(",").filter((f) => f !== "md").join(",") || "md";
+  return `## ${outNo}) 출력과 파일 (바로 보기)
+1. 결과 전체를 깔끔한 마크다운으로 **이 대화에 바로** 출력하세요.
+2. 이어서 **자동으로 파일을 만들어 사용자에게 바로 전달**하세요. (사용자가 "파일은 됐어 / 화면만 보여줘"라고 한 경우에만 생략) — 면접 샘플처럼 즉시 열어볼 수 있어야 하니까요.
+   1. 방금 만든 마크다운 전체를 \`outputs/<알맞은-한글-이름>.md\`로 저장하세요(Write 도구, 폴더 없으면 생성).
+   2. 아래 명령으로 문서 파일을 만드세요(저장소 루트에서 실행):
+      \`\`\`bash
+      node scripts/export.mjs --in "outputs/<이름>.md" --format ${primary} --out "outputs/<이름>" --title "<이름>"
+      \`\`\`
+   3. 생성된 파일(${humanList})을 **\`SendUserFile\` 도구로 사용자에게 바로 전달**하세요. 경로만 알려주지 말고 파일 자체를 보내야 사용자가 바로 열어볼 수 있습니다.
+3. 형식 조정: 한글(.hwpx)이 필요하면 \`--format\`에 \`hwpx\`를 더하고, 사용자가 한 형식만 원하면 그 형식만 만드세요.
+   - \`Cannot find module\` 류 오류가 나면 먼저 \`npm install\`을 한 번 실행한 뒤 다시 시도하세요(PDF는 Chromium·번들 한글 폰트를 사용합니다).`;
+}
+
 function buildBody(m) {
   const slug = SLUG[m.id];
   const inputs = [renderGuide(m.guide), renderOptions(m.options), renderSource(m.source)]
@@ -150,9 +196,7 @@ function buildBody(m) {
     : "";
 
   const outNo = m.referenceExample ? 4 : 3;
-  const fmts = FORMATS[m.id] || DEFAULT_FORMATS;
-  const humanList = fmts.split(",").map((f) => FORMAT_LABEL[f]).join(" · ");
-  const primary = fmts.split(",").filter((f) => f !== "md").join(",") || "md";
+  const exportBlock = buildExportBlock(m, outNo);
 
   return `# ${m.name}
 
@@ -171,17 +215,7 @@ ${m.systemPrompt}
 
 **[요청 조건] 적용:** 1)에서 받은 값(난이도·문항 수·길이·도구 등)을 위 지침이 말하는 '[요청 조건]'으로 간주해 정확히 반영하세요. 사용자가 쓴 언어(보통 한국어)로 출력합니다.${ref}
 
-## ${outNo}) 출력과 파일 (바로 보기)
-1. 결과 전체를 깔끔한 마크다운으로 **이 대화에 바로** 출력하세요.
-2. 이어서 **자동으로 파일을 만들어 사용자에게 바로 전달**하세요. (사용자가 "파일은 됐어 / 화면만 보여줘"라고 한 경우에만 생략) — 면접 샘플처럼 즉시 열어볼 수 있어야 하니까요.
-   1. 방금 만든 마크다운 전체를 \`outputs/<알맞은-한글-이름>.md\`로 저장하세요(Write 도구, 폴더 없으면 생성).
-   2. 아래 명령으로 문서 파일을 만드세요(저장소 루트에서 실행):
-      \`\`\`bash
-      node scripts/export.mjs --in "outputs/<이름>.md" --format ${primary} --out "outputs/<이름>" --title "<이름>"
-      \`\`\`
-   3. 생성된 파일(${humanList})을 **SendUserFile 도구로 사용자에게 바로 전달**하세요. 경로만 알려주지 말고 파일 자체를 보내야 사용자가 바로 열어볼 수 있습니다.
-3. 형식 조정: 한글(.hwpx)이 필요하면 \`--format\`에 \`hwpx\`를 더하고, 사용자가 한 형식만 원하면 그 형식만 만드세요.
-   - \`Cannot find module\` 류 오류가 나면 먼저 \`npm install\`을 한 번 실행한 뒤 다시 시도하세요(PDF는 Chromium·번들 한글 폰트를 사용합니다).
+${exportBlock}
 `;
 }
 
@@ -259,12 +293,16 @@ function buildReadme(modules) {
 기본값으로 진행합니다. "알아서"라고 하면 전부 기본값으로 만들어요.
 
 ## 파일로 바로 보기 (인쇄·면접 샘플용)
-자료를 만들면 **자동으로 파일을 만들어 바로 전달**합니다 — 문서는 **워드(.docx)+PDF**,
-발표는 **파워포인트(.pptx)+PDF**. 화면만 보고 싶으면 "파일은 됐어"라고 하면 돼요.
-**한글(.hwpx)** 이 필요하면 "한글로 줘"처럼 말하면 추가로 만들어 줍니다.
+자료를 만들면 **자동으로 파일을 만들어 바로 전달**합니다. 화면만 보고 싶으면
+"파일은 됐어"라고 하면 돼요. **한글(.hwpx)** 이 필요하면 "한글로 줘"처럼 말하세요.
 
-내부적으로는 \`scripts/export.mjs\`(오프라인 Node 변환기)가 \`outputs/\` 폴더에 파일을
-만듭니다(PDF는 Chromium + 번들 한글 폰트로 렌더링해 한글·발음기호도 안 깨져요).
+- **\`/시험지\`** → 전용 시험지 PDF(\`scripts/exam-pdf.mjs\` → \`exam_pdf.py\`, WeasyPrint):
+  브랜드 표지·유의사항·응시표·네이비 섹션바·문항 배지·정답표·해설까지 완성형.
+- **\`/단어장\`** → 전용 단어장 PDF(\`scripts/vocab-pdf.mjs\`): 마룬 헤더·품사 배지·
+  네이비 섹션바·번호·IPA·예문·해석.
+- 그 밖의 모듈 → **워드(.docx)+PDF**(발표는 PPT+PDF). \`scripts/export.mjs\`(Node
+  변환기)가 \`outputs/\`에 만듭니다. PDF는 Chromium + 번들 한글 폰트로 렌더링해
+  한글·발음기호도 안 깨져요.
 
 \`\`\`bash
 # 스킬이 자동으로 호출하지만, 직접 쓸 수도 있어요:

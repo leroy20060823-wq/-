@@ -64,14 +64,14 @@ After climbing for hours, the tired hikers finally reached the snowy summit.
 몇 시간을 오른 끝에 지친 등산객들이 마침내 눈 덮인 정상에 도착했다.
 ```
 
-## 4) 출력과 파일 (바로 보기)
-1. 결과 전체를 깔끔한 마크다운으로 **이 대화에 바로** 출력하세요.
-2. 이어서 **자동으로 파일을 만들어 사용자에게 바로 전달**하세요. (사용자가 "파일은 됐어 / 화면만 보여줘"라고 한 경우에만 생략) — 면접 샘플처럼 즉시 열어볼 수 있어야 하니까요.
-   1. 방금 만든 마크다운 전체를 `outputs/<알맞은-한글-이름>.md`로 저장하세요(Write 도구, 폴더 없으면 생성).
-   2. 아래 명령으로 문서 파일을 만드세요(저장소 루트에서 실행):
+## 4) 출력과 파일 (전용 단어장 디자인 · 바로 보기)
+1. 결과 전체를 깔끔한 마크다운으로 **이 대화에 바로** 출력하세요. (한 항목 = `**N · word** [발음] · 품사 — 뜻` / 영어 예문 / 한국어 해석)
+2. 이어서 **전용 단어장 렌더러로 PDF를 만들어 `SendUserFile`로 바로 전달**하세요.
+   1. 만든 마크다운 전체를 `outputs/<한글-이름>.md`로 저장(Write 도구).
+   2. 전용 단어장 PDF 생성(마룬 헤더·품사 배지·네이비 섹션바 디자인):
       ```bash
-      node scripts/export.mjs --in "outputs/<이름>.md" --format pdf,docx --out "outputs/<이름>" --title "<이름>"
+      node scripts/vocab-pdf.mjs --in "outputs/<이름>.md" --out "outputs/<이름>.pdf" --title "<단어장 제목>" --subtitle "기말고사 대비 핵심 단어장" --brand "READING & WRITING"
       ```
-   3. 생성된 파일(PDF(.pdf) · 워드(.docx) · 마크다운(.md))을 **SendUserFile 도구로 사용자에게 바로 전달**하세요. 경로만 알려주지 말고 파일 자체를 보내야 사용자가 바로 열어볼 수 있습니다.
-3. 형식 조정: 한글(.hwpx)이 필요하면 `--format`에 `hwpx`를 더하고, 사용자가 한 형식만 원하면 그 형식만 만드세요.
-   - `Cannot find module` 류 오류가 나면 먼저 `npm install`을 한 번 실행한 뒤 다시 시도하세요(PDF는 Chromium·번들 한글 폰트를 사용합니다).
+   3. 생성된 `outputs/<이름>.pdf`를 **`SendUserFile`로 바로 전달**하세요.
+   - 오류가 나면 먼저 `npm install` 후 다시 시도하세요.
+3. 편집본(워드)이 필요하면: `node scripts/export.mjs --in "outputs/<이름>.md" --format docx --out "outputs/<이름>"`.
