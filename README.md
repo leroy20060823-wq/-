@@ -18,6 +18,52 @@ The Anthropic SDK runs **only on the server**. The API key lives in `.env` (or t
 host's env) and is never exposed to the browser. The key is **optional**: without it
 the UI and demo samples still work; live generation returns 401.
 
+## 클로드 코드 스킬로 쓰기 (API 결제 없이)
+
+배포 사이트는 호출마다 Anthropic API 비용이 들지만, 같은 모듈을 **클로드 코드
+슬래시 명령**으로도 쓸 수 있습니다. 이 경우 외부 API 대신 **현재 클로드 세션이
+직접** 자료를 만들어 주므로 추가 결제가 없습니다.
+
+각 생성 모듈(`src/modules.ts`)은 `.claude/skills/<한글이름>/SKILL.md` 스킬로
+**자동 생성**됩니다. 슬래시 명령 이름은 폴더 이름에서 나옵니다(예: `/시험지`,
+`/학습지`, `/단어장`, `/PPT`, `/수업지도안`, `/이력서` …). 모듈의 시스템
+프롬프트가 그대로 들어가 있어 품질 기준이 동일합니다.
+
+```bash
+npm run skills:build        # src/modules.ts → .claude/skills/*/SKILL.md 재생성
+```
+
+```
+/시험지 중2 영어 비교급 단원평가 상 25문항
+/단어장 vapor, summit, harbor, occur, coastal
+/자료 신입사원 온보딩 발표 자료 만들어줘   # 자연어 라우터: 알맞은 생성기로 안내
+```
+
+**파일 내보내기 (자동·바로 보기)** — 자료를 만들면 스킬이 **자동으로 파일을 만들어
+바로 전달**합니다. 영역별로 디자인이 다릅니다:
+
+- **시험지** → `scripts/exam-pdf.mjs` → `buildExamModel()`(`src/exam/parseExam.ts`) →
+  `scripts/exam_pdf.py`(WeasyPrint). 웹 앱(`src/routes/exam.ts`)과 **동일한 렌더러**라
+  브랜드 표지·유의사항·응시표·네이비 섹션바·문항 배지·정답표·해설까지 완성형 A4 PDF.
+- **단어장** → `scripts/vocab-pdf.mjs`(Chromium): 마룬 헤더·품사 배지·네이비 섹션바·
+  번호·IPA·예문·해석.
+- **그 밖** → `scripts/export.mjs`(Node): 워드 `.docx` + `PDF`(발표는 `.pptx` + `PDF`),
+  `.hwpx`는 요청 시. PDF는 Chromium + 번들 한글 폰트(`fonts/`)로 렌더해 한글·발음기호도
+  안 깨집니다.
+
+```bash
+node --import tsx scripts/exam-pdf.mjs --in "outputs/시험지.md" --out "outputs/시험지.pdf" --title "단원평가" --difficulty 중 --time 50
+node scripts/vocab-pdf.mjs --in "outputs/단어장.md" --out "outputs/단어장.pdf" --title "필수 영단어"
+node scripts/export.mjs --in "outputs/학습지.md" --format docx,pdf --out "outputs/학습지" --title "학습지"
+```
+
+> 시험지 PDF는 **Python 3 + WeasyPrint**가 필요합니다(`exam-pdf.mjs`가 없으면 자동 설치
+> 시도). 네이티브 의존성은 `scripts/EXAM_PDF_README.md` 참고.
+
+자세한 목록과 사용법은 [`.claude/skills/README.md`](.claude/skills/README.md)
+참고. 모듈을 추가/수정하면 `npm run skills:build`로 스킬을 다시 만드세요(스킬
+파일은 손으로 고치지 말 것 — 다음 빌드에서 덮어써집니다).
+
 ## Stack
 
 - Node.js (>= 18.18), TypeScript, Express
@@ -44,7 +90,8 @@ The page imports `marked` (Markdown → HTML) and `DOMPurify` (sanitization) fro
 `package.json`, refresh the copies with `npm run vendor`.
 
 Other scripts: `npm test` (unit tests, no API key needed), `npm run typecheck`,
-`npm run build` (emits to `dist/`), `npm start` (runs the build).
+`npm run build` (emits to `dist/`), `npm start` (runs the build),
+`npm run skills:build` (regenerates the Claude Code skills from `src/modules.ts`).
 
 ## Environment variables
 
@@ -180,8 +227,14 @@ public/                # demo frontend (static, served at /)
   styles.css
   app.js               # streams + renders Markdown via vendored marked + DOMPurify
   vendor/              # marked + DOMPurify browser builds (copied via npm run vendor)
+.claude/skills/        # generated slash-command skills (one per module) + README
 scripts/
   vendor.mjs           # copies frontend libs from node_modules into public/vendor
+  build-skills.mjs     # src/modules.ts → .claude/skills/*/SKILL.md (npm run skills:build)
+  export.mjs           # Markdown → .docx/.hwpx/.pptx/.pdf/.html (generic exporter)
+  exam-pdf.mjs         # 시험지 Markdown → branded exam PDF (buildExamModel + exam_pdf.py)
+  vocab-pdf.mjs        # 단어장 Markdown → branded vocabulary PDF (Chromium)
+  exam_pdf.py          # WeasyPrint exam renderer (also used by src/routes/exam.ts)
 src/
   config.ts            # env loading (key optional) + limits
   anthropic.ts         # shared Anthropic client

@@ -14,7 +14,10 @@
     "typecheck": "tsc --noEmit",
     "vendor": "node scripts/vendor.mjs",
     "test": "node --import tsx --test \"src/**/*.test.ts\"",
-    "design:build": "node scripts/build-design-assets.mjs"
+    "design:build": "node scripts/build-design-assets.mjs",
+    "skills:build": "node --import tsx scripts/build-skills.mjs",
+    "exam:pdf": "node --import tsx scripts/exam-pdf.mjs",
+    "vocab:pdf": "node scripts/vocab-pdf.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.2",
