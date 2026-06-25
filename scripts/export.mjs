@@ -14,9 +14,13 @@
 // Mirrors the document mapping used by the browser exporters in public/docx.js,
 // public/hwpx.js and public/pptx.js, but driven by marked's Markdown lexer
 // (no DOM) so it runs server-side.
-import { mkdir, writeFile, readFile } from "node:fs/promises";
+import { mkdir, writeFile, readFile, readdir } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { marked } from "marked";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 // ---------------------------------------------------------------- args ----
 function parseArgs(argv) {
@@ -290,6 +294,133 @@ async function buildPptx(md, { title, out }) {
   await pptx.writeFile({ fileName: out });
 }
 
+// ------------------------------------------------------------- .pdf -----
+// Render Markdown → HTML → PDF with headless Chromium (Playwright). Korean fonts
+// are embedded from the repo's fonts/ (the container has no Korean system font),
+// so 한글 + IPA phonetics render correctly. A slide deck (## Slide N) prints as
+// landscape one-slide-per-page; everything else prints as an A4 document.
+let fontCssCache = null;
+async function fontCSS() {
+  if (fontCssCache) return fontCssCache;
+  const b64 = async (f) => (await readFile(path.join(ROOT, "fonts", f))).toString("base64");
+  const [krR, krB, dv] = await Promise.all([
+    b64("NotoSansKR-Regular.ttf"),
+    b64("NotoSansKR-Bold.ttf"),
+    b64("DejaVuSans.ttf"),
+  ]);
+  const face = (fam, weight, data) =>
+    `@font-face{font-family:'${fam}';font-style:normal;font-weight:${weight};src:url(data:font/ttf;base64,${data}) format('truetype');}`;
+  // 'IPA' (DejaVu) first → Latin + phonetic glyphs; 'KR' (Noto) covers Hangul.
+  fontCssCache = [face("KR", 400, krR), face("KR", 700, krB), face("IPA", 400, dv)].join("\n");
+  return fontCssCache;
+}
+
+const escapeHtml = (s) =>
+  String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+function docHtml(bodyHtml, css) {
+  return `<!doctype html><html><head><meta charset="utf-8"><style>${css}
+*{box-sizing:border-box}
+body{font-family:'IPA','KR',sans-serif;color:#23262e;font-size:11.5pt;line-height:1.6;margin:0;}
+h1,h2,h3,h4{font-family:'IPA','KR',sans-serif;color:#192744;line-height:1.3;}
+h1{font-size:21pt;margin:0 0 10pt;}
+h2{font-size:15pt;margin:18pt 0 7pt;border-bottom:1px solid #E5E0D5;padding-bottom:3pt;}
+h3{font-size:13pt;margin:13pt 0 5pt;}
+p{margin:0 0 8pt;}
+ul,ol{margin:0 0 9pt 1.15em;padding:0;} li{margin:3pt 0;}
+strong{font-weight:700;color:#192744;}
+em{color:#555;}
+table{border-collapse:collapse;width:100%;margin:6pt 0 13pt;font-size:10.5pt;}
+th,td{border:1px solid #D8D2C4;padding:5pt 8pt;text-align:left;vertical-align:top;}
+th{background:#192744;color:#fff;}
+blockquote{margin:7pt 0;padding:5pt 12pt;border-left:3px solid #C2602E;color:#555;background:#FBF8F2;}
+code{font-family:'IPA',monospace;background:#F3EFE7;padding:0 3px;border-radius:3px;font-size:10.5pt;}
+hr{border:0;border-top:1px solid #ccc;margin:12pt 0;}
+</style></head><body>${bodyHtml}</body></html>`;
+}
+
+function deckHtml(slides, css) {
+  const pages = slides
+    .map((s, i) => {
+      if (i === 0) {
+        return `<section class="slide cover"><div class="bar"></div><h1>${escapeHtml(s.title)}</h1>${s.subtitle ? `<p class="sub">${escapeHtml(s.subtitle)}</p>` : ""}</section>`;
+      }
+      const body = s.bullets.length
+        ? `<ul>${s.bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join("")}</ul>`
+        : s.subtitle
+          ? `<p class="lead">${escapeHtml(s.subtitle)}</p>`
+          : "";
+      return `<section class="slide"><div class="tbar"></div><h2>${escapeHtml(s.title)}</h2>${body}</section>`;
+    })
+    .join("");
+  return `<!doctype html><html><head><meta charset="utf-8"><style>${css}
+@page{size:13.333in 7.5in;margin:0;}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:'IPA','KR',sans-serif;}
+.slide{position:relative;width:13.333in;height:7.5in;padding:0.9in;background:#FBF8F2;color:#192744;page-break-after:always;overflow:hidden;}
+.slide:last-child{page-break-after:auto;}
+.cover{display:flex;flex-direction:column;justify-content:center;}
+.cover .bar{width:1.3in;height:0.14in;background:#C2602E;margin-bottom:0.25in;}
+.cover h1{font-size:40pt;margin:0;line-height:1.15;}
+.cover .sub{font-size:20pt;color:#6B7280;margin:0.3in 0 0;}
+.tbar{position:absolute;left:0.9in;top:0.82in;width:0.14in;height:0.6in;background:#C2602E;}
+.slide h2{font-size:26pt;margin:0 0 0.35in 0.32in;}
+.slide ul{font-size:19pt;line-height:1.5;margin:0 0 0 1em;color:#192744;}
+.slide li{margin:0.12in 0;}
+.slide .lead{font-size:20pt;color:#374151;}
+</style></head><body>${pages}</body></html>`;
+}
+
+// Find the pre-installed Chromium without depending on Playwright's pinned
+// revision number (the container's revision may differ from the npm version).
+async function findChromium() {
+  const base = process.env.PLAYWRIGHT_BROWSERS_PATH || "/opt/pw-browsers";
+  if (!existsSync(base)) return null;
+  let entries = [];
+  try { entries = await readdir(base); } catch { return null; }
+  for (const d of entries.filter((e) => /^chromium-/.test(e)).sort().reverse()) {
+    const p = path.join(base, d, "chrome-linux", "chrome");
+    if (existsSync(p)) return p;
+  }
+  for (const d of entries.filter((e) => /^chromium_headless_shell-/.test(e))) {
+    const p = path.join(base, d, "chrome-linux", "headless_shell");
+    if (existsSync(p)) return p;
+  }
+  return null;
+}
+
+async function launchChromium() {
+  const { chromium } = await import("playwright");
+  const args = ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"];
+  try {
+    return await chromium.launch({ args });
+  } catch (e) {
+    const exe = await findChromium();
+    if (exe) return chromium.launch({ args, executablePath: exe });
+    throw e;
+  }
+}
+
+async function buildPdf(md, { out }) {
+  const css = await fontCSS();
+  const isDeck = /^#{1,3}\s*(?:Slide|슬라이드)\s*\d+/im.test(md);
+  const html = isDeck ? deckHtml(parseDeck(md), css) : docHtml(marked.parse(md), css);
+  const browser = await launchChromium();
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "load" });
+    await page.evaluate(async () => {
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    });
+    const opts = isDeck
+      ? { path: out, width: "13.333in", height: "7.5in", printBackground: true, preferCSSPageSize: true }
+      : { path: out, format: "A4", printBackground: true, margin: { top: "16mm", bottom: "16mm", left: "16mm", right: "16mm" } };
+    await page.pdf(opts);
+  } finally {
+    await browser.close();
+  }
+}
+
 // ------------------------------------------------------------- main -----
 async function readInput(a) {
   if (a.in) return readFile(a.in, "utf8");
@@ -304,7 +435,7 @@ function outPathFor(base, fmt) {
   // --out as a base name and append the extension.
   const ext = "." + fmt;
   if (base.toLowerCase().endsWith(ext)) return base;
-  const stripped = base.replace(/\.(docx|hwpx|pptx|md)$/i, "");
+  const stripped = base.replace(/\.(docx|hwpx|pptx|pdf|md)$/i, "");
   return stripped + ext;
 }
 
@@ -335,8 +466,10 @@ async function main() {
       await writeFile(out, await buildHwpx(tokens, { paper: a.paper }));
     } else if (fmt === "pptx") {
       await buildPptx(md, { title, out });
+    } else if (fmt === "pdf") {
+      await buildPdf(md, { out });
     } else {
-      console.error(`지원하지 않는 형식: ${fmt} (docx, hwpx, pptx, md 중 선택)`);
+      console.error(`지원하지 않는 형식: ${fmt} (docx, hwpx, pptx, pdf, md 중 선택)`);
       continue;
     }
     written.push(out);

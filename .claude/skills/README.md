@@ -19,17 +19,21 @@
 빠진 정보가 있으면 클로드가 꼭 필요한 것만 짧게 물어보고, 나머지는 합리적
 기본값으로 진행합니다. "알아서"라고 하면 전부 기본값으로 만들어요.
 
-## 파일로 내보내기 (인쇄·배포용)
-생성 후 원하면 **워드(.docx)·한글(.hwpx)·파워포인트(.pptx)·마크다운(.md)** 파일로
-저장합니다. "한글로 저장해줘", "워드로 줘", "PPT 파일로" 처럼 말하면 돼요. 내부적으로는
-`scripts/export.mjs`(오프라인 Node 변환기)가 `outputs/` 폴더에 파일을 만듭니다.
+## 파일로 바로 보기 (인쇄·면접 샘플용)
+자료를 만들면 **자동으로 파일을 만들어 바로 전달**합니다 — 문서는 **워드(.docx)+PDF**,
+발표는 **파워포인트(.pptx)+PDF**. 화면만 보고 싶으면 "파일은 됐어"라고 하면 돼요.
+**한글(.hwpx)** 이 필요하면 "한글로 줘"처럼 말하면 추가로 만들어 줍니다.
+
+내부적으로는 `scripts/export.mjs`(오프라인 Node 변환기)가 `outputs/` 폴더에 파일을
+만듭니다(PDF는 Chromium + 번들 한글 폰트로 렌더링해 한글·발음기호도 안 깨져요).
 
 ```bash
 # 스킬이 자동으로 호출하지만, 직접 쓸 수도 있어요:
-node scripts/export.mjs --in "outputs/시험지.md" --format docx,hwpx --out "outputs/시험지" --title "시험지"
+node scripts/export.mjs --in "outputs/시험지.md" --format docx,pdf --out "outputs/시험지" --title "시험지"
+node scripts/export.mjs --in "outputs/발표.md"   --format pptx,pdf --out "outputs/발표"
 ```
 
-> 처음 한 번은 `npm install` 이 필요합니다(변환에 `docx`·`hwpx-js`·`pptxgenjs` 사용).
+> 처음 한 번은 `npm install` 이 필요합니다(변환에 `docx`·`hwpx-js`·`pptxgenjs`·`playwright` 사용).
 
 ## 명령 목록
 
