@@ -417,6 +417,27 @@ async function buildPdf(md, { out }) {
     await page.evaluate(async () => {
       if (document.fonts && document.fonts.ready) await document.fonts.ready;
     });
+    // Slide auto-fit: a content-heavy slide would silently clip under overflow:hidden,
+    // so shrink each slide's bullets/lead until it fits (floor ~9px) — no clipping.
+    if (isDeck) {
+      await page.evaluate(() => {
+        const fs = (el) => parseFloat(getComputedStyle(el).fontSize);
+        for (const s of document.querySelectorAll(".slide")) {
+          const content = s.querySelectorAll("ul, .lead");
+          if (!content.length) continue;
+          let guard = 0;
+          while (s.scrollHeight > s.clientHeight + 1 && guard < 60) {
+            let shrank = false;
+            for (const t of content) {
+              const cur = fs(t);
+              if (cur > 9) { t.style.fontSize = cur * 0.95 + "px"; shrank = true; }
+            }
+            if (!shrank) break; // hit the floor; stop
+            guard += 1;
+          }
+        }
+      });
+    }
     const opts = isDeck
       ? { path: out, width: "13.333in", height: "7.5in", printBackground: true, preferCSSPageSize: true }
       : { path: out, format: "A4", printBackground: true, margin: { top: "16mm", bottom: "16mm", left: "16mm", right: "16mm" } };
