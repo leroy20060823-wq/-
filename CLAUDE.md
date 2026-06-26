@@ -8,9 +8,15 @@
 ## 자료 렌더러 (영역별)
 
 - **시험지** → `scripts/exam-pdf.mjs`(= `buildExamModel` + `scripts/exam_pdf.py`,
-  WeasyPrint). 프리미엄 표지·네이비 섹션바·**5지선다 ①②③④⑤**·정답표·해설.
+  WeasyPrint). **밤의 서재** 디자인(네이비·브라스 프리미엄 표지·섹션바)·**5지선다
+  ①②③④⑤**·정답표·해설.
   - **용지: 기본 B4(JIS-B4 257×364mm)** — 수능·동형모의고사 표준. 항상 B4로 출력한다.
     A4가 필요하면 `--paper a4`. (`--variant teacher|student|key|all` 와 함께 사용)
+  - **표지 문항 구성표(목차)**: 표지 1~2면에 문항번호·유형·배점 표(`build_toc`)가
+    `model.toc`에서 자동 생성된다. 그래서 본문 문항 헤더는 **짧은 유형 라벨**
+    (`**22. 요지 [3점]**`)로 쓰고 발문은 다음 줄에 둔다(목차가 라벨로 채워짐).
+  - **수능형·동형 모드**(영어): 평가원 독해 18~45번(28문항) 유형·순서·배점을 그대로
+    따른다. 상세 규칙은 `src/modules.ts`의 exam systemPrompt에 있다.
 - **단어장** → `scripts/vocab-pdf.mjs`(Chromium). 마룬 헤더·품사 배지.
 - **그 밖** → `scripts/export.mjs`(Markdown → docx/pdf/hwpx/pptx/html).
 - 표지는 **중립·범용이 기본**. 학교·기관 브랜드(brand)·모토(motto)·영문 부제는

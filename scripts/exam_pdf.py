@@ -483,6 +483,80 @@ table.score tr.summary td {{
     padding-left: 0.22em;
 }}
 
+/* ============================ 문항 구성표 (목차) ============================ */
+.toc {{
+    margin-top: 6mm;
+}}
+.toc-head {{
+    font-family: var(--serif-stack);
+    font-weight: 700;
+    color: var(--navy);
+    border-bottom: 1.4pt solid var(--navy);
+    padding-bottom: 1.6mm;
+    margin-bottom: 3mm;
+    letter-spacing: 0.04em;
+    font-size: calc(12pt * var(--content-scale));
+    break-after: avoid;
+}}
+.toc-head .toc-latin {{
+    font-family: var(--sans-stack);
+    font-weight: 700;
+    color: var(--brass);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-size: calc(8pt * var(--content-scale));
+    margin-left: 0.8em;
+}}
+.toc-table {{
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}}
+.toc-table th {{
+    background: var(--panel-bg);
+    color: var(--navy);
+    font-family: var(--sans-stack);
+    font-weight: 700;
+    font-size: calc(8.4pt * var(--content-scale));
+    letter-spacing: 0.04em;
+    text-align: left;
+    padding: 1.4mm 2mm;
+    border-bottom: 1pt solid var(--navy);
+}}
+.toc-table td {{
+    padding: 1.25mm 2mm;
+    border-bottom: 1px dotted var(--panel-bg);
+    font-size: calc(9.2pt * var(--content-scale));
+    vertical-align: baseline;
+}}
+.toc-table .toc-n {{
+    width: 9%;
+    font-family: var(--sans-stack);
+    font-weight: 700;
+    color: var(--navy);
+    text-align: right;
+    white-space: nowrap;
+}}
+.toc-table .toc-type {{
+    width: 28%;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}}
+.toc-table .toc-pt {{
+    width: 9%;
+    color: var(--gray);
+    font-family: var(--sans-stack);
+    font-size: calc(8.6pt * var(--content-scale));
+    white-space: nowrap;
+}}
+.toc-table .toc-gap {{
+    width: 8%;
+    border-bottom: none;
+    background: transparent;
+}}
+.toc-table .toc-star {{ color: var(--brass); font-size: 0.85em; }}
+
 /* ============================ PARTS / ITEMS ============================ */
 .part-divider {{
     background: var(--navy);
@@ -1059,6 +1133,9 @@ def build_cover(model):
     # ----- part summary 2-col box -----
     out.append(build_part_summary(model.get("partSummary")))
 
+    # ----- 문항 구성표 (목차) — 표지 1~2면에 자연스럽게 이어짐 -----
+    out.append(build_toc(model.get("toc")))
+
     # ----- motto -----
     motto = model.get("motto", "")
     if is_nonempty(motto):
@@ -1118,6 +1195,48 @@ def build_part_summary(part_summary):
             out.append(f'<span class="ps-meta">{meta}</span>')
         out.append("</div>")
     out.append("</div></div></div>")
+    return "\n".join(out)
+
+
+def _toc_cells(t):
+    """Three <td>s (문항·유형·배점) for one item, or empty cells if t is None."""
+    if not t:
+        return ('<td class="toc-n"></td><td class="toc-type"></td>'
+                '<td class="toc-pt"></td>')
+    n = esc(t.get("number", ""))
+    label = esc(t.get("label", "")) or "&nbsp;"
+    star = ' <span class="toc-star">★</span>' if t.get("killer") else ""
+    pts = t.get("points")
+    ptstr = f"{esc(pts)}점" if pts not in (None, "") else ""
+    return (f'<td class="toc-n">{n}</td>'
+            f'<td class="toc-type">{label}{star}</td>'
+            f'<td class="toc-pt">{ptstr}</td>')
+
+
+def build_toc(toc):
+    """문항 구성표(목차): 문항번호·유형·배점을 좌/우 2단 표로 실어 표지 1~2면에
+    걸쳐 깔끔하게 담는다(수능·동형 시험지 앞부분 구성표 형식). 표는 페이지
+    경계에서 자연스럽게 나뉜다."""
+    rows = [t for t in (toc or []) if isinstance(t, dict)]
+    if not rows:
+        return ""
+    half = (len(rows) + 1) // 2
+    left, right = rows[:half], rows[half:]
+    out = ['<section class="toc">']
+    out.append(
+        '<div class="toc-head">문항 구성표'
+        '<span class="toc-latin">Question Index</span></div>'
+    )
+    out.append('<table class="toc-table"><thead><tr>'
+               '<th class="toc-n">문항</th><th class="toc-type">유형</th><th class="toc-pt">배점</th>'
+               '<th class="toc-gap"></th>'
+               '<th class="toc-n">문항</th><th class="toc-type">유형</th><th class="toc-pt">배점</th>'
+               '</tr></thead><tbody>')
+    for i in range(half):
+        r = right[i] if i < len(right) else None
+        out.append('<tr>' + _toc_cells(left[i]) + '<td class="toc-gap"></td>' + _toc_cells(r) + '</tr>')
+    out.append('</tbody></table>')
+    out.append("</section>")
     return "\n".join(out)
 
 

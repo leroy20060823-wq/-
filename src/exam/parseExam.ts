@@ -59,6 +59,13 @@ export interface ExplanationGroup {
   part: string;
   cards: ExplanationCard[];
 }
+export interface TocEntry {
+  number: number;
+  label: string;
+  points: number | null;
+  killer: boolean;
+  part: string;
+}
 export interface ExamModel {
   brand: string;
   motto: string;
@@ -72,6 +79,7 @@ export interface ExamModel {
   fillIn: string[];
   scoreTable: ScoreTable | null;
   partSummary: PartSummaryRow[];
+  toc: TocEntry[];
   parts: ExamPart[];
   answerKey: AnswerKeyGroup[];
   explanations: ExplanationGroup[];
@@ -548,11 +556,18 @@ export function buildExamModel(markdown: string, input: ExamMetaInput = {}): Exa
     // so the 해설 header can show '정답 X ★Killer · 고난도 (N점)'.
     const explanations = parseExplanations(exLines);
     const itemMeta = new Map<number, { points: number | null; killer: boolean }>();
+    // 문항 구성표(목차): 번호·유형(label)·배점·killer — 표지에 표로 싣는다.
+    const toc: TocEntry[] = [];
     for (const p of parts) {
+      const partName = [p.code, p.name].filter(Boolean).join(" ");
       for (const b of p.blocks) {
-        if (b.type === "item") itemMeta.set(b.number, { points: b.points, killer: b.killer });
+        if (b.type === "item") {
+          itemMeta.set(b.number, { points: b.points, killer: b.killer });
+          toc.push({ number: b.number, label: b.label, points: b.points, killer: b.killer, part: partName });
+        }
       }
     }
+    toc.sort((a, b) => a.number - b.number);
     for (const g of explanations) {
       for (const c of g.cards) {
         const m = itemMeta.get(c.number);
@@ -576,6 +591,7 @@ export function buildExamModel(markdown: string, input: ExamMetaInput = {}): Exa
       fillIn: FILL_IN_DEFAULT,
       scoreTable,
       partSummary: summary,
+      toc,
       parts,
       answerKey: parseAnswerKey(akLines),
       explanations,
@@ -595,6 +611,7 @@ export function buildExamModel(markdown: string, input: ExamMetaInput = {}): Exa
       fillIn: FILL_IN_DEFAULT,
       scoreTable: null,
       partSummary: [],
+      toc: [],
       parts: [{ code: "", name: "문제", meta: "", blocks: [{ type: "passage", title: "", tag: "", paragraphs: safe.split("\n").filter(Boolean) }] }],
       answerKey: [],
       explanations: [],

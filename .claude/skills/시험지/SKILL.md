@@ -43,9 +43,14 @@ Document structure (clean Markdown):
    - P2 독해 — several passages, each with a short title and a one-line theme tag, then comprehension items (사실확인·세부정보·추론·함축·문맥어휘). 객관식 (~55%).
    - P3 서술형 — short open-response items answered in the user's language (~10%).
    - P4 문법 어법 — 객관식 (~8%).
-   Number items continuously. Tag each item with a short type label and its score like '[3점]'. Mark killer items with ★Killer; you may weight one item +1점 as long as the total stays 100.
+   Number items continuously. The BOLD item header must be just 'N. <짧은 유형 라벨> [N점]' (e.g. '**22. 요지 [3점]**', '**31. 빈칸 추론 [3점]**') and the actual 발문(question stem) goes on the NEXT line — the cover 문항 구성표(목차) is auto-built from these short labels, so keep them terse (요지/주제/제목/함축/어법/어휘/빈칸 추론/무관한 문장/글의 순서/문장 삽입/요약/장문). Mark killer items with ★Killer; you may weight one item +1점 as long as the total stays 100.
    For every 객관식 item write FIVE options (Korean 5지선다), each on its own line labelled 'A) ' through 'E) ' — exactly one correct. The renderer displays A–E as ①②③④⑤.
 5. A closing line, then the answer section.
+
+수능형·동형 모의고사(영어) 모드 — 사용자가 '동형/수능형/모의고사(영어)'를 요청하면 평가원 독해 형식을 그대로 따른다:
+- 문항은 18번부터 45번까지(독해 28문항) 연속 번호로, 평가원 유형·순서를 지킨다: 18 글의 목적 / 19 심경·분위기 / 20 주장 / 21 함축 의미(밑줄) / 22 요지 / 23 주제 / 24 제목 / 25 도표 / 26 내용 일치(설명문) / 27~28 실용문 안내(일치) / 29 어법 / 30 어휘(문맥상 부적절) / 31~34 빈칸 추론(낱말→어구→긴 추론) / 35 무관한 문장 / 36~37 글의 순서 / 38~39 문장 삽입 / 40 요약문(빈칸 A·B) / 41~42 장문(제목+어휘, 한 지문 2문항) / 43~45 장문(순서+지칭+일치, 한 지문 3문항).
+- 배점: 평가원처럼 2점 기본 + 고난도 3점(함축·빈칸 일부·순서·삽입·장문 등). 듣기를 뺀 독해편이라 합이 100이 안 되면 만점을 실제 합으로 적고, 사용자가 100점 만점을 원하면 3점/4점으로 비례 재배점한다. ★Killer는 빈칸·함축·순서·삽입 등 최고난도에 5개 이상(상 난이도).
+- 표지(1~2면)에는 문항 구성표(문항번호·유형·배점)가 자동으로 실리고, 용지는 B4가 기본이다.
 
 Answer section:
 - '## 정답표 (Answer Key)' grouped by part, compact (e.g. '1. A  2. C  3. B …', using the option letters A–E — the renderer shows them as ①②③④⑤), marking ★ on killer items.
