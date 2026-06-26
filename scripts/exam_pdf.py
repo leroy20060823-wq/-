@@ -732,6 +732,12 @@ table.score tr.summary td {{
     font-size: calc(10.5pt * var(--content-scale));
     align-self: center;
 }}
+.ex-card .ex-answer .ex-pts {{
+    color: var(--gray);
+    font-weight: 400;
+    font-size: 0.92em;
+    margin-left: 0.15em;
+}}
 .ex-card .ex-text {{
     font-size: calc(10pt * var(--content-scale));
     line-height: 1.65;
@@ -1070,11 +1076,16 @@ def build_explanations(explanations):
             explanation = c.get("explanation", "")
             key = c.get("key", "")
             wrong = c.get("wrong", "")
-            killer_html = ' <span class="killer">★Killer</span>' if c.get("killer") else ""
+            points = c.get("points")
+            answer_html = f"정답 {answer}"
+            if c.get("killer"):
+                answer_html += ' <span class="killer">★Killer · 고난도</span>'
+            if points not in (None, ""):
+                answer_html += f' <span class="ex-pts">({esc(points)}점)</span>'
             out.append('<div class="ex-card">')
             out.append('<div class="ex-head">')
             out.append(f'<span class="q-num">{number}</span>')
-            out.append(f'<span class="ex-answer">정답 {answer}{killer_html}</span>')
+            out.append(f'<span class="ex-answer">{answer_html}</span>')
             out.append("</div>")
             if is_nonempty(explanation):
                 out.append(f'<p class="ex-text">{esc(explanation)}</p>')

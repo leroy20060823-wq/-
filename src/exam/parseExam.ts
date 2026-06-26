@@ -53,6 +53,7 @@ export interface ExplanationCard {
   key: string;
   wrong: string;
   killer: boolean;
+  points: number | null;
 }
 export interface ExplanationGroup {
   part: string;
@@ -435,6 +436,7 @@ function parseExplanations(lines: string[]): ExplanationGroup[] {
         key: "",
         wrong: "",
         killer,
+        points: null,
       };
       i++;
       while (i < lines.length) {
@@ -518,6 +520,25 @@ export function buildExamModel(markdown: string, input: ExamMetaInput = {}): Exa
     // 수험자 유의사항 (numbered list under a 유의사항/안내 heading), best-effort.
     const instructions = extractInstructions(headerAndBody);
 
+    // Enrich explanation cards with each item's 배점/killer (joined by number),
+    // so the 해설 header can show '정답 X ★Killer · 고난도 (N점)'.
+    const explanations = parseExplanations(exLines);
+    const itemMeta = new Map<number, { points: number | null; killer: boolean }>();
+    for (const p of parts) {
+      for (const b of p.blocks) {
+        if (b.type === "item") itemMeta.set(b.number, { points: b.points, killer: b.killer });
+      }
+    }
+    for (const g of explanations) {
+      for (const c of g.cards) {
+        const m = itemMeta.get(c.number);
+        if (m) {
+          c.points = m.points;
+          c.killer = c.killer || m.killer;
+        }
+      }
+    }
+
     return {
       brand: input.brand?.trim() || "",
       motto: input.motto?.trim() || "",
@@ -533,7 +554,7 @@ export function buildExamModel(markdown: string, input: ExamMetaInput = {}): Exa
       partSummary: summary,
       parts,
       answerKey: parseAnswerKey(akLines),
-      explanations: parseExplanations(exLines),
+      explanations,
     };
   } catch {
     // Never throw — return a minimal valid model so the renderer still produces a page.
