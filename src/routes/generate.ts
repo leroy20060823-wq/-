@@ -8,6 +8,7 @@ import { listModules } from "../modules.js";
 import { moduleTier } from "../routing.js";
 import { generate, generateStream } from "../services/generator.js";
 import { reviewAndFix } from "../services/examReview.js";
+import { reviewArtifact, REVIEWABLE } from "../services/review.js";
 import { parseGenerateRequest, type GenerateBody } from "../validation.js";
 import { createGlobalDailyLimiter } from "../rateLimit.js";
 import { getSample } from "../samples.js";
@@ -211,6 +212,33 @@ router.post(
       return;
     }
     const result = await reviewAndFix(markdown);
+    res.json(result);
+  }),
+);
+
+// Module-aware QA review (단어장·학습지·퀴즈·발표자료·엑셀·시험지). Same contract as
+// /exam/review but picks the review prompt by module. Paid LLM → generation guards.
+router.post(
+  "/review",
+  ...generationGuards,
+  asyncHandler(async (req, res) => {
+    if (!ensureApiKey(res)) return;
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    const moduleId = typeof body.module === "string" ? body.module : "";
+    const markdown = typeof body.markdown === "string" ? body.markdown : "";
+    if (!REVIEWABLE.has(moduleId)) {
+      res.status(400).json({ error: "이 종류는 검토를 지원하지 않아요." });
+      return;
+    }
+    if (!markdown.trim()) {
+      res.status(400).json({ error: "검토할 내용이 비어 있어요." });
+      return;
+    }
+    if (markdown.length > config.maxInputChars * 6) {
+      res.status(400).json({ error: "내용이 너무 깁니다." });
+      return;
+    }
+    const result = await reviewArtifact(moduleId, markdown);
     res.json(result);
   }),
 );

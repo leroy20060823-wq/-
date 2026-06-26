@@ -107,6 +107,8 @@ const examReviewActions = document.getElementById("exam-review-actions");
 const examReviewApply = document.getElementById("exam-review-apply");
 const examReviewText = document.getElementById("exam-review-text");
 let lastFixedMarkdown = null;
+// Modules that expose the AI review action (mirror of src/services/review.ts REVIEWABLE).
+const REVIEWABLE = new Set(["exam", "vocabulary", "worksheet", "quiz", "ppt", "excel"]);
 const docExport = document.getElementById("doc-export");
 const paperChips = document.getElementById("paper-chips");
 const downloadDocxBtn = document.getElementById("download-docx");
@@ -424,7 +426,7 @@ async function showPreview(moduleId) {
   // The exam module also offers a polished A4 PDF (server-side WeasyPrint) and
   // an independent QA review pass.
   examPdfBar.hidden = moduleId !== "exam";
-  examReviewBar.hidden = moduleId !== "exam";
+  examReviewBar.hidden = !REVIEWABLE.has(moduleId);
   resetExamReview();
   if (moduleId === "ppt") {
     await showDeck(raw, selectedPptTheme || DEFAULT_DECK_THEME);
@@ -506,15 +508,17 @@ function renderExamReview(data) {
   examReviewPanel.hidden = false;
 }
 
-async function runExamReview() {
+async function runReview() {
   if (!raw.trim()) return;
+  const moduleId = getCurrentModule()?.id;
+  if (!moduleId || !REVIEWABLE.has(moduleId)) return;
   examReviewBtn.disabled = true;
-  examReviewStatus.textContent = "검토 중… 처음부터 다시 풀어보는 중이라 시간이 좀 걸려요";
+  examReviewStatus.textContent = "검토 중… 다시 꼼꼼히 살펴보는 중이라 시간이 좀 걸려요";
   try {
-    const res = await fetch("/api/exam/review", {
+    const res = await fetch("/api/review", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ markdown: raw }),
+      body: JSON.stringify({ module: moduleId, markdown: raw }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -530,18 +534,21 @@ async function runExamReview() {
   }
 }
 
-async function applyExamFix() {
+async function applyReviewFix() {
   if (!lastFixedMarkdown) return;
+  const moduleId = getCurrentModule()?.id;
   raw = lastFixedMarkdown;
   lastFixedMarkdown = null;
   renderNow();
   try {
-    await showDoc("exam"); // rebuild the paged preview from the corrected markdown
+    // Rebuild the right preview from the corrected markdown.
+    if (moduleId === "ppt") await showDeck(raw, selectedPptTheme || DEFAULT_DECK_THEME);
+    else await showDoc(moduleId);
   } catch {
     /* preview is best-effort; the raw text + exports already use the fix */
   }
   examReviewActions.hidden = true;
-  examReviewStatus.textContent = "✅ 수정본을 적용했어요. 미리보기·PDF·문서 내려받기에 반영됐어요.";
+  examReviewStatus.textContent = "✅ 수정본을 적용했어요. 미리보기·내려받기에 반영됐어요.";
 }
 
 /* ---------- Shared structured controls (chips / stepper / counts) ---------- */
@@ -2158,8 +2165,8 @@ copyBtn.addEventListener("click", async () => {
 viewPreviewBtn.addEventListener("click", () => setView("preview"));
 viewTextBtn.addEventListener("click", () => setView("text"));
 examPdfBtn.addEventListener("click", downloadExamPdf);
-examReviewBtn.addEventListener("click", runExamReview);
-examReviewApply.addEventListener("click", applyExamFix);
+examReviewBtn.addEventListener("click", runReview);
+examReviewApply.addEventListener("click", applyReviewFix);
 
 /* ---------- D15: post-use feedback survey ---------- */
 const feedbackModal = document.getElementById("feedback-modal");
