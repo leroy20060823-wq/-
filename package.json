@@ -16,6 +16,7 @@
     "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "test:render": "node scripts/test-render.mjs",
     "lint:ko": "node --import tsx scripts/ko-lint.mjs",
+    "verify:excel": "node --import tsx scripts/verify-excel.mjs",
     "design:build": "node scripts/build-design-assets.mjs"
   },
   "dependencies": {
@@ -33,6 +34,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^25.9.3",
     "dompurify": "^3.4.10",
+    "hyperformula": "^3.3.0",
     "marked": "^18.0.5",
     "playwright": "^1.61.0",
     "tsx": "^4.22.4",
