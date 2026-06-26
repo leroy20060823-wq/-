@@ -36,6 +36,11 @@ npm run typecheck   # tsc --noEmit
 npm test            # node --test on src/**/*.test.ts
 npm run build       # tsc -p tsconfig.build.json → dist/
 npm start           # node dist/server.js (prod)
+
+# QA helpers
+npm run test:render        # golden-file PDF render regression (needs WeasyPrint+poppler; skips if absent)
+npm run lint:ko -- <f.md>  # mechanical 한국어 발문·해설 linter
+npm run verify:excel -- <f.md>  # evaluate 엑셀 formulas with HyperFormula (dev-only)
 ```
 
 Keep `typecheck`, `test`, and `build` green. Commit per logical task with a clear message.
