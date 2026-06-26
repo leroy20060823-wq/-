@@ -540,6 +540,7 @@ async function applyReviewFix() {
   raw = lastFixedMarkdown;
   lastFixedMarkdown = null;
   renderNow();
+  updateActiveHistoryContent(raw); // keep the sidebar entry in sync with the fix
   try {
     // Rebuild the right preview from the corrected markdown.
     if (moduleId === "ppt") await showDeck(raw, selectedPptTheme || DEFAULT_DECK_THEME);
@@ -1620,6 +1621,7 @@ async function generate(event) {
       showResultActions(current?.id);
       showDocControls(current?.id);
       maybeAutoFeedback(current?.id);
+      saveHistoryEntry(current, raw); // add to the left history sidebar
     }
   } catch (err) {
     if (err.name === "AbortError") {
@@ -1629,6 +1631,7 @@ async function generate(event) {
       setStatus("멈췄어요");
       showResultActions(current?.id);
       showDocControls(current?.id);
+      if (raw.trim()) saveHistoryEntry(current, raw); // keep the partial result
     } else {
       showError("연결이 고르지 않아요. 인터넷 상태를 확인하고 다시 시도해 주세요.");
       setStatus("문제가 생겼어요");
@@ -1903,6 +1906,266 @@ function restoreDraft(id) {
     String(state.sourceText || "").trim();
   draftNote.hidden = !meaningful;
 }
+
+/* ---------- Left history sidebar (client-side, localStorage) ---------- */
+// Claude/Gemini-style history. No login here, so entries live in this browser.
+const HISTORY_KEY = "aio_history_v1";
+const HISTORY_MAX = 40;
+const sidebarToggle = document.getElementById("sidebar-toggle");
+const sidebarBackdrop = document.getElementById("sidebar-backdrop");
+const sidebarNewBtn = document.getElementById("sidebar-new");
+const historyListEl = document.getElementById("history-list");
+const historyEmptyEl = document.getElementById("history-empty");
+const mqMobile = window.matchMedia("(max-width: 860px)");
+let activeHistoryId = null;
+
+function loadHistory() {
+  try {
+    const a = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+    return Array.isArray(a) ? a : [];
+  } catch {
+    return [];
+  }
+}
+function persistHistory(list) {
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+    return true;
+  } catch {
+    // Quota exceeded → drop oldest entries until it fits.
+    let trimmed = list.slice();
+    while (trimmed.length > 1) {
+      trimmed = trimmed.slice(0, trimmed.length - 1);
+      try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
+        return true;
+      } catch {
+        /* keep trimming */
+      }
+    }
+    return false;
+  }
+}
+function uid() {
+  return "h" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+function historyTitleFrom(state, content, fallback) {
+  const g = (state && state.guide) || {};
+  const cand =
+    g.subject || g.topic || g.title || g.goal || g.scope || g.words || (state && state.extra) || "";
+  let t = String(cand).split("\n")[0].trim();
+  if (!t) {
+    const m = (content || "").match(/^#{1,3}\s+(.+)$/m);
+    t = m ? m[1].trim() : "";
+  }
+  t = t.replace(/[*#`>_]/g, "").trim().slice(0, 60);
+  return t || fallback || "결과";
+}
+function saveHistoryEntry(moduleObj, content) {
+  if (!moduleObj || !content || !content.trim()) return;
+  const state = collectFormState();
+  const item = {
+    id: uid(),
+    ts: Date.now(),
+    module: moduleObj.id,
+    moduleName: moduleObj.name,
+    title: historyTitleFrom(state, content, moduleObj.name),
+    content,
+    state: {
+      guide: state.guide,
+      options: state.options,
+      counts: state.counts,
+      extra: state.extra,
+      sourceText: state.sourceText,
+    },
+    docPaper,
+  };
+  let list = loadHistory();
+  list.unshift(item);
+  if (list.length > HISTORY_MAX) list = list.slice(0, HISTORY_MAX);
+  persistHistory(list);
+  activeHistoryId = item.id;
+  renderHistory();
+}
+function updateActiveHistoryContent(content) {
+  if (!activeHistoryId || !content) return;
+  const list = loadHistory();
+  const it = list.find((x) => x.id === activeHistoryId);
+  if (!it) return;
+  it.content = content;
+  persistHistory(list);
+}
+function relTime(ts) {
+  const min = Math.floor((Date.now() - ts) / 60000);
+  if (min < 1) return "방금";
+  if (min < 60) return `${min}분 전`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}시간 전`;
+  const dt = new Date(ts);
+  return `${dt.getMonth() + 1}/${dt.getDate()}`;
+}
+function dayStart(ts) {
+  const d = new Date(ts);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+function groupLabel(ts) {
+  const diff = Math.round((dayStart(Date.now()) - dayStart(ts)) / 86400000);
+  if (diff <= 0) return "오늘";
+  if (diff === 1) return "어제";
+  if (diff <= 7) return "지난 7일";
+  if (diff <= 30) return "지난 30일";
+  return "이전";
+}
+function renderHistory() {
+  if (!historyListEl) return;
+  const list = loadHistory();
+  historyListEl.innerHTML = "";
+  if (historyEmptyEl) historyEmptyEl.hidden = list.length > 0;
+  let lastLabel = null;
+  for (const it of list) {
+    const label = groupLabel(it.ts);
+    if (label !== lastLabel) {
+      const h = document.createElement("div");
+      h.className = "history-group-label";
+      h.textContent = label;
+      historyListEl.appendChild(h);
+      lastLabel = label;
+    }
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "history-item" + (it.id === activeHistoryId ? " active" : "");
+    btn.dataset.id = it.id;
+    const title = document.createElement("span");
+    title.className = "hi-title";
+    title.textContent = it.title;
+    const meta = document.createElement("span");
+    meta.className = "hi-meta";
+    meta.textContent = `${it.moduleName} · ${relTime(it.ts)}`;
+    const actions = document.createElement("span");
+    actions.className = "hi-actions";
+    const ren = document.createElement("button");
+    ren.type = "button";
+    ren.className = "hi-act";
+    ren.dataset.act = "rename";
+    ren.title = "이름 바꾸기";
+    ren.textContent = "✎";
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "hi-act";
+    del.dataset.act = "delete";
+    del.title = "삭제";
+    del.textContent = "🗑";
+    actions.append(ren, del);
+    btn.append(title, meta, actions);
+    historyListEl.appendChild(btn);
+  }
+}
+function renameHistory(id) {
+  const list = loadHistory();
+  const it = list.find((x) => x.id === id);
+  if (!it) return;
+  const next = window.prompt("이름 바꾸기", it.title);
+  if (next == null) return;
+  it.title = next.trim().slice(0, 80) || it.title;
+  persistHistory(list);
+  renderHistory();
+}
+function deleteHistory(id) {
+  const list = loadHistory();
+  const it = list.find((x) => x.id === id);
+  if (it && !window.confirm(`'${it.title}' 기록을 삭제할까요?`)) return;
+  persistHistory(list.filter((x) => x.id !== id));
+  if (activeHistoryId === id) activeHistoryId = null;
+  renderHistory();
+}
+function restoreHistoryItem(id) {
+  const item = loadHistory().find((x) => x.id === id);
+  if (!item) return;
+  if (!modules.find((x) => x.id === item.module)) {
+    showError("이 기록의 도구를 찾을 수 없어요.");
+    return;
+  }
+  location.hash = "#generate";
+  moduleSelect.value = item.module;
+  updateModuleDesc(); // rebuild guide/options fields for this module
+  applyFormState(item.state); // override with the saved inputs
+  if (item.state && item.state.sourceText && moduleHasSource()) {
+    sourceInput.setSourceText(item.state.sourceText);
+    updateSourceNote();
+  }
+  draftNote.hidden = true;
+  if (item.docPaper) {
+    docPaper = item.docPaper;
+    paperChips?.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c.dataset.paper === docPaper));
+  }
+  clearError();
+  raw = item.content || "";
+  revealOutputOnce();
+  renderNow();
+  copyBtn.hidden = raw.length === 0;
+  setStatus("이전 기록을 불러왔어요");
+  activeHistoryId = id;
+  renderHistory();
+  showPreview(item.module).then(() => {
+    showResultActions(item.module);
+    showDocControls(item.module);
+  });
+  if (mqMobile.matches) closeSidebarMobile();
+}
+historyListEl?.addEventListener("click", (e) => {
+  const actBtn = e.target.closest(".hi-act");
+  const item = e.target.closest(".history-item");
+  if (!item) return;
+  const id = item.dataset.id;
+  if (actBtn) {
+    e.stopPropagation();
+    if (actBtn.dataset.act === "rename") renameHistory(id);
+    else if (actBtn.dataset.act === "delete") deleteHistory(id);
+    return;
+  }
+  restoreHistoryItem(id);
+});
+
+/* sidebar open / close */
+function openSidebarMobile() {
+  document.body.classList.add("sidebar-open");
+  if (sidebarBackdrop) sidebarBackdrop.hidden = false;
+}
+function closeSidebarMobile() {
+  document.body.classList.remove("sidebar-open");
+  if (sidebarBackdrop) sidebarBackdrop.hidden = true;
+}
+function toggleSidebar() {
+  if (mqMobile.matches) {
+    if (document.body.classList.contains("sidebar-open")) closeSidebarMobile();
+    else openSidebarMobile();
+  } else {
+    const collapsed = document.body.classList.toggle("sidebar-collapsed");
+    try {
+      localStorage.setItem("aio_sidebar_collapsed", collapsed ? "1" : "0");
+    } catch {
+      /* ignore */
+    }
+  }
+}
+sidebarToggle?.addEventListener("click", toggleSidebar);
+sidebarBackdrop?.addEventListener("click", closeSidebarMobile);
+sidebarNewBtn?.addEventListener("click", () => {
+  activeHistoryId = null;
+  resetOutput();
+  setStatus("");
+  clearError();
+  location.hash = "#generate";
+  renderHistory();
+  if (mqMobile.matches) closeSidebarMobile();
+  else inputEl?.focus();
+});
+// Desktop: restore the collapsed preference. (Mobile drawer always starts closed.)
+if (!mqMobile.matches && localStorage.getItem("aio_sidebar_collapsed") === "1") {
+  document.body.classList.add("sidebar-collapsed");
+}
+renderHistory();
 
 /* ---------- A1: sample preview ("이런 게 나와요") ---------- */
 const sampleCache = new Map();

@@ -36,7 +36,23 @@
       <path d="M63 52 C 80 50, 90 41, 95 30 C 80 31, 69 39, 62 49" />
     </svg>
 
+    <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
+    <div class="app-shell">
+      <aside id="sidebar" class="sidebar" aria-label="이전 기록">
+        <div class="sidebar-top">
+          <button id="sidebar-new" class="sidebar-new" type="button">
+            <span class="sn-plus" aria-hidden="true">＋</span> 새로 만들기
+          </button>
+        </div>
+        <nav id="history-list" class="history-list" aria-label="이전 기록 목록"></nav>
+        <p id="history-empty" class="history-empty" hidden>아직 만든 기록이 없어요.<br />무언가 만들면 여기에 쌓여요.</p>
+        <div class="sidebar-foot">기록은 이 브라우저에만 저장돼요</div>
+      </aside>
+      <div class="app-body">
     <header class="topbar">
+      <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-label="이전 기록 열기·닫기" title="이전 기록">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg>
+      </button>
       <a class="brand" href="#" data-nav="home">
         <span class="brand-logo">✦</span>
         올인원 AI
@@ -337,6 +353,8 @@
         <a href="mailto:leroy20060823@gmail.com">문의</a>
       </nav>
     </footer>
+      </div>
+    </div>
 
     <!-- PPT design example modal (content-aware, CSS-rendered) -->
     <div id="design-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="design-modal-title">
