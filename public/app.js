@@ -96,6 +96,15 @@ const examBrandEl = document.getElementById("exam-brand");
 const examMottoEl = document.getElementById("exam-motto");
 const examPdfBtn = document.getElementById("exam-pdf-btn");
 const examPdfStatus = document.getElementById("exam-pdf-status");
+const examReviewBar = document.getElementById("exam-review");
+const examReviewBtn = document.getElementById("exam-review-btn");
+const examReviewStatus = document.getElementById("exam-review-status");
+const examReviewPanel = document.getElementById("exam-review-panel");
+const examReviewBadges = document.getElementById("exam-review-badges");
+const examReviewActions = document.getElementById("exam-review-actions");
+const examReviewApply = document.getElementById("exam-review-apply");
+const examReviewText = document.getElementById("exam-review-text");
+let lastFixedMarkdown = null;
 const docExport = document.getElementById("doc-export");
 const paperChips = document.getElementById("paper-chips");
 const downloadDocxBtn = document.getElementById("download-docx");
@@ -329,6 +338,8 @@ function resetOutput() {
   copyBtn.hidden = true;
   examPdfBar.hidden = true;
   if (examPdfStatus) examPdfStatus.textContent = "";
+  if (examReviewBar) examReviewBar.hidden = true;
+  resetExamReview();
   if (resultActions) resultActions.hidden = true;
   if (docExport) docExport.hidden = true;
   if (docExportStatus) docExportStatus.textContent = "";
@@ -408,8 +419,11 @@ async function showDoc(moduleId) {
 // Build the right preview for a finished result.
 async function showPreview(moduleId) {
   if (!raw.trim()) return;
-  // The exam module also offers a polished A4 PDF (server-side WeasyPrint).
+  // The exam module also offers a polished A4 PDF (server-side WeasyPrint) and
+  // an independent QA review pass.
   examPdfBar.hidden = moduleId !== "exam";
+  examReviewBar.hidden = moduleId !== "exam";
+  resetExamReview();
   if (moduleId === "ppt") {
     await showDeck(raw, selectedPptTheme || DEFAULT_DECK_THEME);
   } else {
@@ -458,6 +472,72 @@ async function downloadExamPdf() {
   } finally {
     examPdfBtn.disabled = false;
   }
+}
+
+/* ---------- Exam QA: independent 4-stage adversarial review (+ optional fix) ---------- */
+
+function resetExamReview() {
+  if (!examReviewPanel) return;
+  examReviewPanel.hidden = true;
+  examReviewActions.hidden = true;
+  examReviewBadges.innerHTML = "";
+  examReviewText.innerHTML = "";
+  examReviewStatus.textContent = "";
+  lastFixedMarkdown = null;
+}
+
+function renderExamReview(data) {
+  const s = data.severity || { critical: 0, major: 0, minor: 0 };
+  const total = (s.critical || 0) + (s.major || 0) + (s.minor || 0);
+  const badge = (label, n, cls) =>
+    `<span class="rv-badge ${cls}${n ? "" : " zero"}">${label} ${n || 0}</span>`;
+  examReviewBadges.innerHTML =
+    (total === 0 ? `<span class="rv-clean">✅ 큰 문제를 찾지 못했어요</span>` : "") +
+    badge("치명", s.critical, "rv-critical") +
+    badge("중대", s.major, "rv-major") +
+    badge("경미", s.minor, "rv-minor");
+  examReviewText.innerHTML = DOMPurify.sanitize(marked.parse(data.reviewText || "검토 결과가 비어 있어요."));
+  lastFixedMarkdown = data.changed ? data.fixedMarkdown : null;
+  examReviewActions.hidden = !lastFixedMarkdown;
+  examReviewPanel.hidden = false;
+}
+
+async function runExamReview() {
+  if (!raw.trim()) return;
+  examReviewBtn.disabled = true;
+  examReviewStatus.textContent = "검토 중… 처음부터 다시 풀어보는 중이라 시간이 좀 걸려요";
+  try {
+    const res = await fetch("/api/exam/review", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ markdown: raw }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      examReviewStatus.textContent = data.error || "검토에 실패했어요. 잠시 후 다시 시도해 주세요.";
+      return;
+    }
+    renderExamReview(data);
+    examReviewStatus.textContent = "";
+  } catch {
+    examReviewStatus.textContent = "검토에 실패했어요. 잠시 후 다시 시도해 주세요.";
+  } finally {
+    examReviewBtn.disabled = false;
+  }
+}
+
+async function applyExamFix() {
+  if (!lastFixedMarkdown) return;
+  raw = lastFixedMarkdown;
+  lastFixedMarkdown = null;
+  renderNow();
+  try {
+    await showDoc("exam"); // rebuild the paged preview from the corrected markdown
+  } catch {
+    /* preview is best-effort; the raw text + exports already use the fix */
+  }
+  examReviewActions.hidden = true;
+  examReviewStatus.textContent = "✅ 수정본을 적용했어요. 미리보기·PDF·문서 내려받기에 반영됐어요.";
 }
 
 /* ---------- Shared structured controls (chips / stepper / counts) ---------- */
@@ -2067,6 +2147,8 @@ copyBtn.addEventListener("click", async () => {
 viewPreviewBtn.addEventListener("click", () => setView("preview"));
 viewTextBtn.addEventListener("click", () => setView("text"));
 examPdfBtn.addEventListener("click", downloadExamPdf);
+examReviewBtn.addEventListener("click", runExamReview);
+examReviewApply.addEventListener("click", applyExamFix);
 
 /* ---------- D15: post-use feedback survey ---------- */
 const feedbackModal = document.getElementById("feedback-modal");

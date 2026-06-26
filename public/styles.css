@@ -2806,3 +2806,77 @@ body[data-guidance="lite"] .guide-fields {
   font-size: 0.85rem;
   color: var(--ink-soft);
 }
+
+/* ---------- Exam QA review bar ---------- */
+.exam-review {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  background: #eef2f6;
+  border: 1px solid #d6dee7;
+  border-radius: 10px;
+}
+.exam-review-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.exam-review-note {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.exam-review-panel {
+  margin-top: 12px;
+  border-top: 1px solid #d6dee7;
+  padding-top: 12px;
+}
+.exam-review-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.rv-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+}
+.rv-badge.rv-critical { background: #b0322a; }
+.rv-badge.rv-major { background: #c2613a; }
+.rv-badge.rv-minor { background: #6f95c9; }
+.rv-badge.zero { background: #c9cdd2; color: #fff; }
+.rv-clean {
+  font-weight: 700;
+  color: var(--sage);
+  margin-right: 4px;
+}
+.exam-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.exam-review-detail {
+  margin-top: 12px;
+}
+.exam-review-detail > summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+.exam-review-detail #exam-review-text {
+  margin-top: 10px;
+  max-height: 360px;
+  overflow: auto;
+  font-size: 0.9rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 10px 14px;
+}

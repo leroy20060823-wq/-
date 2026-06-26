@@ -7,6 +7,7 @@ import { config } from "../config.js";
 import { listModules } from "../modules.js";
 import { moduleTier } from "../routing.js";
 import { generate, generateStream } from "../services/generator.js";
+import { reviewAndFix } from "../services/examReview.js";
 import { parseGenerateRequest, type GenerateBody } from "../validation.js";
 import { createGlobalDailyLimiter } from "../rateLimit.js";
 import { getSample } from "../samples.js";
@@ -187,6 +188,30 @@ router.post(
     }
     const result = await generate(parsed.options);
     res.json({ module: parsed.options.module.id, ...result });
+  }),
+);
+
+// Independent QA pass for a generated exam: 4-stage adversarial review, then a
+// fixer call when 치명/중대 defects are found. Paid LLM endpoint → same guards as
+// generation. Returns the review text, severity counts, and (if any) the
+// corrected Markdown for the client to apply.
+router.post(
+  "/exam/review",
+  ...generationGuards,
+  asyncHandler(async (req, res) => {
+    if (!ensureApiKey(res)) return;
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    const markdown = typeof body.markdown === "string" ? body.markdown : "";
+    if (!markdown.trim()) {
+      res.status(400).json({ error: "검토할 시험지 내용이 비어 있어요." });
+      return;
+    }
+    if (markdown.length > config.maxInputChars * 6) {
+      res.status(400).json({ error: "내용이 너무 깁니다." });
+      return;
+    }
+    const result = await reviewAndFix(markdown);
+    res.json(result);
   }),
 );
 

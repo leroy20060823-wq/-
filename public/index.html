@@ -201,6 +201,25 @@
             <button id="exam-pdf-btn" type="button" class="btn-primary">PDF 내려받기</button>
             <span id="exam-pdf-status" class="hint"></span>
           </div>
+          <div id="exam-review" class="exam-review" hidden>
+            <div class="exam-review-head">
+              <span class="exam-pdf-label">정답·해설 검토</span>
+              <button id="exam-review-btn" type="button" class="btn-ghost">🔎 검토하기</button>
+              <span id="exam-review-status" class="hint"></span>
+            </div>
+            <span class="exam-review-note">다른 AI가 시험지를 처음부터 다시 풀어 정답·복수정답·함정을 점검해요. 치명·중대 결함이 있으면 수정본을 만들어 드려요.</span>
+            <div id="exam-review-panel" class="exam-review-panel" hidden>
+              <div id="exam-review-badges" class="exam-review-badges"></div>
+              <div id="exam-review-actions" class="exam-review-actions" hidden>
+                <button id="exam-review-apply" type="button" class="btn-primary">✅ 수정본 적용</button>
+                <span class="hint">검토에서 찾은 치명·중대 결함을 반영한 수정본이에요.</span>
+              </div>
+              <details class="exam-review-detail">
+                <summary>검토 내용 자세히 보기</summary>
+                <div id="exam-review-text" class="markdown"></div>
+              </details>
+            </div>
+          </div>
           <div id="doc-export" class="doc-export" hidden>
             <div class="doc-paper">
               <span class="doc-paper-label">용지 크기</span>
