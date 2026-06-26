@@ -17,7 +17,8 @@
     "design:build": "node scripts/build-design-assets.mjs",
     "skills:build": "node --import tsx scripts/build-skills.mjs",
     "exam:pdf": "node --import tsx scripts/exam-pdf.mjs",
-    "vocab:pdf": "node scripts/vocab-pdf.mjs"
+    "vocab:pdf": "node scripts/vocab-pdf.mjs",
+    "verify:excel": "node scripts/verify-excel.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.2",
@@ -34,6 +35,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^25.9.3",
     "dompurify": "^3.4.10",
+    "hyperformula": "^3.3.0",
     "marked": "^18.0.5",
     "playwright": "^1.61.0",
     "tsx": "^4.22.4",
