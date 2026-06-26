@@ -92,7 +92,9 @@ export interface ExamMetaInput {
   notice?: string;
 }
 
-const FILL_IN_DEFAULT = ["반", "이름", "전공", "학번"];
+// Only 이름 — universal across schools/colleges/anyone. (No 반·전공·학번, which
+// don't fit every test-taker.)
+const FILL_IN_DEFAULT = ["이름"];
 
 function stripEmphasis(s: string): string {
   return s

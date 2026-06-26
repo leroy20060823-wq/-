@@ -309,7 +309,7 @@ p {{ margin: 0; }}
     letter-spacing: 0.36em;
     font-size: calc(9.5pt * var(--content-scale));
     padding-left: 0.36em;
-    margin-bottom: 7mm;
+    margin-bottom: 4mm;
 }}
 .cover .meta-line {{
     font-family: var(--sans-stack);
@@ -325,19 +325,57 @@ p {{ margin: 0; }}
 .cover .difficulty-box {{
     display: inline-block;
     border: 1px solid var(--navy);
+    border-radius: 999px;          /* refined pill */
     color: var(--navy);
+    background: var(--content-bg);
     font-family: var(--sans-stack);
     font-weight: 700;
     letter-spacing: 0.14em;
     font-size: calc(9.5pt * var(--content-scale));
-    padding: 2mm 7mm;
-    margin-bottom: 9mm;
+    padding: 2.2mm 8.5mm;
+    margin-bottom: 8mm;
 }}
 .cover .difficulty-box .dl {{
     color: var(--brass);
     font-weight: 700;
     letter-spacing: 0.18em;
     margin-right: 0.7em;
+}}
+
+/* ----- Refined title ornament  ──◆──  ----- */
+.cover .title-ornament {{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3.5mm;
+    margin: 0 auto 7mm auto;
+}}
+.cover .title-ornament .to-rule {{
+    width: 24mm;
+    height: 0;
+    border-top: 1px solid var(--brass);
+}}
+.cover .title-ornament .to-dot {{
+    color: var(--brass);
+    font-size: calc(6pt * var(--content-scale));
+    line-height: 1;
+}}
+
+/* ----- Header/body double-rule separator (masthead feel) ----- */
+.cover-sep {{
+    width: 100%;
+    height: 0;
+    border-top: 1.6pt solid var(--navy);
+    margin: 0 auto 7mm auto;
+    position: relative;
+}}
+.cover-sep::after {{
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 1.4mm;
+    border-top: 0.6pt solid var(--brass);
 }}
 
 /* ----- Generic bordered box ----- */
@@ -419,6 +457,10 @@ table.fillin td.label {{
     letter-spacing: 0.1em;
     width: 18mm;
     white-space: nowrap;
+}}
+/* Single identity field (이름) — a tidy, centered write-line, not full width. */
+table.fillin-one {{
+    width: 92mm;
 }}
 
 /* ----- Score table (배점표) ----- */
@@ -928,6 +970,10 @@ def build_cover(model):
     if is_nonempty(title_latin):
         out.append(f'<div class="title-latin">{esc(title_latin)}</div>')
 
+    # Refined ornament under the title (──◆──).
+    out.append('<div class="title-ornament"><span class="to-rule"></span>'
+               '<span class="to-dot">◆</span><span class="to-rule"></span></div>')
+
     ml = meta_line_html(model.get("meta") or {})
     if ml:
         out.append(ml)
@@ -941,6 +987,9 @@ def build_cover(model):
         )
 
     out.append("</section>")
+
+    # Refined separator between the cover header and the body (유의사항·배점표·목차).
+    out.append('<div class="cover-sep"></div>')
 
     # ----- 안내 notice -----
     notice = model.get("notice", "")
@@ -963,24 +1012,30 @@ def build_cover(model):
             out.append(f"<li>{esc(ins)}</li>")
         out.append("</ol></div></div>")
 
-    # ----- fill-in table -----
+    # ----- fill-in table (identity) -----
     fillin = model.get("fillIn") or []
     fillin = [f for f in fillin if is_nonempty(f)]
     if fillin:
-        out.append('<table class="fillin"><tbody>')
-        # Lay out 2 label/value pairs per row for balance.
-        i = 0
-        while i < len(fillin):
-            out.append("<tr>")
-            for _ in range(2):
-                if i < len(fillin):
-                    out.append(f'<td class="label">{esc(fillin[i])}</td>')
-                    out.append("<td></td>")
-                    i += 1
-                else:
-                    out.append('<td class="label"></td><td></td>')
-            out.append("</tr>")
-        out.append("</tbody></table>")
+        if len(fillin) == 1:
+            # A single field (이름) → one clean labelled write-line.
+            out.append('<table class="fillin fillin-one"><tbody>')
+            out.append(f'<tr><td class="label">{esc(fillin[0])}</td><td></td></tr>')
+            out.append("</tbody></table>")
+        else:
+            out.append('<table class="fillin"><tbody>')
+            # Lay out 2 label/value pairs per row for balance.
+            i = 0
+            while i < len(fillin):
+                out.append("<tr>")
+                for _ in range(2):
+                    if i < len(fillin):
+                        out.append(f'<td class="label">{esc(fillin[i])}</td>')
+                        out.append("<td></td>")
+                        i += 1
+                    else:
+                        out.append('<td class="label"></td><td></td>')
+                out.append("</tr>")
+            out.append("</tbody></table>")
 
     # ----- score table 배점표 -----
     out.append(build_score_table(model.get("scoreTable")))
