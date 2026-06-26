@@ -97,7 +97,8 @@ export interface ExamMetaInput {
   notice?: string;
 }
 
-const FILL_IN_DEFAULT = ["반", "이름", "전공", "학번"];
+// 표지 인적사항 입력칸은 '이름'만 둔다(반·전공·학번 등은 넣지 않는다).
+const FILL_IN_DEFAULT = ["이름"];
 
 function stripEmphasis(s: string): string {
   return s

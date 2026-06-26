@@ -390,12 +390,12 @@ table.fillin {{
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
-    margin: 0 auto 7mm auto;
+    margin: 0 auto 5mm auto;
     font-size: calc(10pt * var(--content-scale));
 }}
 table.fillin td {{
     border: 1px solid var(--navy);
-    padding: 3mm 4mm;
+    padding: 2.4mm 4mm;
     word-break: {word_break};
     overflow-wrap: {overflow_wrap};
 }}
@@ -485,17 +485,18 @@ table.score tr.summary td {{
 
 /* ============================ 문항 구성표 (목차) ============================ */
 .toc {{
-    margin-top: 6mm;
+    margin-top: 4mm;
+    break-inside: avoid;
 }}
 .toc-head {{
     font-family: var(--serif-stack);
     font-weight: 700;
     color: var(--navy);
     border-bottom: 1.4pt solid var(--navy);
-    padding-bottom: 1.6mm;
-    margin-bottom: 3mm;
+    padding-bottom: 1.2mm;
+    margin-bottom: 2mm;
     letter-spacing: 0.04em;
-    font-size: calc(12pt * var(--content-scale));
+    font-size: calc(11.5pt * var(--content-scale));
     break-after: avoid;
 }}
 .toc-head .toc-latin {{
@@ -517,16 +518,16 @@ table.score tr.summary td {{
     color: var(--navy);
     font-family: var(--sans-stack);
     font-weight: 700;
-    font-size: calc(8.4pt * var(--content-scale));
+    font-size: calc(8pt * var(--content-scale));
     letter-spacing: 0.04em;
     text-align: left;
-    padding: 1.4mm 2mm;
+    padding: 1mm 2mm;
     border-bottom: 1pt solid var(--navy);
 }}
 .toc-table td {{
-    padding: 1.25mm 2mm;
+    padding: 0.85mm 2mm;
     border-bottom: 1px dotted var(--panel-bg);
-    font-size: calc(9.2pt * var(--content-scale));
+    font-size: calc(8.7pt * var(--content-scale));
     vertical-align: baseline;
 }}
 .toc-table .toc-n {{
@@ -1113,27 +1114,25 @@ def build_cover(model):
     fillin = [f for f in fillin if is_nonempty(f)]
     if fillin:
         out.append('<table class="fillin"><tbody>')
-        # Lay out 2 label/value pairs per row for balance.
+        # Up to 2 label/value pairs per row. A lone field (e.g. just 이름) gets a
+        # wide write-line via colspan instead of empty filler boxes.
         i = 0
         while i < len(fillin):
             out.append("<tr>")
-            for _ in range(2):
-                if i < len(fillin):
-                    out.append(f'<td class="label">{esc(fillin[i])}</td>')
-                    out.append("<td></td>")
-                    i += 1
-                else:
-                    out.append('<td class="label"></td><td></td>')
+            pairs = 2 if (len(fillin) - i) >= 2 else 1
+            for _ in range(pairs):
+                span = ' colspan="3"' if pairs == 1 else ""
+                out.append(f'<td class="label">{esc(fillin[i])}</td>')
+                out.append(f'<td{span}></td>')
+                i += 1
             out.append("</tr>")
         out.append("</tbody></table>")
 
     # ----- score table 배점표 -----
     out.append(build_score_table(model.get("scoreTable")))
 
-    # ----- part summary 2-col box -----
-    out.append(build_part_summary(model.get("partSummary")))
-
-    # ----- 문항 구성표 (목차) — 표지 1~2면에 자연스럽게 이어짐 -----
+    # ----- 문항 구성표 (목차) — 표지 첫 페이지에 전부 담는다 -----
+    # (파트 구성 박스는 배점표·문항 구성표와 중복이라 표지에서 생략한다.)
     out.append(build_toc(model.get("toc")))
 
     # ----- motto -----
