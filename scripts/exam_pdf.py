@@ -56,7 +56,10 @@ FOOTER_GRAY = "#9A9486"
 SCALE_MAX = 1.0
 SCALE_MIN = 0.85
 SCALE_STEP = 0.05
-MAX_PASSES = 3
+MAX_PASSES = 6
+# Cover 목차 fit loop: shrink the cover blocks until they fit on page 1.
+COVER_SCALE_MIN = 0.62
+COVER_SCALE_STEP = 0.06
 # Tolerance (px) for floating-point edge comparison.
 OVERFLOW_EPS = 0.5
 
@@ -133,11 +136,13 @@ def circled_answer(value):
 # CSS
 # --------------------------------------------------------------------------- #
 
-def build_css(content_scale, hard_wrap):
+def build_css(content_scale, hard_wrap, cover_scale=1.0):
     """
     Build the full stylesheet. `content_scale` scales all font sizes via the
     --content-scale custom property used inside calc(); `hard_wrap` toggles a
-    more aggressive break-word mode as a last resort.
+    more aggressive break-word mode as a last resort. `cover_scale` shrinks ONLY
+    the cover's 목차 blocks (유의사항·배점표·파트구성) so the whole table-of-contents
+    always fits on the first cover page (never spills to page 2 or gets clipped).
     """
     word_break = "break-word" if hard_wrap else "keep-all"
     overflow_wrap = "anywhere"  # always permit breaking very long unbreakable runs
@@ -173,6 +178,7 @@ def build_css(content_scale, hard_wrap):
 
 :root {{
     --content-scale: {content_scale:.4f};
+    --cover-scale: {cover_scale:.4f};
     --navy: {NAVY};
     --brass: {BRASS};
     --page-bg: {PAGE_BG};
@@ -186,8 +192,9 @@ def build_css(content_scale, hard_wrap):
 }}
 
 /* ----- Page setup + running footer via @page margin boxes ----- */
+/* B4 (Korean 시험지 standard). Larger than A4, so the 목차 has room on page 1. */
 @page {{
-    size: A4;
+    size: B4;
     margin: 18mm 16mm 20mm 16mm;
     background: var(--page-bg);
 
@@ -338,7 +345,7 @@ p {{ margin: 0; }}
     border: 1px solid var(--navy);
     background: var(--content-bg);
     text-align: left;
-    margin: 0 auto 7mm auto;
+    margin: 0 auto calc(7mm * var(--cover-scale)) auto;
     padding: 0;
 }}
 .box-thin {{
@@ -349,19 +356,19 @@ p {{ margin: 0; }}
     font-weight: 700;
     color: var(--navy);
     letter-spacing: 0.16em;
-    font-size: calc(10.5pt * var(--content-scale));
-    padding: 2.6mm 5mm;
+    font-size: calc(10.5pt * var(--content-scale) * var(--cover-scale));
+    padding: calc(2.6mm * var(--cover-scale)) 5mm;
     border-bottom: 1px solid var(--navy);
     background: var(--panel-bg);
 }}
 .box-body {{
-    padding: 4mm 5mm;
-    font-size: calc(10pt * var(--content-scale));
+    padding: calc(4mm * var(--cover-scale)) 5mm;
+    font-size: calc(10pt * var(--content-scale) * var(--cover-scale));
     color: var(--ink);
 }}
 
 .notice-box {{
-    margin: 0 auto 7mm auto;
+    margin: 0 auto calc(7mm * var(--cover-scale)) auto;
     border: 1px solid var(--brass);
     background: var(--content-bg);
     padding: 3.5mm 5mm;
@@ -382,7 +389,7 @@ p {{ margin: 0; }}
     list-style-position: outside;
 }}
 .instructions li {{
-    margin-bottom: 1.6mm;
+    margin-bottom: calc(1.6mm * var(--cover-scale));
     line-height: 1.6;
 }}
 .instructions li::marker {{
@@ -395,12 +402,12 @@ table.fillin {{
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
-    margin: 0 auto 7mm auto;
+    margin: 0 auto calc(7mm * var(--cover-scale)) auto;
     font-size: calc(10pt * var(--content-scale));
 }}
 table.fillin td {{
     border: 1px solid var(--navy);
-    padding: 3mm 4mm;
+    padding: calc(3mm * var(--cover-scale)) 4mm;
     word-break: {word_break};
     overflow-wrap: {overflow_wrap};
 }}
@@ -419,12 +426,12 @@ table.score {{
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
-    margin: 0 auto 7mm auto;
-    font-size: calc(9.2pt * var(--content-scale));
+    margin: 0 auto calc(7mm * var(--cover-scale)) auto;
+    font-size: calc(9.2pt * var(--content-scale) * var(--cover-scale));
 }}
 table.score th, table.score td {{
     border: 1px solid var(--navy);
-    padding: 2.4mm 2.6mm;
+    padding: calc(2.4mm * var(--cover-scale)) 2.6mm;
     text-align: center;
     word-break: {word_break};
     overflow-wrap: {overflow_wrap};
@@ -454,7 +461,8 @@ table.score tr.summary td {{
 .part-summary-grid .ps-cell {{
     border: 1px solid var(--navy);
     margin: -0.5px 0 0 -0.5px;   /* collapse adjacent borders */
-    padding: 3mm 4mm;
+    padding: calc(3mm * var(--cover-scale)) 4mm;
+    font-size: calc(10.5pt * var(--content-scale) * var(--cover-scale));
     break-inside: avoid;
 }}
 .ps-cell .ps-code {{
@@ -484,8 +492,17 @@ table.score tr.summary td {{
     color: var(--gray);
     letter-spacing: 0.22em;
     font-size: calc(9pt * var(--content-scale));
-    margin-top: 6mm;
+    margin-top: calc(6mm * var(--cover-scale));
     padding-left: 0.22em;
+}}
+
+/* Zero-height marker at the end of the cover page — the render loop checks which
+   page it lands on to guarantee the 목차 stays on page 1. */
+coverend {{
+    display: block;
+    height: 0;
+    font-size: 0;
+    line-height: 0;
 }}
 
 /* ============================ PARTS / ITEMS ============================ */
@@ -976,6 +993,10 @@ def build_cover(model):
     if is_nonempty(motto):
         out.append(f'<div class="cover-motto">{esc(motto)}</div>')
 
+    # End-of-cover marker (zero height). The render loop uses its page to ensure
+    # the whole 목차 fits on the first page.
+    out.append("<coverend>​</coverend>")
+
     return "\n".join(out)
 
 
@@ -1382,12 +1403,29 @@ def inspect_overflow(document):
 # Render + QA loop
 # --------------------------------------------------------------------------- #
 
-def render_once(html_doc, content_scale, hard_wrap, font_config):
-    css_text = build_css(content_scale, hard_wrap)
+def render_once(html_doc, content_scale, hard_wrap, font_config, cover_scale=1.0):
+    css_text = build_css(content_scale, hard_wrap, cover_scale)
     css = CSS(string=css_text, font_config=font_config)
     html = HTML(string=html_doc, base_url=REPO_ROOT)
     document = html.render(stylesheets=[css], font_config=font_config)
     return document
+
+
+def element_page(document, tag):
+    """Index of the first page that contains an element with the given tag
+    (or -1 if not present)."""
+    for pidx, page in enumerate(document.pages):
+        for box in iter_boxes(page._page_box):
+            if getattr(box, "element_tag", None) == tag:
+                return pidx
+    return -1
+
+
+def cover_fits_page1(document):
+    """True when the cover's end marker is still on the first page (so the whole
+    목차 fits on page 1). Missing marker (e.g. OMR variant) → treated as fitting."""
+    p = element_page(document, "coverend")
+    return p <= 0
 
 
 def render_with_qa(model, variant="teacher"):
@@ -1397,27 +1435,32 @@ def render_with_qa(model, variant="teacher"):
     """
     html_doc = build_html(model, variant)
     font_config = FontConfiguration()
+    check_cover = variant != "key"  # the OMR variant has no cover
 
     passes = []
     scale = SCALE_MAX
     hard_wrap = False
+    cover_scale = 1.0
     document = None
     fell_back = False
 
     for attempt in range(1, MAX_PASSES + 1):
-        document = render_once(html_doc, scale, hard_wrap, font_config)
+        document = render_once(html_doc, scale, hard_wrap, font_config, cover_scale)
         report = inspect_overflow(document)
-        clean = report["overflowCount"] == 0
+        cover_ok = (not check_cover) or cover_fits_page1(document)
+        clean = report["overflowCount"] == 0 and cover_ok
 
         pass_record = {
             "pass": attempt,
             "scale": round(scale, 3),
+            "coverScale": round(cover_scale, 3),
             "hardWrap": hard_wrap,
             "checked": "horizontal box overflow vs page content width; "
-                       "unbreakable boxes; page count",
+                       "unbreakable boxes; page count; 목차 fits cover page 1",
             "pages": report["pages"],
             "overflowBoxes": report["overflowCount"],
             "worstOvershootPx": report["worstOvershoot"],
+            "coverFitsPage1": cover_ok,
             "clean": clean,
         }
         if report["samples"]:
@@ -1430,12 +1473,16 @@ def render_with_qa(model, variant="teacher"):
 
         # Decide a repair for the next pass.
         repairs = []
-        if scale > SCALE_MIN + 1e-9:
-            scale = max(SCALE_MIN, round(scale - SCALE_STEP, 3))
-            repairs.append(f"reduce --content-scale to {scale}")
-        if not hard_wrap and (scale <= SCALE_MIN + 1e-9 or report["worstOvershoot"] > 6):
-            hard_wrap = True
-            repairs.append("enable word-break:break-word (hard wrap)")
+        if not report["overflowCount"] == 0:
+            if scale > SCALE_MIN + 1e-9:
+                scale = max(SCALE_MIN, round(scale - SCALE_STEP, 3))
+                repairs.append(f"reduce --content-scale to {scale}")
+            if not hard_wrap and (scale <= SCALE_MIN + 1e-9 or report["worstOvershoot"] > 6):
+                hard_wrap = True
+                repairs.append("enable word-break:break-word (hard wrap)")
+        if not cover_ok and cover_scale > COVER_SCALE_MIN + 1e-9:
+            cover_scale = max(COVER_SCALE_MIN, round(cover_scale - COVER_SCALE_STEP, 3))
+            repairs.append(f"reduce --cover-scale to {cover_scale} (목차 fit)")
         if not repairs:
             repairs.append("no further repair available")
         pass_record["fixed"] = "; ".join(repairs)
@@ -1446,18 +1493,22 @@ def render_with_qa(model, variant="teacher"):
             fell_back = True
             scale = SCALE_MIN
             hard_wrap = True
-            document = render_once(html_doc, scale, hard_wrap, font_config)
+            cover_scale = COVER_SCALE_MIN if not cover_ok else cover_scale
+            document = render_once(html_doc, scale, hard_wrap, font_config, cover_scale)
             final_report = inspect_overflow(document)
+            final_cover = (not check_cover) or cover_fits_page1(document)
             passes.append({
                 "pass": "fallback",
                 "scale": SCALE_MIN,
+                "coverScale": round(cover_scale, 3),
                 "hardWrap": True,
                 "checked": "final safe render",
                 "pages": final_report["pages"],
                 "overflowBoxes": final_report["overflowCount"],
                 "worstOvershootPx": final_report["worstOvershoot"],
-                "clean": final_report["overflowCount"] == 0,
-                "fixed": "applied min scale + hard wrap fallback",
+                "coverFitsPage1": final_cover,
+                "clean": final_report["overflowCount"] == 0 and final_cover,
+                "fixed": "applied min scale + hard wrap + min cover-scale fallback",
             })
 
     qa_log = {

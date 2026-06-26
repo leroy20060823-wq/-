@@ -64,8 +64,17 @@ Keep `typecheck`, `test`, and `build` green. Commit per logical task with a clea
 - **Self-containment.** Every keyed exam answer must be provable from the printed page.
 - **Neutral by default.** No school/brand name, motto, or institution on any output unless
   the user explicitly provides one.
-- **Print quality.** PDFs are A4 with embedded fonts and must read well in BOTH color and
-  grayscale (cheap B&W laser printers).
+- **Print quality.** PDFs have embedded fonts and must read well in BOTH color and
+  grayscale (cheap B&W laser printers). Most docs are A4; the **시험지(exam) is always
+  B4** (Korean exam-paper standard) for all variants — see exam rules below.
+- **시험지(exam) render rules (non-negotiable, `scripts/exam_pdf.py`).**
+  1. **Always B4** (`@page size: B4`) for 학생용/교사용/정답지(OMR) alike.
+  2. **Color AND grayscale must both print cleanly** — never rely on color alone to
+     convey meaning; verify a `pdftoppm -gray` raster when touching the renderer.
+  3. **The 문제 목차 (배점표 + 파트 구성) must fit entirely at the bottom of the FIRST
+     cover page — never spill to page 2 or get clipped.** Guaranteed by the
+     `--cover-scale` cover-fit loop (`coverend` marker + `cover_fits_page1`); keep it
+     working. The QA log's `coverFitsPage1` must stay true.
 - **Output contract.** The Markdown each module returns must match the renderer's expected
   shape (see the per-module output contracts in `docs/anthropic-sdk-prompts.md`); the exam
   parser is tolerant but the structure must hold.
