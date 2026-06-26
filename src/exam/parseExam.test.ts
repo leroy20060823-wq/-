@@ -120,3 +120,49 @@ test("never throws and returns a valid model on garbage input", () => {
   assert.equal(m.meta.totalPoints, 100);
   assert.ok(Array.isArray(m.parts) && m.parts.length >= 1);
 });
+
+// Regression: the common "**P1.** 1.⑤ 2.④ …" layout puts the part code AND the
+// answers on ONE line. The divider matcher used to swallow the whole line, so
+// the answers were dropped (and a "(1) …" inside a 서술형 line was misread as
+// the only MC answer). Now both same-line MC answers and free-form 서술형 model
+// answers must parse.
+test("parses same-line part answer keys and 서술형 model answers", () => {
+  const md = [
+    "# 고2 영어 기말 모의고사",
+    "총 6문항 · 100점 만점",
+    "",
+    "| 파트 | 파트명 | 유형 | 문항 범위 | 문항 수 | 배점 | 총점 |",
+    "|---|---|---|---|---|---|---|",
+    "| P1 | 어휘 | 객관식 | 1~4 | 4 | 4점 | 16점 |",
+    "| P3 | 서술형 | 주관식 | 5~6 | 2 | 9점 | 18점 |",
+    "",
+    "## 정답표 (Answer Key)",
+    "**P1.**  1. ⑤  2. ④  3. ②  4. ① ★",
+    "",
+    "**P3. 서술형 모범 답안**",
+    "5. (1) Despite of → Despite  (2) keeped → kept",
+    "6. One of the best ways to stay healthy is to get enough sleep.",
+    "",
+    "---",
+  ].join("\n");
+  const m = buildExamModel(md);
+  const p1 = m.answerKey.find((g) => /P1/.test(g.part))!;
+  assert.ok(p1, "P1 answer group should exist");
+  assert.deepEqual(
+    p1.answers.map((a) => a.n),
+    [1, 2, 3, 4],
+    "all four same-line answers must be captured",
+  );
+  assert.equal(p1.answers.find((a) => a.n === 1)?.a, "⑤");
+  assert.equal(p1.answers.find((a) => a.n === 4)?.killer, true, "trailing ★ marks the killer");
+
+  const p3 = m.answerKey.find((g) => /서술형/.test(g.part))!;
+  assert.ok(p3, "P3 essay group should exist");
+  assert.equal(p3.answers.length, 2, "two free-form model answers");
+  assert.match(p3.answers.find((a) => a.n === 5)?.a ?? "", /Despite of → Despite/);
+  // The trailing horizontal rule must NOT be appended to the last model answer.
+  assert.equal(
+    p3.answers.find((a) => a.n === 6)?.a,
+    "One of the best ways to stay healthy is to get enough sleep.",
+  );
+});

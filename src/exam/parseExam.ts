@@ -369,20 +369,44 @@ function parseBodyIntoParts(
   return nonEmpty.length ? nonEmpty : parts.slice(0, 1);
 }
 
+/** Essay / 주관식 groups hold free-form model answers, not ①~⑤ choices. */
+function isEssayPart(part: string): boolean {
+  return /서술형|모범\s*답안|주관식|essay/i.test(part || "");
+}
+
 function parseAnswerKey(lines: string[]): AnswerKeyGroup[] {
   const groups: AnswerKeyGroup[] = [];
   let current: AnswerKeyGroup | null = null;
+  // killer ★ may sit before the number or after the answer letter.
+  const pairRe = /(★?)\s*(\d+)\s*[.)]\s*([A-Ea-e①②③④⑤])\s*(★?)/g;
+  const essayRe = /^(\d+)\s*[.)]\s*(.+)$/;
   for (const raw of lines) {
     const line = stripEmphasis(raw.trim());
     if (!line) continue;
+    if (/^[-*_]{3,}$/.test(line)) continue; // horizontal-rule separator, not content
     const divider = isPartDivider(line);
     if (divider) {
-      current = { part: [divider.code, divider.name].filter(Boolean).join(" "), answers: [] };
+      // `isPartDivider` greedily absorbs any same-line answers (e.g. the common
+      // "**P1.** 1.⑤ 2.④ 3.② 4.①" layout) into `name`; strip that answer list
+      // from the displayed part label, then fall through to parse the answers.
+      const name = divider.name.replace(pairRe, "").replace(/[·\-—:.\s]+$/, "").trim();
+      current = { part: [divider.code, name].filter(Boolean).join(" "), answers: [] };
       groups.push(current);
+      // NOTE: no `continue` — same-line answers are parsed below.
+    }
+    // Inside an essay group: capture the whole "N. <model answer>" as free-form
+    // text (a single "(1) … (2) …" line would otherwise be misread as MC pairs).
+    if (current && !divider && isEssayPart(current.part)) {
+      const em = line.match(essayRe);
+      if (em) {
+        current.answers.push({ n: Number(em[1]), a: (em[2] ?? "").trim(), killer: false });
+      } else {
+        const last = current.answers[current.answers.length - 1];
+        if (last) last.a = (last.a ? last.a + " " : "") + line; // wrapped continuation line
+      }
       continue;
     }
-    // killer ★ may sit before the number or after the answer letter.
-    const pairs = [...line.matchAll(/(★?)\s*(\d+)\s*[.)]?\s*([A-Ea-e①②③④⑤])\s*(★?)/g)];
+    const pairs = [...line.matchAll(pairRe)];
     if (pairs.length) {
       if (!current) {
         current = { part: "", answers: [] };

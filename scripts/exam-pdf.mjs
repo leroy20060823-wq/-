@@ -33,9 +33,14 @@ function parseArgs(argv) {
     else if (k === "--brand") a.brand = argv[++i];
     else if (k === "--motto") a.motto = argv[++i];
     else if (k === "--notice") a.notice = argv[++i];
+    else if (k === "--variant") a.variant = argv[++i];
   }
   return a;
 }
+
+// teacher=전체(문제+정답표+해설), student=문제만, key=OMR 정답지.
+const VARIANTS = ["teacher", "student", "key"];
+const VARIANT_LABEL = { teacher: "교사용", student: "학생용", key: "정답지" };
 
 function pythonBin() {
   for (const bin of [process.env.PYTHON_BIN, "python3", "python"].filter(Boolean)) {
@@ -55,9 +60,9 @@ function installWeasyprint(bin) {
   return r.status === 0 && hasWeasyprint(bin);
 }
 
-function runPython(bin, modelJson, outPath) {
+function runPython(bin, modelJson, outPath, variant = "teacher") {
   return new Promise((resolve) => {
-    const proc = spawn(bin, [PY_SCRIPT, "--out", outPath], { stdio: ["pipe", "pipe", "pipe"] });
+    const proc = spawn(bin, [PY_SCRIPT, "--out", outPath, "--variant", variant], { stdio: ["pipe", "pipe", "pipe"] });
     const out = [];
     const err = [];
     proc.stdout.on("data", (d) => out.push(d));
@@ -117,15 +122,33 @@ async function main() {
   });
 
   await mkdir(path.dirname(path.resolve(a.out)) || ".", { recursive: true });
-  const r = await runPython(bin, JSON.stringify(model), a.out);
-  const log = r.stdout.split("\n").filter(Boolean).slice(-1)[0] ?? "";
-  if (r.code === 0 && existsSync(a.out)) {
-    console.log(`✓ ${a.out}`);
-    if (log) console.log(`  QA: ${log}`);
-  } else {
-    console.error("시험지 PDF 생성 실패:", (r.stderr || r.stdout || "unknown").slice(-600));
-    process.exit(1);
+
+  const wanted = (a.variant || "teacher").toLowerCase();
+  // "all" → 한 번에 학생용·교사용·정답지 3종을 각각 파일로 뽑는다.
+  const variants = wanted === "all" ? VARIANTS : [wanted];
+  if (!variants.every((v) => VARIANTS.includes(v))) {
+    console.error(`--variant 는 ${VARIANTS.join(" / ")} / all 중 하나여야 해요.`);
+    process.exit(2);
   }
+
+  const modelJson = JSON.stringify(model);
+  const ext = path.extname(a.out) || ".pdf";
+  const base = a.out.slice(0, a.out.length - ext.length);
+  let failed = false;
+  for (const v of variants) {
+    // 단일 변형이면 사용자가 준 --out 을 그대로, 여러 변형이면 접미사를 붙인다.
+    const outPath = variants.length === 1 ? a.out : `${base}-${v}${ext}`;
+    const r = await runPython(bin, modelJson, outPath, v);
+    const log = r.stdout.split("\n").filter(Boolean).slice(-1)[0] ?? "";
+    if (r.code === 0 && existsSync(outPath)) {
+      console.log(`✓ [${VARIANT_LABEL[v]}] ${outPath}`);
+      if (log) console.log(`  QA: ${log}`);
+    } else {
+      console.error(`시험지 PDF 생성 실패 (${v}):`, (r.stderr || r.stdout || "unknown").slice(-600));
+      failed = true;
+    }
+  }
+  if (failed) process.exit(1);
 }
 
 main().catch((e) => {

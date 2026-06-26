@@ -158,6 +158,12 @@ function buildExportBlock(m, outNo) {
    node --import tsx scripts/exam-pdf.mjs --in "outputs/<이름>.md" --out "outputs/<이름>.pdf" --title "<시험 제목>" --difficulty "<하|중|상>" --scope "<출제 범위>" --time <시험시간(분)> --subtitle "<예: 중간·기말 대비 모의고사>"
    \`\`\`
    - **기본은 중립적·범용 표지**입니다. 특정 학교·기관 색을 넣지 마세요. \`--brand\`·\`--motto\`·\`--title-latin\`은 **사용자가 직접 요청한 경우에만** 추가하세요.
+   - **버전 분리(\`--variant\`)**: 같은 시험지를 용도별로 나눠 뽑을 수 있어요(접미사가 붙은 별도 파일로 생성).
+     - \`teacher\`(기본): 문제 + 정답표 + 정밀 해설지(전체)
+     - \`student\`: 문제만(배포용)
+     - \`key\`: **OMR 답안지** — ①②③④⑤ 정답이 마킹된 빠른 채점용 + 서술형 모범답안
+     - \`all\`: 위 3종을 한 번에 (\`<이름>-teacher.pdf\` / \`-student.pdf\` / \`-key.pdf\`)
+     - 예: 배포본과 채점본을 함께 줄 때 \`--variant all\`. 사용자가 따로 말하지 않으면 \`teacher\` 전체본 하나면 충분합니다.
 3. 생성된 \`outputs/<이름>.pdf\`를 **\`SendUserFile\`로 바로 전달**하고, **검토에서 수정한 결함을 한두 줄로 요약 보고**하세요(경로만 알려주지 말 것).
    - 렌더러는 Python+WeasyPrint를 쓰며 없으면 자동 설치합니다. 모듈 오류가 나면 먼저 \`npm install\`.
 4. 편집본(워드)이 필요하면: \`node scripts/export.mjs --in "outputs/<이름>.md" --format docx --out "outputs/<이름>"\`.`;

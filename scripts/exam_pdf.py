@@ -699,6 +699,160 @@ table.score tr.summary td {{
     color: var(--brass);
     font-size: calc(8pt * var(--content-scale));
 }}
+.ak-essay {{
+    margin-top: 2.4mm;
+}}
+.ak-essay-row {{
+    display: flex;
+    gap: 3mm;
+    padding: 1.6mm 0;
+    border-bottom: 1px solid var(--panel-bg);
+    font-size: calc(9.5pt * var(--content-scale));
+    line-height: 1.55;
+    break-inside: avoid;
+}}
+.ak-essay-n {{
+    font-family: var(--sans-stack);
+    font-weight: 700;
+    color: var(--navy);
+    min-width: 7mm;
+}}
+.ak-essay-a {{
+    color: var(--ink);
+    flex: 1;
+}}
+
+/* ============================ ANSWER SHEET (OMR) ============================ */
+.answer-sheet .as-info {{
+    display: flex;
+    gap: 6mm;
+    margin: 0 0 5mm 0;
+    padding-bottom: 3mm;
+    border-bottom: 1px solid var(--panel-bg);
+}}
+.answer-sheet .as-field {{
+    display: flex;
+    align-items: baseline;
+    gap: 2mm;
+    flex: 1;
+}}
+.answer-sheet .as-flabel {{
+    font-family: var(--sans-stack);
+    font-weight: 700;
+    color: var(--navy);
+    font-size: calc(9pt * var(--content-scale));
+    white-space: nowrap;
+}}
+.answer-sheet .as-line {{
+    flex: 1;
+    border-bottom: 1px solid var(--navy);
+    min-width: 14mm;
+    align-self: flex-end;
+    height: 4.6mm;
+}}
+.omr-part {{
+    margin: 0 0 5mm 0;
+    break-inside: avoid;
+}}
+.omr-part-head {{
+    font-family: var(--serif-stack);
+    font-weight: 700;
+    color: var(--navy);
+    border-left: 3px solid var(--brass);
+    padding: 0.5mm 0 0.5mm 3mm;
+    letter-spacing: 0.08em;
+    font-size: calc(10.5pt * var(--content-scale));
+    margin-bottom: 2.8mm;
+}}
+.omr-grid {{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.4mm 6mm;
+}}
+.omr-row {{
+    display: flex;
+    align-items: center;
+    gap: 2.4mm;
+    padding: 1.2mm 1.6mm;
+    border: 1px solid var(--panel-bg);
+    break-inside: avoid;
+}}
+.omr-row .omr-n {{
+    font-family: var(--sans-stack);
+    font-weight: 700;
+    color: var(--navy);
+    font-size: calc(9.5pt * var(--content-scale));
+    min-width: 7mm;
+    text-align: right;
+}}
+.omr-bubbles {{
+    display: flex;
+    gap: 1.4mm;
+}}
+.omr-b {{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(5.4mm * var(--content-scale));
+    height: calc(5.4mm * var(--content-scale));
+    border: 1px solid var(--gray);
+    border-radius: 50%;
+    color: var(--gray);
+    font-size: calc(8.5pt * var(--content-scale));
+    line-height: 1;
+}}
+.omr-b.on {{
+    background: var(--navy);
+    border-color: var(--navy);
+    color: #fff;
+    font-weight: 700;
+}}
+.omr-star {{
+    color: var(--brass);
+    font-size: calc(8pt * var(--content-scale));
+}}
+.omr-essay-row {{
+    justify-content: flex-start;
+}}
+.omr-essay-tag {{
+    font-family: var(--sans-stack);
+    font-weight: 700;
+    color: var(--brass);
+    letter-spacing: 0.06em;
+    font-size: calc(8.5pt * var(--content-scale));
+}}
+.as-essay {{
+    margin-top: 5mm;
+    break-inside: avoid;
+}}
+.as-essay-head {{
+    font-family: var(--serif-stack);
+    font-weight: 700;
+    color: var(--navy);
+    border-left: 3px solid var(--brass);
+    padding: 0.5mm 0 0.5mm 3mm;
+    letter-spacing: 0.08em;
+    font-size: calc(10.5pt * var(--content-scale));
+    margin-bottom: 2.8mm;
+}}
+.as-essay-row {{
+    display: flex;
+    gap: 3mm;
+    padding: 1.8mm 0;
+    border-bottom: 1px solid var(--panel-bg);
+    font-size: calc(9.5pt * var(--content-scale));
+    line-height: 1.55;
+}}
+.as-essay-n {{
+    font-family: var(--sans-stack);
+    font-weight: 700;
+    color: var(--navy);
+    min-width: 7mm;
+}}
+.as-essay-a {{
+    color: var(--ink);
+    flex: 1;
+}}
 
 /* ============================ EXPLANATIONS ============================ */
 .ex-part-head {{
@@ -1039,19 +1193,113 @@ def build_answer_key(answer_key):
     for g in groups:
         part = esc(g.get("part", ""))
         answers = [a for a in (g.get("answers") or []) if isinstance(a, dict)]
+        # Split bubble answers (①~⑤) from free-form 서술형 model answers: the
+        # former go in the compact grid, the latter in a readable text list.
+        mc = [a for a in answers if _bubble_index(a.get("a", "")) is not None]
+        essay = [a for a in answers if _bubble_index(a.get("a", "")) is None]
         out.append('<div class="ak-part">')
         out.append(f'<div class="ak-part-head">{part}</div>')
-        out.append('<div class="ak-grid">')
+        if mc:
+            out.append('<div class="ak-grid">')
+            for a in mc:
+                n = esc(a.get("n", ""))
+                ans = esc(display_answer(a.get("a", "")))
+                star = ' <span class="ak-star">★</span>' if a.get("killer") else ""
+                out.append(
+                    '<div class="ak-cell">'
+                    f'<span class="ak-n">{n}</span>'
+                    f'<span class="ak-a">{ans}</span>{star}</div>'
+                )
+            out.append("</div>")
+        if essay:
+            out.append('<div class="ak-essay">')
+            for a in essay:
+                n = esc(a.get("n", ""))
+                ans = esc(a.get("a", ""))
+                out.append(
+                    '<div class="ak-essay-row">'
+                    f'<span class="ak-essay-n">{n}</span>'
+                    f'<span class="ak-essay-a">{ans}</span></div>'
+                )
+            out.append("</div>")
+        out.append("</div>")
+    out.append("</section>")
+    return "\n".join(out)
+
+
+def _bubble_index(ans):
+    """0-based choice index (0..4) for a multiple-choice answer, else None
+    (free-form 서술형 모범답안 can't be expressed as a single bubble)."""
+    disp = display_answer(ans) if isinstance(ans, str) else ans
+    if isinstance(disp, str):
+        d = disp.strip()
+        if d in _CIRCLED:
+            return _CIRCLED.index(d)
+    return None
+
+
+def build_answer_sheet(model, filled=True):
+    """OMR-style answer sheet (답안지). With filled=True the correct bubble is
+    marked (빠른 채점용 정답지) and essay items get a 모범답안 block; with
+    filled=False it is a blank sheet for students to mark."""
+    groups = [g for g in (model.get("answerKey") or []) if isinstance(g, dict)]
+    groups = [g for g in groups if g.get("answers")]
+    out = ['<section class="answer-sheet page-break">']
+    label = "[ OMR 답안지 · 정답 ]" if filled else "[ OMR 답안지 ]"
+    out.append(
+        f'<div class="section-header">{label}'
+        '<span class="sh-latin">Answer Sheet</span></div>'
+    )
+    out.append(
+        '<div class="as-info">'
+        '<span class="as-field"><span class="as-flabel">이름</span>'
+        '<span class="as-line"></span></span>'
+        '<span class="as-field"><span class="as-flabel">반 / 번호</span>'
+        '<span class="as-line"></span></span>'
+        '<span class="as-field"><span class="as-flabel">점수</span>'
+        '<span class="as-line"></span></span>'
+        "</div>"
+    )
+    essays = []
+    for g in groups:
+        part = esc(g.get("part", ""))
+        answers = [a for a in (g.get("answers") or []) if isinstance(a, dict)]
+        out.append('<div class="omr-part">')
+        if is_nonempty(part):
+            out.append(f'<div class="omr-part-head">{part}</div>')
+        out.append('<div class="omr-grid">')
         for a in answers:
             n = esc(a.get("n", ""))
-            ans = esc(display_answer(a.get("a", "")))
-            star = ' <span class="ak-star">★</span>' if a.get("killer") else ""
+            idx = _bubble_index(a.get("a", ""))
+            if idx is None:
+                essays.append((a.get("n", ""), a.get("a", "")))
+                out.append(
+                    '<div class="omr-row omr-essay-row">'
+                    f'<span class="omr-n">{n}</span>'
+                    '<span class="omr-essay-tag">서술형</span></div>'
+                )
+                continue
+            bubbles = []
+            for i in range(5):
+                on = " on" if (filled and i == idx) else ""
+                bubbles.append(f'<span class="omr-b{on}">{_CIRCLED[i]}</span>')
+            star = ' <span class="omr-star">★</span>' if a.get("killer") else ""
             out.append(
-                '<div class="ak-cell">'
-                f'<span class="ak-n">{n}</span>'
-                f'<span class="ak-a">{ans}</span>{star}</div>'
+                '<div class="omr-row">'
+                f'<span class="omr-n">{n}</span>'
+                f'<span class="omr-bubbles">{"".join(bubbles)}</span>{star}</div>'
             )
         out.append("</div></div>")
+    if filled and essays:
+        out.append('<div class="as-essay">')
+        out.append('<div class="as-essay-head">서술형 모범답안</div>')
+        for n, ans in essays:
+            out.append(
+                '<div class="as-essay-row">'
+                f'<span class="as-essay-n">{esc(n)}</span>'
+                f'<span class="as-essay-a">{esc(ans)}</span></div>'
+            )
+        out.append("</div>")
     out.append("</section>")
     return "\n".join(out)
 
@@ -1121,12 +1369,19 @@ def build_footer_strings(model):
 
 
 def build_html(model):
+    variant = (model.get("variant") or "teacher").lower()
     body = []
     body.append(build_footer_strings(model))
     body.append(build_cover(model))
-    body.append(build_parts(model.get("parts")))
-    body.append(build_answer_key(model.get("answerKey")))
-    body.append(build_explanations(model.get("explanations")))
+    if variant == "key":
+        # 빠른 채점용 OMR 정답지 (문제·해설 없이 답안지만)
+        body.append(build_answer_sheet(model, filled=True))
+    else:
+        body.append(build_parts(model.get("parts")))
+        if variant != "student":
+            # teacher(전체): 정답표 + 정밀 해설지
+            body.append(build_answer_key(model.get("answerKey")))
+            body.append(build_explanations(model.get("explanations")))
 
     doc = (
         "<!DOCTYPE html>\n"
@@ -1333,6 +1588,9 @@ def main(argv=None):
                         help="path to JSON model (else read stdin)")
     parser.add_argument("--out", dest="out_path", default=None, required=False,
                         help="output PDF path")
+    parser.add_argument("--variant", dest="variant", default="teacher",
+                        choices=["teacher", "student", "key"],
+                        help="teacher=full, student=questions only, key=answer sheet/OMR")
     args = parser.parse_args(argv)
 
     if weasyprint is None:
@@ -1346,6 +1604,7 @@ def main(argv=None):
 
     try:
         model = load_model(args.in_path)
+        model["variant"] = args.variant
     except Exception as e:
         log("ERROR loading model:", traceback.format_exc())
         print(json.dumps({"ok": False, "error": str(e)}))
