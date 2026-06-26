@@ -723,6 +723,23 @@ table.score tr.summary td {{
 }}
 
 /* ============================ ANSWER SHEET (OMR) ============================ */
+.answer-sheet .as-brand {{
+    font-family: var(--sans-stack);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--brass);
+    font-size: calc(8.5pt * var(--content-scale));
+    margin-bottom: 1.4mm;
+}}
+.answer-sheet .as-exam-title {{
+    font-family: var(--serif-stack);
+    font-weight: 700;
+    color: var(--navy);
+    font-size: calc(17pt * var(--content-scale));
+    letter-spacing: 0.01em;
+    margin-bottom: 3.2mm;
+}}
 .answer-sheet .as-info {{
     display: flex;
     gap: 6mm;
@@ -1244,11 +1261,19 @@ def build_answer_sheet(model, filled=True):
     filled=False it is a blank sheet for students to mark."""
     groups = [g for g in (model.get("answerKey") or []) if isinstance(g, dict)]
     groups = [g for g in groups if g.get("answers")]
-    out = ['<section class="answer-sheet page-break">']
+    out = ['<section class="answer-sheet">']
+    # Compact title (the 정답지 replaces the heavy premium cover so it fits on
+    # one page for fast grading).
+    brand = model.get("brand", "")
+    if is_nonempty(brand):
+        out.append(f'<div class="as-brand">{esc(brand)}</div>')
+    title = model.get("title") or "모의고사"
+    out.append(f'<div class="as-exam-title">{esc(title)}</div>')
     label = "[ OMR 답안지 · 정답 ]" if filled else "[ OMR 답안지 ]"
+    sub = "Answer Sheet · 빠른 채점용" if filled else "Answer Sheet"
     out.append(
         f'<div class="section-header">{label}'
-        '<span class="sh-latin">Answer Sheet</span></div>'
+        f'<span class="sh-latin">{sub}</span></div>'
     )
     out.append(
         '<div class="as-info">'
@@ -1372,11 +1397,11 @@ def build_html(model):
     variant = (model.get("variant") or "teacher").lower()
     body = []
     body.append(build_footer_strings(model))
-    body.append(build_cover(model))
     if variant == "key":
-        # 빠른 채점용 OMR 정답지 (문제·해설 없이 답안지만)
+        # 빠른 채점용 OMR 정답지: 무거운 표지 없이 답안지 한 장만(compact 헤더 포함).
         body.append(build_answer_sheet(model, filled=True))
     else:
+        body.append(build_cover(model))
         body.append(build_parts(model.get("parts")))
         if variant != "student":
             # teacher(전체): 정답표 + 정밀 해설지
