@@ -1,0 +1,39 @@
+{
+  "exam_fixture.teacher": {
+    "pages": 9,
+    "fontsAllEmbedded": true,
+    "fonts": [
+      "ExamSans",
+      "ExamSans-Bold",
+      "ExamSans-Oblique",
+      "ExamSerif",
+      "ExamSerif-Bold",
+      "ExamSym",
+      "ExamSym-Bold"
+    ],
+    "glyphs": "①②③④",
+    "glyphCount": 77,
+    "sections": {
+      "answerKey": true,
+      "explanations": true,
+      "omr": true
+    }
+  },
+  "exam_fixture.key": {
+    "pages": 1,
+    "fontsAllEmbedded": true,
+    "fonts": [
+      "ExamSans",
+      "ExamSans-Bold",
+      "ExamSym",
+      "ExamSym-Bold"
+    ],
+    "glyphs": "①②③④⑤",
+    "glyphCount": 65,
+    "sections": {
+      "answerKey": false,
+      "explanations": false,
+      "omr": true
+    }
+  }
+}
