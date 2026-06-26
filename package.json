@@ -15,6 +15,7 @@
     "vendor": "node scripts/vendor.mjs",
     "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "test:render": "node scripts/test-render.mjs",
+    "lint:ko": "node --import tsx scripts/ko-lint.mjs",
     "design:build": "node scripts/build-design-assets.mjs"
   },
   "dependencies": {
