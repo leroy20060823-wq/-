@@ -157,6 +157,7 @@ function buildExportBlock(m, outNo) {
    \`\`\`bash
    node --import tsx scripts/exam-pdf.mjs --in "outputs/<이름>.md" --out "outputs/<이름>.pdf" --title "<시험 제목>" --difficulty "<하|중|상>" --scope "<출제 범위>" --time <시험시간(분)> --subtitle "<예: 중간·기말 대비 모의고사>"
    \`\`\`
+   - **용지는 기본 B4(JIS-B4 257×364mm)** 입니다 — 수능·동형모의고사 표준이라 항상 B4로 뽑아요. A4가 필요할 때만 \`--paper a4\`.
    - **기본은 중립적·범용 표지**입니다. 특정 학교·기관 색을 넣지 마세요. \`--brand\`·\`--motto\`·\`--title-latin\`은 **사용자가 직접 요청한 경우에만** 추가하세요.
    - **버전 분리(\`--variant\`)**: 같은 시험지를 용도별로 나눠 뽑을 수 있어요(접미사가 붙은 별도 파일로 생성).
      - \`teacher\`(기본): 문제 + 정답표 + 정밀 해설지(전체)

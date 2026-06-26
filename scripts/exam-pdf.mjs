@@ -34,6 +34,7 @@ function parseArgs(argv) {
     else if (k === "--motto") a.motto = argv[++i];
     else if (k === "--notice") a.notice = argv[++i];
     else if (k === "--variant") a.variant = argv[++i];
+    else if (k === "--paper") a.paper = argv[++i];
   }
   return a;
 }
@@ -60,9 +61,9 @@ function installWeasyprint(bin) {
   return r.status === 0 && hasWeasyprint(bin);
 }
 
-function runPython(bin, modelJson, outPath, variant = "teacher") {
+function runPython(bin, modelJson, outPath, variant = "teacher", paper = "b4") {
   return new Promise((resolve) => {
-    const proc = spawn(bin, [PY_SCRIPT, "--out", outPath, "--variant", variant], { stdio: ["pipe", "pipe", "pipe"] });
+    const proc = spawn(bin, [PY_SCRIPT, "--out", outPath, "--variant", variant, "--paper", paper], { stdio: ["pipe", "pipe", "pipe"] });
     const out = [];
     const err = [];
     proc.stdout.on("data", (d) => out.push(d));
@@ -132,13 +133,14 @@ async function main() {
   }
 
   const modelJson = JSON.stringify(model);
+  const paper = (a.paper || "b4").toLowerCase(); // 기본 B4 (수능·동형 표준)
   const ext = path.extname(a.out) || ".pdf";
   const base = a.out.slice(0, a.out.length - ext.length);
   let failed = false;
   for (const v of variants) {
     // 단일 변형이면 사용자가 준 --out 을 그대로, 여러 변형이면 접미사를 붙인다.
     const outPath = variants.length === 1 ? a.out : `${base}-${v}${ext}`;
-    const r = await runPython(bin, modelJson, outPath, v);
+    const r = await runPython(bin, modelJson, outPath, v, paper);
     const log = r.stdout.split("\n").filter(Boolean).slice(-1)[0] ?? "";
     if (r.code === 0 && existsSync(outPath)) {
       console.log(`✓ [${VARIANT_LABEL[v]}] ${outPath}`);

@@ -9,6 +9,8 @@
 
 - **시험지** → `scripts/exam-pdf.mjs`(= `buildExamModel` + `scripts/exam_pdf.py`,
   WeasyPrint). 프리미엄 표지·네이비 섹션바·**5지선다 ①②③④⑤**·정답표·해설.
+  - **용지: 기본 B4(JIS-B4 257×364mm)** — 수능·동형모의고사 표준. 항상 B4로 출력한다.
+    A4가 필요하면 `--paper a4`. (`--variant teacher|student|key|all` 와 함께 사용)
 - **단어장** → `scripts/vocab-pdf.mjs`(Chromium). 마룬 헤더·품사 배지.
 - **그 밖** → `scripts/export.mjs`(Markdown → docx/pdf/hwpx/pptx/html).
 - 표지는 **중립·범용이 기본**. 학교·기관 브랜드(brand)·모토(motto)·영문 부제는
@@ -28,5 +30,5 @@
 
 ## 개발
 
-- `npm run typecheck` · `npm test`(79 tests) · `npm run build` 통과 유지.
+- `npm run typecheck` · `npm test`(82 tests) · `npm run build` 통과 유지.
 - 작업 브랜치: `claude/cool-wright-6a6tii`.

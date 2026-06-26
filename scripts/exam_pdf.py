@@ -118,14 +118,24 @@ def display_answer(a):
 # CSS
 # --------------------------------------------------------------------------- #
 
-def build_css(content_scale, hard_wrap):
+# Page sizes. Korean exam papers are printed on JIS-B4 (257×364mm); the 수능·
+# 동형모의고사 standard is B4. A4 kept as a fallback for general use.
+PAPER_SIZES = {
+    "b4": "257mm 364mm",   # JIS-B4 (Korean exam standard)
+    "a4": "210mm 297mm",
+}
+
+
+def build_css(content_scale, hard_wrap, paper="b4"):
     """
     Build the full stylesheet. `content_scale` scales all font sizes via the
     --content-scale custom property used inside calc(); `hard_wrap` toggles a
-    more aggressive break-word mode as a last resort.
+    more aggressive break-word mode as a last resort. `paper` selects the page
+    size (b4 default — the 수능/동형 standard).
     """
     word_break = "break-word" if hard_wrap else "keep-all"
     overflow_wrap = "anywhere"  # always permit breaking very long unbreakable runs
+    page_size = PAPER_SIZES.get((paper or "b4").lower(), PAPER_SIZES["b4"])
 
     return f"""
 /* ----- Bundled fonts (no CDN) ----- */
@@ -172,7 +182,7 @@ def build_css(content_scale, hard_wrap):
 
 /* ----- Page setup + running footer via @page margin boxes ----- */
 @page {{
-    size: A4;
+    size: {page_size};
     margin: 18mm 16mm 20mm 16mm;
     background: var(--page-bg);
 
@@ -1494,8 +1504,8 @@ def inspect_overflow(document):
 # Render + QA loop
 # --------------------------------------------------------------------------- #
 
-def render_once(html_doc, content_scale, hard_wrap, font_config):
-    css_text = build_css(content_scale, hard_wrap)
+def render_once(html_doc, content_scale, hard_wrap, font_config, paper="b4"):
+    css_text = build_css(content_scale, hard_wrap, paper)
     css = CSS(string=css_text, font_config=font_config)
     html = HTML(string=html_doc, base_url=REPO_ROOT)
     document = html.render(stylesheets=[css], font_config=font_config)
@@ -1509,6 +1519,7 @@ def render_with_qa(model):
     """
     html_doc = build_html(model)
     font_config = FontConfiguration()
+    paper = (model.get("paper") or "b4").lower()
 
     passes = []
     scale = SCALE_MAX
@@ -1517,7 +1528,7 @@ def render_with_qa(model):
     fell_back = False
 
     for attempt in range(1, MAX_PASSES + 1):
-        document = render_once(html_doc, scale, hard_wrap, font_config)
+        document = render_once(html_doc, scale, hard_wrap, font_config, paper)
         report = inspect_overflow(document)
         clean = report["overflowCount"] == 0
 
@@ -1606,7 +1617,7 @@ def load_model(in_path):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        description="Render an exam JSON model into an A4 PDF (WeasyPrint).",
+        description="Render an exam JSON model into a polished B4 PDF (WeasyPrint).",
         add_help=True,
     )
     parser.add_argument("--in", dest="in_path", default=None,
@@ -1616,6 +1627,9 @@ def main(argv=None):
     parser.add_argument("--variant", dest="variant", default="teacher",
                         choices=["teacher", "student", "key"],
                         help="teacher=full, student=questions only, key=answer sheet/OMR")
+    parser.add_argument("--paper", dest="paper", default="b4",
+                        choices=["b4", "a4"],
+                        help="page size (default b4 — the 수능/동형 standard)")
     args = parser.parse_args(argv)
 
     if weasyprint is None:
@@ -1630,6 +1644,7 @@ def main(argv=None):
     try:
         model = load_model(args.in_path)
         model["variant"] = args.variant
+        model["paper"] = args.paper
     except Exception as e:
         log("ERROR loading model:", traceback.format_exc())
         print(json.dumps({"ok": False, "error": str(e)}))
