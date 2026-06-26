@@ -37,7 +37,10 @@ function pythonCandidates(): string[] {
 // Render the exam model to a PDF: pipe the JSON model to the WeasyPrint script's
 // stdin, have it write the PDF to a temp file (--out), and read it back. stdout
 // carries the one-line QA log. Resolves `unavailable` when the toolchain is missing.
-function renderPdf(modelJson: string): Promise<{ pdf: Buffer; log: string } | { unavailable: true } | { error: string }> {
+function renderPdf(
+  modelJson: string,
+  variant: "student" | "teacher" | "key" = "teacher",
+): Promise<{ pdf: Buffer; log: string } | { unavailable: true } | { error: string }> {
   return new Promise((resolve) => {
     if (!existsSync(scriptPath)) {
       resolve({ unavailable: true });
@@ -61,7 +64,7 @@ function renderPdf(modelJson: string): Promise<{ pdf: Buffer; log: string } | { 
       }
       let proc;
       try {
-        proc = spawn(bin, [scriptPath, "--out", outPath], { stdio: ["pipe", "pipe", "pipe"] });
+        proc = spawn(bin, [scriptPath, "--out", outPath, "--variant", variant], { stdio: ["pipe", "pipe", "pipe"] });
       } catch {
         tryBin(idx + 1);
         return;
@@ -128,8 +131,13 @@ examRouter.post(
       notice: str(body.notice),
     };
 
+    const variant = ((v) => (v === "student" || v === "key" ? v : "teacher"))(str(body.variant)) as
+      | "student"
+      | "teacher"
+      | "key";
+
     const model = buildExamModel(markdown, input);
-    const result = await renderPdf(JSON.stringify(model));
+    const result = await renderPdf(JSON.stringify(model), variant);
 
     if ("unavailable" in result) {
       res.status(501).json({
@@ -143,7 +151,10 @@ examRouter.post(
       return;
     }
 
-    const filename = encodeURIComponent((input.title || model.title || "exam").replace(/[^\w가-힣 .-]/g, "").trim() || "exam");
+    const variantSuffix = variant === "student" ? "_학생용" : variant === "key" ? "_정답지" : "";
+    const filename = encodeURIComponent(
+      ((input.title || model.title || "exam").replace(/[^\w가-힣 .-]/g, "").trim() || "exam") + variantSuffix,
+    );
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename*=UTF-8''${filename}.pdf`);
     if (result.log) res.setHeader("X-Exam-QA", encodeURIComponent(result.log).slice(0, 400));

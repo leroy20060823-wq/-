@@ -196,6 +196,11 @@
           </div>
           <div id="exam-pdf" class="exam-pdf" hidden>
             <span class="exam-pdf-label">시험지 PDF (A4)</span>
+            <div class="chips" id="exam-variant" role="group" aria-label="시험지 종류">
+              <button type="button" class="chip active" data-variant="teacher">교사용(정답·해설)</button>
+              <button type="button" class="chip" data-variant="student">학생용(문제만)</button>
+              <button type="button" class="chip" data-variant="key">정답지(OMR)</button>
+            </div>
             <input id="exam-brand" type="text" maxlength="40" placeholder="기관·브랜드 (선택)" aria-label="기관·브랜드" />
             <input id="exam-motto" type="text" maxlength="60" placeholder="푸터 문구 (선택)" aria-label="푸터 문구" />
             <button id="exam-pdf-btn" type="button" class="btn-primary">PDF 내려받기</button>

@@ -668,6 +668,62 @@ table.score tr.summary td {{
     break-inside: avoid;
 }}
 
+/* ============================ OMR ANSWER SHEET ============================ */
+.omr-section {{ break-before: auto; }}
+.omr-title {{
+    font-family: var(--sans-stack);
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: 0.12em;
+    font-size: calc(11pt * var(--content-scale));
+    margin: 1mm 0 3mm 0;
+}}
+.omr-grid {{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 8mm;
+    margin-top: 4mm;
+}}
+.omr-cell {{
+    display: flex;
+    align-items: center;
+    gap: 3mm;
+    padding: 1.8mm 0;
+    border-bottom: 1px solid var(--rule, #E4DFD2);
+    font-size: calc(10.5pt * var(--content-scale));
+}}
+.omr-cell .omr-n {{
+    flex: none;
+    min-width: 7mm;
+    text-align: right;
+    font-family: var(--sans-stack);
+    font-weight: 700;
+    color: var(--navy);
+}}
+.omr-bubbles {{ display: flex; gap: 2.4mm; }}
+.omr-bubbles .b {{
+    color: #9a958a;
+    font-size: calc(11pt * var(--content-scale));
+    line-height: 1;
+}}
+.omr-bubbles .b.on {{
+    color: #FFFFFF;
+    background: var(--navy);
+    border-radius: 50%;
+    font-weight: 700;
+}}
+.omr-essay {{
+    font-family: var(--sans-stack);
+    color: var(--navy);
+    font-size: calc(9pt * var(--content-scale));
+}}
+.omr-rule {{
+    flex: 1;
+    border-bottom: 1px dotted #B9B3A6;
+    height: 0;
+    margin-left: 2mm;
+}}
+
 /* ============================ ANSWER KEY ============================ */
 .section-header {{
     background: var(--navy);
@@ -1142,13 +1198,80 @@ def build_footer_strings(model):
     return "\n".join(parts)
 
 
-def build_html(model):
+def _item_list(model):
+    """Ordered [{number, blank}] for every item across all parts."""
+    items = []
+    for part in (model.get("parts") or []):
+        if not isinstance(part, dict):
+            continue
+        for b in (part.get("blocks") or []):
+            if isinstance(b, dict) and b.get("type") == "item":
+                items.append({"number": b.get("number"), "blank": bool(b.get("blank"))})
+    return items
+
+
+def _answer_map(model):
+    """{item number -> answer letter} from the parsed 정답표."""
+    m = {}
+    for g in (model.get("answerKey") or []):
+        if not isinstance(g, dict):
+            continue
+        for a in (g.get("answers") or []):
+            if isinstance(a, dict) and a.get("n") is not None:
+                m[a.get("n")] = str(a.get("a") or "").strip().upper()
+    return m
+
+
+def build_omr(model):
+    """'key' variant: a standalone OMR answer sheet — number grid with the correct
+    ①②③④⑤ bubble filled, 서술형 → 채점란. Carries its own light header (no full cover)."""
+    items = _item_list(model)
+    amap = _answer_map(model)
+    out = ['<section class="omr-section">']
+    title = model.get("title") or "모의고사"
+    out.append(f'<h1 class="exam-title">{esc(title)}</h1>')
+    out.append('<div class="omr-title">정답 · OMR 답안지</div>')
+    ml = meta_line_html(model.get("meta") or {})
+    if ml:
+        out.append(ml)
+    fillin = [f for f in (model.get("fillIn") or []) if is_nonempty(f)]
+    if fillin:
+        out.append('<table class="fillin"><tbody><tr>')
+        for f in fillin[:4]:
+            out.append(f'<td class="label">{esc(f)}</td><td></td>')
+        out.append("</tr></tbody></table>")
+    out.append('<div class="omr-grid">')
+    for it in items:
+        n = it.get("number")
+        out.append('<div class="omr-cell">')
+        out.append(f'<span class="omr-n">{esc(n)}</span>')
+        if it.get("blank"):
+            out.append('<span class="omr-essay">서술형</span><span class="omr-rule"></span>')
+        else:
+            correct = amap.get(n, "")
+            idx = (ord(correct) - ord("A")) if (len(correct) == 1 and "A" <= correct <= "E") else -1
+            bubbles = "".join(
+                f'<span class="b{" on" if i == idx else ""}">{circled(i)}</span>' for i in range(5)
+            )
+            out.append(f'<span class="omr-bubbles">{bubbles}</span>')
+        out.append("</div>")
+    out.append("</div>")
+    out.append("</section>")
+    return "\n".join(out)
+
+
+def build_html(model, variant="teacher"):
+    variant = variant if variant in ("student", "teacher", "key") else "teacher"
     body = []
     body.append(build_footer_strings(model))
-    body.append(build_cover(model))
-    body.append(build_parts(model.get("parts")))
-    body.append(build_answer_key(model.get("answerKey")))
-    body.append(build_explanations(model.get("explanations")))
+    if variant == "key":
+        body.append(build_omr(model))
+    else:
+        body.append(build_cover(model))
+        body.append(build_parts(model.get("parts")))
+        if variant == "teacher":
+            body.append(build_answer_key(model.get("answerKey")))
+            body.append(build_explanations(model.get("explanations")))
 
     doc = (
         "<!DOCTYPE html>\n"
@@ -1244,12 +1367,12 @@ def render_once(html_doc, content_scale, hard_wrap, font_config):
     return document
 
 
-def render_with_qa(model):
+def render_with_qa(model, variant="teacher"):
     """
     Render with an automated review-and-revise loop. Returns (document, qa_log).
     qa_log = {"ok":True,"pages":N,"passes":[...],"fellBack":bool}
     """
-    html_doc = build_html(model)
+    html_doc = build_html(model, variant)
     font_config = FontConfiguration()
 
     passes = []
@@ -1357,6 +1480,9 @@ def main(argv=None):
                         help="output PDF path")
     parser.add_argument("--html", dest="html", action="store_true",
                         help="emit the rendered HTML to stdout and exit (debug/QA)")
+    parser.add_argument("--variant", dest="variant", default="teacher",
+                        choices=["student", "teacher", "key"],
+                        help="student=questions only · teacher=full (default) · key=OMR answer sheet")
     args = parser.parse_args(argv)
 
     # --html short-circuit: render the HTML only (no WeasyPrint needed). Handy for
@@ -1367,7 +1493,7 @@ def main(argv=None):
         except Exception as e:
             print(json.dumps({"ok": False, "error": str(e)}))
             return 1
-        sys.stdout.write(build_html(model))
+        sys.stdout.write(build_html(model, args.variant))
         return 0
 
     if weasyprint is None:
@@ -1387,7 +1513,7 @@ def main(argv=None):
         return 1
 
     try:
-        document, qa_log = render_with_qa(model)
+        document, qa_log = render_with_qa(model, args.variant)
         out_path = args.out_path
         out_dir = os.path.dirname(os.path.abspath(out_path))
         if out_dir and not os.path.isdir(out_dir):

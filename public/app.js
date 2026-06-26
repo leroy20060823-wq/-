@@ -96,6 +96,8 @@ const examBrandEl = document.getElementById("exam-brand");
 const examMottoEl = document.getElementById("exam-motto");
 const examPdfBtn = document.getElementById("exam-pdf-btn");
 const examPdfStatus = document.getElementById("exam-pdf-status");
+const examVariantChips = document.getElementById("exam-variant");
+let examVariant = "teacher";
 const examReviewBar = document.getElementById("exam-review");
 const examReviewBtn = document.getElementById("exam-review-btn");
 const examReviewStatus = document.getElementById("exam-review-status");
@@ -449,6 +451,7 @@ async function downloadExamPdf() {
         difficulty: opts.difficulty || "",
         brand: examBrandEl.value.trim(),
         motto: examMottoEl.value.trim(),
+        variant: examVariant,
       }),
     });
     if (!res.ok) {
@@ -458,9 +461,10 @@ async function downloadExamPdf() {
     }
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
+    const variantSuffix = examVariant === "student" ? "_학생용" : examVariant === "key" ? "_정답지" : "";
     const a = document.createElement("a");
     a.href = url;
-    a.download = ((guide.subject || "시험지").trim() || "시험지") + ".pdf";
+    a.download = ((guide.subject || "시험지").trim() || "시험지") + variantSuffix + ".pdf";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -1995,6 +1999,13 @@ paperChips?.addEventListener("click", (e) => {
   docPaper = chip.dataset.paper;
   paperChips.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c === chip));
   if (previewKind === "doc") showDoc(getCurrentModule()?.id);
+});
+// Exam PDF variant: 교사용(full) / 학생용(questions only) / 정답지(OMR).
+examVariantChips?.addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip[data-variant]");
+  if (!chip) return;
+  examVariant = chip.dataset.variant;
+  examVariantChips.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c === chip));
 });
 // Shared runner for document exports (.docx / .hwpx) — same content source +
 // paper size, so the two formats come out equivalent.
