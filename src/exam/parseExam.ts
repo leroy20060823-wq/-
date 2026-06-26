@@ -54,6 +54,10 @@ export interface ExplanationCard {
   explanation: string;
   key: string;
   wrong: string;
+  /** Rich header extras (e.g. '정답 ② ★Killer · 고난도 (4점)'). */
+  killer: boolean;
+  points: number | null;
+  difficulty: string;
 }
 export interface ExplanationGroup {
   part: string;
@@ -421,7 +425,12 @@ function parseAnswerKey(lines: string[]): AnswerKeyGroup[] {
   return groups.filter((g) => g.answers.length);
 }
 
-function parseExplanations(lines: string[]): ExplanationGroup[] {
+interface ItemInfo {
+  points: number | null;
+  killer: boolean;
+}
+
+function parseExplanations(lines: string[], itemInfo?: Map<number, ItemInfo>): ExplanationGroup[] {
   const groups: ExplanationGroup[] = [];
   let current: ExplanationGroup | null = null;
   const ensure = () => {
@@ -446,14 +455,52 @@ function parseExplanations(lines: string[]): ExplanationGroup[] {
       i++;
       continue;
     }
-    const cm = line.match(/^(\d+)\s*[.)]\s*정답\s*[:：]?\s*([A-Ea-e①②③④⑤]|.+?)(?:\s|$)(.*)$/);
+    // Header: 'N. 정답 X [★Killer] [· 고난도 (4점)] [— inline explanation]'.
+    const cm = line.match(/^(\d+)\s*[.)]\s*정답\s*[:：]?\s*(.+)$/);
     if (cm) {
+      const number = Number(cm[1]);
+      const head = (cm[2] ?? "").trim();
+      const killerHeader = /★|killer/i.test(head);
+      // points: '(4점)'
+      const pm = head.match(/\(\s*(\d+)\s*점\s*\)/);
+      let points: number | null = pm ? Number(pm[1]) : null;
+      // difficulty label: a '· <label> (N점)' segment.
+      let difficulty = "";
+      const dm = head.match(/·\s*([^()·]+?)\s*\(\s*\d+\s*점\s*\)/);
+      if (dm) difficulty = (dm[1] ?? "").replace(/★\s*killer/i, "").replace(/★/g, "").trim();
+      // answer (leading option letter/glyph) + any inline explanation after it.
+      let answer = "";
+      let rest = head;
+      const am = head.match(/^([A-Ea-e①②③④⑤])(?![가-힣A-Za-z])\s*/);
+      if (am) {
+        answer = (am[1] ?? "").toUpperCase();
+        rest = head.slice((am[0] ?? "").length);
+      } else {
+        answer = stripEmphasis((head.split(/\s*[·(]/)[0] ?? "").replace(/★\s*killer/i, "").trim());
+        rest = "";
+      }
+      // Inline explanation = rest minus killer / difficulty(N점) tags.
+      const inlineExpl = rest
+        .replace(/★\s*killer/i, "")
+        .replace(/★/g, "")
+        .replace(/·?\s*[^()·]*\(\s*\d+\s*점\s*\)/, "")
+        .replace(/^\s*[·—\-:：]\s*/, "")
+        .trim();
+      // Join missing bits from the matching item.
+      const info = itemInfo?.get(number);
+      if (points == null && info?.points != null) points = info.points;
+      const killer = killerHeader || !!info?.killer;
+      if (!difficulty && killer) difficulty = "고난도";
+
       const card: ExplanationCard = {
-        number: Number(cm[1]),
-        answer: (cm[2] ?? "").trim(),
-        explanation: stripEmphasis((cm[3] ?? "").replace(/^[—\-·]\s*/, "").trim()),
+        number,
+        answer,
+        explanation: stripEmphasis(inlineExpl),
         key: "",
         wrong: "",
+        killer,
+        points,
+        difficulty,
       };
       i++;
       while (i < lines.length) {
@@ -537,6 +584,15 @@ export function buildExamModel(markdown: string, input: ExamMetaInput = {}): Exa
     // 수험자 유의사항 (numbered list under a 유의사항/안내 heading), best-effort.
     const instructions = extractInstructions(headerAndBody);
 
+    // Per-item points/killer, so the 해설 header can show '· 고난도 (4점)' even
+    // when the explanation line itself omits them.
+    const itemInfo = new Map<number, ItemInfo>();
+    for (const p of parts) {
+      for (const b of p.blocks) {
+        if (b.type === "item") itemInfo.set(b.number, { points: b.points, killer: b.killer });
+      }
+    }
+
     return {
       brand: input.brand?.trim() || "",
       motto: input.motto?.trim() || "",
@@ -552,7 +608,7 @@ export function buildExamModel(markdown: string, input: ExamMetaInput = {}): Exa
       partSummary: summary,
       parts,
       answerKey: parseAnswerKey(akLines),
-      explanations: parseExplanations(exLines),
+      explanations: parseExplanations(exLines, itemInfo),
     };
   } catch {
     // Never throw — return a minimal valid model so the renderer still produces a page.

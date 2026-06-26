@@ -820,6 +820,17 @@ table.score tr.summary td {{
     font-size: calc(10.5pt * var(--content-scale));
     align-self: center;
 }}
+.ex-card .ex-head .killer {{
+    margin-left: 2.2mm;
+    align-self: center;
+}}
+.ex-card .ex-meta {{
+    margin-left: 2.2mm;
+    align-self: center;
+    font-family: var(--sans-stack);
+    color: var(--ink-soft, #6b6357);
+    font-size: calc(9pt * var(--content-scale));
+}}
 .ex-card .ex-text {{
     font-size: calc(10pt * var(--content-scale));
     line-height: 1.65;
@@ -1160,10 +1171,22 @@ def build_explanations(explanations):
             explanation = c.get("explanation", "")
             key = c.get("key", "")
             wrong = c.get("wrong", "")
+            killer = bool(c.get("killer"))
+            points = c.get("points")
+            difficulty = c.get("difficulty", "")
             out.append('<div class="ex-card">')
             out.append('<div class="ex-head">')
             out.append(f'<span class="q-num">{number}</span>')
             out.append(f'<span class="ex-answer">정답 {answer}</span>')
+            if killer:
+                out.append('<span class="killer">★Killer</span>')
+            meta_bits = []
+            if is_nonempty(difficulty):
+                meta_bits.append(esc(difficulty))
+            if points not in (None, ""):
+                meta_bits.append(f"({esc(points)}점)")
+            if meta_bits:
+                out.append('<span class="ex-meta">· ' + " ".join(meta_bits) + "</span>")
             out.append("</div>")
             if is_nonempty(explanation):
                 out.append(f'<p class="ex-text">{esc(explanation)}</p>')

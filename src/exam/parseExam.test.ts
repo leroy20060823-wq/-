@@ -153,6 +153,57 @@ test("parses an inline answer key: '**P1.**  1. A  2. E ★  3. C'", () => {
   assert.equal(m.answerKey[0]?.part, "P1");
 });
 
+test("parses rich 해설 headers (killer · 난이도 · 배점), joining points/killer from items", () => {
+  const md = [
+    "# T",
+    "총 2문항 · 100점 만점",
+    "## 배점표",
+    "| 파트 | 파트명 | 유형 | 문항 범위 | 문항 수 | 문항당 배점 | 파트 총점 |",
+    "|---|---|---|---|---|---|---|",
+    "| P1 | 독해 | 객관식 | 1~2 | 2 | 50점 | 100점 |",
+    "## P1. 독해",
+    "**1. 독해 — 추론 [4점] ★Killer**",
+    "고르세요.",
+    "A) a",
+    "B) b",
+    "C) c",
+    "D) d",
+    "E) e",
+    "**2. 독해 — 사실 [3점]**",
+    "고르세요.",
+    "A) a",
+    "B) b",
+    "C) c",
+    "D) d",
+    "E) e",
+    "## 정답표 (Answer Key)",
+    "**P1.** 1. B ★  2. C",
+    "## 정밀 해설지 (Detailed Explanations)",
+    "**P1.**",
+    "**1. 정답 B ★Killer · 고난도 (4점)**",
+    "근거 문장이에요.",
+    "핵심  rule X",
+    "오답 체크  distractor Y",
+    "**2. 정답 C**",
+    "근거.",
+  ].join("\n");
+  const m = buildExamModel(md);
+  const cards = m.explanations.flatMap((g) => g.cards);
+  const c1 = cards.find((c) => c.number === 1)!;
+  assert.equal(c1.answer, "B");
+  assert.equal(c1.killer, true);
+  assert.equal(c1.points, 4);
+  assert.equal(c1.difficulty, "고난도");
+  assert.match(c1.explanation, /근거 문장/);
+  assert.match(c1.key, /rule X/);
+  // header omits difficulty/points → joined from the item ([3점], not killer)
+  const c2 = cards.find((c) => c.number === 2)!;
+  assert.equal(c2.answer, "C");
+  assert.equal(c2.killer, false);
+  assert.equal(c2.points, 3);
+  assert.equal(c2.difficulty, "");
+});
+
 test("respects explicit overrides and neutral branding defaults", () => {
   const m = buildExamModel(FULL, { title: "내 시험", brand: "", motto: "", difficulty: "상·심화" });
   assert.equal(m.title, "내 시험");
