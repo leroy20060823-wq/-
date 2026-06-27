@@ -1403,13 +1403,10 @@ def build_answer_sheet(model, filled=True):
         f'<div class="section-header">{label}'
         f'<span class="sh-latin">{sub}</span></div>'
     )
+    # 답지(OMR) 인적사항도 '이름'만 둔다(반·번호·점수 등은 넣지 않는다).
     out.append(
         '<div class="as-info">'
         '<span class="as-field"><span class="as-flabel">이름</span>'
-        '<span class="as-line"></span></span>'
-        '<span class="as-field"><span class="as-flabel">반 / 번호</span>'
-        '<span class="as-line"></span></span>'
-        '<span class="as-field"><span class="as-flabel">점수</span>'
         '<span class="as-line"></span></span>'
         "</div>"
     )
