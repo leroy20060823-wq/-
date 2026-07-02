@@ -202,9 +202,11 @@ def base_css(t):
 body {{ font-family: 'DocSans','DocSym',sans-serif; color: var(--ink); font-size: 10pt; line-height: 1.62; margin: 0; }}
 .footer-anchor {{ string-set: doc-footer content(); display:none; }}
 code {{ font-family:'DocSym','DocSans',monospace; background: var(--soft); border:1px solid var(--line); border-radius:3px; padding:0 .35em; font-size: 9.2pt; }}
-table {{ width:100%; border-collapse:collapse; margin: 3mm 0; font-size: 9.3pt; }}
-th {{ background: var(--pri); color:#fff; font-weight:700; padding: 2.2mm 2.6mm; border:1px solid var(--pri); }}
-td {{ border:1px solid #CBD2DA; padding: 2mm 2.6mm; vertical-align: top; }}
+table {{ width:100%; border-collapse:collapse; margin: 3mm 0; font-size: 9.3pt; table-layout: fixed; }}
+th {{ background: var(--pri); color:#fff; font-weight:700; padding: 2.2mm 2.6mm; border:1px solid var(--pri);
+  word-break: keep-all; overflow-wrap: break-word; }}
+td {{ border:1px solid #CBD2DA; padding: 2mm 2.6mm; vertical-align: top;
+  word-break: keep-all; overflow-wrap: break-word; }}
 tbody tr:nth-child(even) td {{ background: var(--soft); }}
 .callout {{ background: var(--chip); border-left: 3px solid var(--acc); padding: 2.6mm 4mm; margin: 3mm 0; }}
 """
