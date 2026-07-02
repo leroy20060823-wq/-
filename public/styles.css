@@ -88,6 +88,7 @@ a:hover {
   font-weight: 700;
   font-size: 1.05rem;
   color: var(--ink);
+  white-space: nowrap; /* 360px에서 '올인원 AI'가 두 줄로 꺾이지 않도록 */
 }
 
 .brand:hover {
@@ -178,6 +179,18 @@ main {
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* 좁은 화면에서 버튼·칩 속 한국어가 단어 중간에서 꺾이지 않도록
+   ('전체 보\n기', '(PDF·이미\n지)' 방지) */
+.btn-primary,
+.btn-ghost,
+.chip,
+.source-btn,
+.wizard-choice,
+.theme-sample,
+.oq-btn {
+  word-break: keep-all;
 }
 
 /* ---------------- Hero ---------------- */
@@ -1160,6 +1173,7 @@ body[data-guidance="lite"] .guide-fields {
   font-size: 0.85rem;
   color: var(--ink-soft);
   margin-left: 8px;
+  margin-right: 10px; /* 단위(분·장·문항)가 테두리에 붙지 않게 */
 }
 
 .presets {
@@ -2402,6 +2416,7 @@ body[data-guidance="lite"] .guide-fields {
   border: 1.5px solid var(--border-soft);
   border-radius: 9px;
   line-height: 1;
+  white-space: nowrap; /* '가－'가 두 줄로 꺾이지 않게 */
 }
 .ts-btn:hover {
   border-color: var(--sage);
@@ -2429,6 +2444,7 @@ body[data-guidance="lite"] .guide-fields {
   .ts-btn {
     min-width: 44px;
     min-height: 44px;
+    padding: 4px 6px;
   }
   /* Forms: full-width controls + big tap targets */
   .actions {
@@ -2483,6 +2499,21 @@ body[data-guidance="lite"] .guide-fields {
   }
   .hero-title {
     font-size: clamp(2rem, 9vw, 2.8rem);
+  }
+}
+
+/* 아주 좁은 화면(≤420px): 로고 아이콘을 숨기고 버튼 여백을 줄여
+   상단바(햄버거·올인원 AI·글자 크기·시작하기)가 한 줄에 들어가게 */
+@media (max-width: 420px) {
+  .brand-logo {
+    display: none;
+  }
+  .topbar {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .topbar .btn-primary {
+    padding: 9px 15px;
   }
 }
 
