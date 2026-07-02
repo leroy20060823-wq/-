@@ -49,15 +49,22 @@ def esc(s):
 
 # --------------------------------------------------------------------------- #
 # Themes — accent palettes picked by topic keywords (or explicit key).
-# Every palette is chosen to hold up in grayscale (dark primary ≥ WCAG-ish).
+#
+# 인쇄 안전 규칙 (scripts/exam_pdf.py 와 공유): 한국 학교의 기본은 흑백 레이저 인쇄.
+# 의미를 색상(hue)만으로 구분하지 않고, 텍스트를 담는 pri/acc 는 컬러값과
+# 그레이스케일 변환값(L = 0.299R+0.587G+0.114B) 모두가 white/soft/chip 배경 대비
+# WCAG 4.5:1 이상이어야 한다(흰 글자를 얹는 경우 그 반대 방향도 동일).
+#   · green.acc  #B7791F(3.3~3.9:1) → #91611A 로 어둡게 (황토색 정체성 유지)
+#   · teal/indigo.acc #C05621(chip 위 4.2:1) → #B04E1D 로 어둡게 (주황 정체성 유지)
+# 값을 바꿀 때는 반드시 컬러·회색 두 모드의 대비를 다시 계산할 것.
 # --------------------------------------------------------------------------- #
 THEMES = {
     "navy":    {"pri": "#1F2A44", "acc": "#8B2332", "soft": "#F4F6FA", "chip": "#FBF3F4", "band2": "#3A4A6B"},
-    "teal":    {"pri": "#0F4C5C", "acc": "#C05621", "soft": "#EFF6F7", "chip": "#FDF3EC", "band2": "#1D6B7E"},
-    "green":   {"pri": "#22543D", "acc": "#B7791F", "soft": "#F0F6F1", "chip": "#FBF5E9", "band2": "#38795B"},
+    "teal":    {"pri": "#0F4C5C", "acc": "#B04E1D", "soft": "#EFF6F7", "chip": "#FDF3EC", "band2": "#1D6B7E"},
+    "green":   {"pri": "#22543D", "acc": "#91611A", "soft": "#F0F6F1", "chip": "#FBF5E9", "band2": "#38795B"},
     "plum":    {"pri": "#44337A", "acc": "#B83280", "soft": "#F4F2FA", "chip": "#FBF0F6", "band2": "#5D4BA0"},
     "brown":   {"pri": "#5F370E", "acc": "#276749", "soft": "#F8F4EE", "chip": "#EFF6F0", "band2": "#8A5A2B"},
-    "indigo":  {"pri": "#2A3B8F", "acc": "#C05621", "soft": "#F1F3FB", "chip": "#FDF3EC", "band2": "#4557B5"},
+    "indigo":  {"pri": "#2A3B8F", "acc": "#B04E1D", "soft": "#F1F3FB", "chip": "#FDF3EC", "band2": "#4557B5"},
     "coral":   {"pri": "#9B2C2C", "acc": "#0F4C5C", "soft": "#FBF2F0", "chip": "#EFF6F7", "band2": "#C05050"},
 }
 KEYWORD_THEMES = [
@@ -191,7 +198,8 @@ def base_css(t):
 @font-face {{ font-family:'DocSym'; src: url('{font_url("DejaVuSans.ttf")}'); }}
 :root {{
   --pri: {t["pri"]}; --acc: {t["acc"]}; --soft: {t["soft"]}; --chip: {t["chip"]}; --band2: {t["band2"]};
-  --ink: #23272E; --gray: #6B7280; --line: #E5E7EB;
+  /* --gray 는 soft 배경 위에도 올라가므로 4.5:1 확보를 위해 #6B7280(4.4:1)보다 어둡게 */
+  --ink: #23272E; --gray: #5D6570; --line: #E5E7EB;
 }}
 @page {{
   size: A4; margin: 16mm 15mm 18mm 15mm;
@@ -208,6 +216,10 @@ th {{ background: var(--pri); color:#fff; font-weight:700; padding: 2.2mm 2.6mm;
 td {{ border:1px solid #CBD2DA; padding: 2mm 2.6mm; vertical-align: top;
   word-break: keep-all; overflow-wrap: break-word; }}
 tbody tr:nth-child(even) td {{ background: var(--soft); }}
+/* 인쇄 페이지 나눔 보호: 표의 행이 쪼개지거나, 제목이 첫 문단과 떨어지지 않게 */
+thead {{ display: table-header-group; }}
+tr {{ break-inside: avoid; }}
+h1, h2, h3 {{ break-after: avoid; }}
 .callout {{ background: var(--chip); border-left: 3px solid var(--acc); padding: 2.6mm 4mm; margin: 3mm 0; }}
 """
 
@@ -549,7 +561,7 @@ def ws_css():
   font-weight: 700; text-align:center; line-height: 7mm; font-size: 10.5pt; background:#fff; }
 .prob .pbody { flex:1; }
 .prob .pstem { font-size: 10.4pt; font-weight: 500; padding-top: .8mm; }
-.workspace { border-bottom: 1px dashed #C9CFD6; height: 13mm; margin: 1.5mm 0 3mm; }
+.workspace { border-bottom: 1px dashed #A5ADB6; height: 13mm; margin: 1.5mm 0 3mm; } /* 레이저에서 보이는 농도 */
 .wsans { break-before: page; }
 .wsans .abar { background: var(--pri); color:#fff; border-radius: 2mm; padding: 3mm 5mm; font-weight:700; font-size: 12.5pt; margin-bottom: 4mm; }
 .wsans .acard { border: 1px solid var(--line); border-left: 3px solid var(--acc); border-radius: 0 2mm 2mm 0;
@@ -608,7 +620,7 @@ def build_worksheet(doc):
 def doc_css():
     return """
 .dband { border-bottom: 2.2pt solid var(--pri); padding-bottom: 3.5mm; margin-bottom: 6mm; position: relative; }
-.dband::after { content:''; position:absolute; left:0; right:0; bottom:-1.9mm; border-bottom:.6pt solid var(--acc); }
+.dband::after { content:''; position:absolute; left:0; right:0; bottom:-1.9mm; border-bottom:.75pt solid var(--acc); } /* <0.75pt 헤어라인은 레이저에서 사라짐 */
 .dband .dk { color: var(--acc); font-size: 8.4pt; letter-spacing:.3em; font-weight:700; }
 .dband h1 { margin: 1mm 0 0; color: var(--pri); font-family:'DocSerif','DocSans'; font-size: 19pt; }
 .dband .dsub { color: var(--gray); font-size: 9.2pt; margin-top: 1mm; }
