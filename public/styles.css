@@ -884,9 +884,10 @@ body[data-guidance="lite"] .guide-fields {
   gap: 10px;
 }
 
+/* 첫 로딩 중(모듈 목록 fetch 전) 질문 영역 공간을 미리 확보해
+   폼이 아래로 '툭' 밀리는 레이아웃 이동(CLS)을 줄임 */
 .guide-fields:empty {
-  display: none;
-  margin: 0;
+  min-height: 380px;
 }
 
 .guide-field {
