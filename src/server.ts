@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { config } from "./config.js";
 import { router } from "./routes/generate.js";
 import { examRouter } from "./routes/exam.js";
+import { docRouter } from "./routes/doc.js";
 import { feedbackRouter } from "./routes/feedback.js";
 
 const app = express();
@@ -36,6 +37,7 @@ app.get("/health", (_req, res) => {
 
 app.use("/api", router);
 app.use("/api", examRouter);
+app.use("/api", docRouter);
 app.use("/api", feedbackRouter);
 
 // Centralized error handler (must have 4 args to be treated as an error handler).

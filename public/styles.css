@@ -3090,3 +3090,8 @@ body.sidebar-collapsed .sidebar {
     display: none;
   }
 }
+
+/* The hidden attribute must always win (e.g. .btn-primary sets display). */
+[hidden] {
+  display: none !important;
+}

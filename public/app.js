@@ -114,6 +114,8 @@ const paperChips = document.getElementById("paper-chips");
 const downloadDocxBtn = document.getElementById("download-docx");
 const downloadHwpxBtn = document.getElementById("download-hwpx");
 const downloadDocPdfBtn = document.getElementById("download-docpdf");
+const downloadDesignPdfBtn = document.getElementById("download-designpdf");
+const docExportNote = document.getElementById("doc-export-note");
 const docExportStatus = document.getElementById("doc-export-status");
 let docPaper = "a4"; // A4 | letter | b5
 // Modules whose output is a document (everything except slides). PPT → .pptx.
@@ -1772,9 +1774,27 @@ function showResultActions(moduleId) {
 // Document export controls (paper size + .docx / PDF). Shown for every document
 // module (not PPT) whenever there's content — including the static sample, so it
 // is fully testable without an API key.
+// Format policy: 자소서·이력서 → 편집용 Word/한글(.docx/.hwpx). 그 외 문서 모듈 →
+// 디자인된 PDF(서버 렌더). 시험지는 전용 B4 PDF 바, PPT는 .pptx.
+const WORD_MODULES = new Set(["resume", "cover-letter"]);
+const PDF_DOC_MODULES = new Set(["vocabulary", "study-notes", "quiz", "worksheet", "lesson-plan", "creative-writing", "excel"]);
 function showDocControls(moduleId) {
   if (!docExport) return;
-  docExport.hidden = !(isDocModule(moduleId) && raw.trim());
+  const show = isDocModule(moduleId) && raw.trim();
+  docExport.hidden = !show;
+  if (!show) return;
+  const isWord = WORD_MODULES.has(moduleId);
+  const isPdfDoc = PDF_DOC_MODULES.has(moduleId);
+  if (downloadDesignPdfBtn) downloadDesignPdfBtn.hidden = !isPdfDoc;
+  if (downloadDocxBtn) downloadDocxBtn.hidden = !isWord;
+  if (downloadHwpxBtn) downloadHwpxBtn.hidden = !isWord;
+  if (downloadDocPdfBtn) downloadDocPdfBtn.hidden = !isWord; // browser-print stays a word-doc extra
+  const paperRow = paperChips?.closest(".doc-paper");
+  if (paperRow) paperRow.hidden = !isWord;
+  if (docExportNote)
+    docExportNote.textContent = isWord
+      ? "둘 다 편집할 수 있어요 — .docx는 Word·구글 문서에서, .hwpx는 한글(HWP)에서 열립니다."
+      : "주제에 어울리는 디자인으로 인쇄용 PDF를 만들어 드려요. (컬러·흑백 모두 선명)";
 }
 
 function sanitizeFilename(s) {
@@ -2300,6 +2320,45 @@ async function runDocExport(btn, fn, kind) {
 }
 downloadDocxBtn?.addEventListener("click", () => runDocExport(downloadDocxBtn, exportDocx, "Word"));
 downloadHwpxBtn?.addEventListener("click", () => runDocExport(downloadHwpxBtn, exportHwpx, "한글"));
+// Designed PDF (server WeasyPrint) — 단어장·학습노트·퀴즈·학습지·지도안·소설·엑셀.
+downloadDesignPdfBtn?.addEventListener("click", async () => {
+  if (!raw.trim()) return;
+  const moduleId = getCurrentModule()?.id;
+  const label = downloadDesignPdfBtn.textContent;
+  downloadDesignPdfBtn.disabled = true;
+  docExportStatus.textContent = "PDF 만드는 중…";
+  try {
+    const title = docTitleFromRaw();
+    const g = gatherGuide();
+    const subtitle = [g.subject, g.topic, g.unit].filter(Boolean).join(" · ");
+    const res = await fetch("/api/doc/pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ module: moduleId, markdown: raw, title, subtitle }),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      docExportStatus.textContent = d.error || "PDF 생성에 실패했어요.";
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = sanitizeFilename(title) + ".pdf";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    docExportStatus.textContent = "내려받기 완료";
+    setTimeout(() => (docExportStatus.textContent = ""), 2500);
+  } catch {
+    docExportStatus.textContent = "PDF 생성에 실패했어요.";
+  } finally {
+    downloadDesignPdfBtn.disabled = false;
+    downloadDesignPdfBtn.textContent = label;
+  }
+});
 // "PDF로 저장" — browser print of a clean, paper-sized copy (no Python). The user
 // chooses "PDF로 저장" in the print dialog.
 downloadDocPdfBtn?.addEventListener("click", () => {
