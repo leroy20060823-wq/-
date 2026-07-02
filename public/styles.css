@@ -1373,6 +1373,7 @@ body[data-guidance="lite"] .guide-fields {
    down via transform, so measurement happens in stable design pixels. */
 .deck-frame {
   width: 100%;
+  flex-shrink: 0; /* .deck is a flex column — without this multi-slide decks collapse to slivers */
   overflow: hidden;
   border: 1px solid var(--border-soft);
   border-radius: 12px;

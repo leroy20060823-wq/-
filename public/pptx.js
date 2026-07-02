@@ -184,7 +184,9 @@ export async function exportPptx(deckModel, theme, filename) {
   const slides = (deckModel && deckModel.slides) || [];
   for (const s of slides) {
     const build = BUILDERS[s.layout] || buildBullets;
-    build(pptx.addSlide(), s, t, f);
+    const slide = pptx.addSlide();
+    build(slide, s, t, f);
+    if (s.notes) slide.addNotes(String(s.notes)); // 발표자 노트 보존
   }
   const name = sanitizeName(filename || deckModel.title);
   await pptx.writeFile({ fileName: `${name}.pptx` });

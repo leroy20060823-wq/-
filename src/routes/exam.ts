@@ -156,7 +156,7 @@ examRouter.post(
       ((input.title || model.title || "exam").replace(/[^\w가-힣 .-]/g, "").trim() || "exam") + variantSuffix,
     );
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename*=UTF-8''${filename}.pdf`);
+    res.setHeader("Content-Disposition", `attachment; filename="exam.pdf"; filename*=UTF-8''${filename}.pdf`);
     if (result.log) res.setHeader("X-Exam-QA", encodeURIComponent(result.log).slice(0, 400));
     res.send(result.pdf);
   }),

@@ -46,7 +46,16 @@ app.use("/api", feedbackRouter);
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   console.error("[error]", err);
   if (res.headersSent) return;
-  res.status(500).json({ error: "잠시 문제가 생겼어요. 잠시 후 다시 시도해 주세요." });
+  // Client errors (bad JSON = 400, oversize body = 413, …) must not surface as 500.
+  const e = err as { status?: number; statusCode?: number } | null;
+  const status = e?.status ?? e?.statusCode ?? 500;
+  const message =
+    status >= 500
+      ? "잠시 문제가 생겼어요. 잠시 후 다시 시도해 주세요."
+      : status === 413
+        ? "보낸 내용이 너무 큽니다. 내용을 줄여 다시 시도해 주세요."
+        : "요청 형식이 올바르지 않아요. 다시 시도해 주세요.";
+  res.status(status).json({ error: message });
 });
 
 app.listen(config.port, () => {

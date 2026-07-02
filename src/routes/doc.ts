@@ -145,7 +145,7 @@ docRouter.post(
     }
     const filename = encodeURIComponent(((doc.title || "문서").replace(/[^\w가-힣 .-]/g, "").trim() || "문서"));
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename*=UTF-8''${filename}.pdf`);
+    res.setHeader("Content-Disposition", `attachment; filename="document.pdf"; filename*=UTF-8''${filename}.pdf`);
     if (result.log) res.setHeader("X-Doc-QA", encodeURIComponent(result.log).slice(0, 300));
     res.send(result.pdf);
   }),

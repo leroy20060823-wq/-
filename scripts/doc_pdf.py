@@ -199,7 +199,7 @@ def base_css(t):
   @bottom-right  {{ content: counter(page) ' / ' counter(pages); font-family: DocSans; font-size: 7.5pt; color: var(--gray); }}
 }}
 * {{ box-sizing: border-box; }}
-body {{ font-family: 'DocSans','DocSym',sans-serif; color: var(--ink); font-size: 10pt; line-height: 1.62; margin: 0; }}
+body {{ font-family: 'DocSans','DocSym','Noto Sans CJK KR',sans-serif; color: var(--ink); font-size: 10pt; line-height: 1.62; margin: 0; }}
 .footer-anchor {{ string-set: doc-footer content(); display:none; }}
 code {{ font-family:'DocSym','DocSans',monospace; background: var(--soft); border:1px solid var(--line); border-radius:3px; padding:0 .35em; font-size: 9.2pt; }}
 table {{ width:100%; border-collapse:collapse; margin: 3mm 0; font-size: 9.3pt; table-layout: fixed; }}
@@ -346,7 +346,9 @@ def notes_css():
 .nband h1 { margin:0; font-size: 20pt; line-height:1.25; }
 .nband .nsub { opacity:.85; font-size: 9.3pt; margin-top: 1.2mm; }
 .ncard { border: 1px solid var(--line); border-left: 3.5px solid var(--acc); border-radius: 2mm;
-  padding: 4mm 5mm 3.4mm; margin: 0 0 4.5mm; break-inside: avoid; background: #fff; }
+  padding: 4mm 5mm 3.4mm; margin: 0 0 4.5mm; background: #fff; }
+/* keep short cards intact but let oversize cards split (avoids a blank first page) */
+.ncard h2 { break-after: avoid; }
 .ncard h2 { margin: 0 0 2mm; color: var(--pri); font-size: 12.5pt; }
 .ncard h2 .ndot { color: var(--acc); margin-right: 1.6mm; }
 .ncard ul, .ncard ol { margin: 0; padding-left: 5.5mm; }
@@ -410,7 +412,7 @@ def build_notes(doc):
 # --------------------------------------------------------------------------- #
 # 퀴즈 (quiz) — lively question cards + answer booklet
 # --------------------------------------------------------------------------- #
-CHOICE_RE = re.compile(r"^([A-E])\)\s+(.+)$")
+CHOICE_RE = re.compile(r"^([A-H])\)\s+(.+)$")
 Q_RE = re.compile(r"^(\d+)[.)]\s+(.+)$")
 CIRC = "①②③④⑤"
 

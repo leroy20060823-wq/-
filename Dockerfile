@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       python3 python3-venv python3-pip \
       libpango-1.0-0 libpangocairo-1.0-0 libcairo2 \
       libgdk-pixbuf-2.0-0 libffi8 libjpeg62-turbo \
-      fontconfig shared-mime-info \
+      fontconfig shared-mime-info fonts-noto-cjk \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

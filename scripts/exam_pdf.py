@@ -105,8 +105,9 @@ CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳"
 
 
 def circled(index):
-    """0 -> ①, 1 -> ② … (options render as circled numbers, per the blueprint)."""
-    return CIRCLED[index] if 0 <= index < len(CIRCLED) else str(index + 1)
+    """0 -> ①, 1 -> ② … Beyond ⑩ the bundled fonts have no glyphs (⑪~⑳ would
+    vanish), so fall back to '(11)' text form."""
+    return CIRCLED[index] if 0 <= index < 10 else f"({index + 1})"
 
 
 def circled_answer(value):
@@ -187,8 +188,8 @@ def build_css(content_scale, hard_wrap, cover_scale=1.0):
     --ink: {BODY_INK};
     --gray: {FOOTER_GRAY};
     /* Font stacks: KR primary + DejaVu symbol fallback so '✦' renders. */
-    --serif-stack: 'ExamSerif', 'ExamSym', serif;
-    --sans-stack: 'ExamSans', 'ExamSym', sans-serif;
+    --serif-stack: 'ExamSerif', 'ExamSym', 'Noto Serif CJK KR', 'Noto Sans CJK KR', serif;
+    --sans-stack: 'ExamSans', 'ExamSym', 'Noto Sans CJK KR', sans-serif;
 }}
 
 /* ----- Page setup + running footer via @page margin boxes ----- */
@@ -1310,7 +1311,9 @@ def _item_list(model):
 
 
 def _answer_map(model):
-    """{item number -> answer letter} from the parsed 정답표."""
+    """{item number -> answer letter} from the parsed 정답표; falls back to the
+    정밀 해설지 cards ('N. 정답 X') so the OMR never ships blank when the model
+    omitted the 정답표 section but the answers exist in the explanations."""
     m = {}
     for g in (model.get("answerKey") or []):
         if not isinstance(g, dict):
@@ -1318,6 +1321,18 @@ def _answer_map(model):
         for a in (g.get("answers") or []):
             if isinstance(a, dict) and a.get("n") is not None:
                 m[a.get("n")] = str(a.get("a") or "").strip().upper()
+    if not m:
+        for g in (model.get("explanations") or []):
+            if not isinstance(g, dict):
+                continue
+            for c in (g.get("cards") or []):
+                if not isinstance(c, dict) or c.get("number") is None:
+                    continue
+                a = str(c.get("answer") or "").strip().upper()
+                if len(a) == 1 and ("A" <= a <= "E" or a in CIRCLED):
+                    if a in CIRCLED:
+                        a = chr(ord("A") + CIRCLED.index(a))
+                    m[c.get("number")] = a
     return m
 
 

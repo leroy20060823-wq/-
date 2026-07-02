@@ -39,6 +39,18 @@ function parseRef(ref) {
   for (const ch of m[1].toUpperCase()) col = col * 26 + (ch.charCodeAt(0) - 64);
   return { row: Number(m[2]), col };
 }
+// Excel 2010+ functions must be serialized with the _xlfn. prefix in <f>,
+// or Excel/LibreOffice show #NAME? when opening the file.
+const XLFN = ["IFS","SWITCH","TEXTJOIN","CONCAT","MAXIFS","MINIFS","XLOOKUP","XMATCH","FILTER","SORT","SORTBY","UNIQUE","SEQUENCE","RANDARRAY","LET","LAMBDA","IFNA","NUMBERVALUE","FORECAST.ETS","STDEV.P","STDEV.S","VAR.P","VAR.S","NORM.DIST","NORM.INV","PERCENTILE.INC","PERCENTILE.EXC","QUARTILE.INC","MODE.SNGL","MODE.MULT","CEILING.MATH","FLOOR.MATH","ISOWEEKNUM","DAYS","BITAND","BITOR","BITXOR","ARABIC","BASE","DECIMAL","SHEET","SHEETS","FORMULATEXT","ISFORMULA","UNICHAR","UNICODE"];
+function xlfnPrefix(formula) {
+  let out = String(formula);
+  for (const fn of XLFN) {
+    const re = new RegExp("(^|[^A-Z0-9._])(" + fn.replace(".", "\\.") + ")\\(", "gi");
+    out = out.replace(re, (m, pre, name) => `${pre}_xlfn.${name.toUpperCase()}(`);
+  }
+  return out.replace(/_xlfn\._xlfn\./g, "_xlfn.");
+}
+
 function xesc(s) {
   return String(s)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -60,7 +72,7 @@ function sheetXml(sheet) {
   for (const fm of sheet.formulas || []) {
     const ref = parseRef(fm.cell);
     if (!ref || !fm.f) continue;
-    const f = String(fm.f).replace(/^=/, "");
+    const f = xlfnPrefix(String(fm.f).replace(/^=/, ""));
     put(ref.row, ref.col, { f });
     if (fm.label) {
       const lc = ref.col > 1 ? ref.col - 1 : ref.col + 1;

@@ -469,7 +469,7 @@ async function downloadExamPdf() {
     const variantSuffix = examVariant === "student" ? "_학생용" : examVariant === "key" ? "_정답지" : "";
     const a = document.createElement("a");
     a.href = url;
-    a.download = ((guide.subject || "시험지").trim() || "시험지") + variantSuffix + ".pdf";
+    a.download = sanitizeFilename(guide.subject || "시험지") + variantSuffix + ".pdf";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -939,7 +939,7 @@ function deckModelFromMarkdown(raw) {
   const slides = capped.map((s, i) =>
     i === 0 && s.kind === "title"
       ? { layout: "cover", eyebrow: "", title: s.title, subtitle: s.subtitle || "" }
-      : { layout: "bullets", title: s.title, bullets: s.bullets || [] },
+      : { layout: "bullets", title: s.title, bullets: s.bullets || [], notes: s.notes || "" },
   );
   return { title: capped[0]?.title || "발표", slides };
 }
@@ -2281,8 +2281,11 @@ function docTitleFromRaw() {
   const el = renderedDocEl();
   const h = el.querySelector("h1, h2, h3");
   const g = gatherGuide();
+  const ht = h && h.textContent.trim();
+  // Placeholder headings like "[이름]" make useless filenames — fall back.
+  const headingTitle = ht && !/^\[.*\]$/.test(ht) ? ht : "";
   return (
-    (h && h.textContent.trim()) ||
+    headingTitle ||
     (g.subject || g.topic || getCurrentModule()?.name || "문서").toString().trim() ||
     "문서"
   );
