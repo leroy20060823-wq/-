@@ -45,12 +45,22 @@ FONTS_DIR = os.path.join(REPO_ROOT, "fonts")
 
 # Palette (EXACT per spec)
 NAVY = "#192744"
-BRASS = "#A8894E"
+BRASS = "#A8894E"          # identity accent — rules/borders/ornaments ONLY (not text)
 PAGE_BG = "#FBF8F1"
 PANEL_BG = "#F3ECDC"
 CONTENT_BG = "#FFFFFF"
 BODY_INK = "#22252B"
-FOOTER_GRAY = "#9A9486"
+
+# ── 인쇄 안전 규칙 (scripts/doc_pdf.py 와 공유) ─────────────────────────────
+# 한국 학교의 기본은 흑백 레이저 인쇄. 의미를 색상(hue)만으로 구분하지 않고,
+# "글자를 담는" 색은 컬러값과 그레이스케일 변환값(L = 0.299R+0.587G+0.114B)
+# 모두가 올라가는 모든 배경(PAGE_BG·PANEL_BG·white) 대비 WCAG 4.5:1 이상이
+# 되도록 잡는다. BRASS(#A8894E)는 회색 변환 시 배경과 근접(≈2.8~3.4:1)하므로
+# 텍스트에는 쓰지 않는다 — 텍스트용은 같은 색상의 어두운 변형 BRASS_TEXT.
+BRASS_TEXT = "#7E673B"     # 브라스 텍스트용: PANEL_BG 위 4.6:1(컬러·회색 모두)
+FOOTER_GRAY = "#6F6A5E"    # was #9A9486(≈2.9:1) — 쪽번호·정답표 문항번호·모토용
+OMR_EMPTY = "#6F6A5E"      # OMR 미기입 버블 — 옅되 판독 가능(기입 = 진네이비 원)
+RULE_LINE = "#B9B2A0"      # 답안란 괘선·OMR 점선 — ≥0.75pt + 레이저에서 보이는 농도
 
 # Scale loop bounds
 SCALE_MAX = 1.0
@@ -182,11 +192,13 @@ def build_css(content_scale, hard_wrap, cover_scale=1.0):
     --cover-scale: {cover_scale:.4f};
     --navy: {NAVY};
     --brass: {BRASS};
+    --brass-text: {BRASS_TEXT};
     --page-bg: {PAGE_BG};
     --panel-bg: {PANEL_BG};
     --content-bg: {CONTENT_BG};
     --ink: {BODY_INK};
     --gray: {FOOTER_GRAY};
+    --rule: {RULE_LINE};
     /* Font stacks: KR primary + DejaVu symbol fallback so '✦' renders. */
     --serif-stack: 'ExamSerif', 'ExamSym', 'Noto Serif CJK KR', 'Noto Sans CJK KR', serif;
     --sans-stack: 'ExamSans', 'ExamSym', 'Noto Sans CJK KR', sans-serif;
@@ -272,7 +284,7 @@ p {{ margin: 0; }}
 .cover .brand {{
     font-family: var(--serif-stack);
     font-weight: 700;
-    color: var(--brass);
+    color: var(--brass-text);
     text-transform: uppercase;
     letter-spacing: 0.42em;
     font-size: calc(10pt * var(--content-scale));
@@ -305,7 +317,7 @@ p {{ margin: 0; }}
 }}
 .cover .title-latin {{
     font-family: var(--serif-stack);
-    color: var(--brass);
+    color: var(--brass-text);
     text-transform: uppercase;
     letter-spacing: 0.36em;
     font-size: calc(9.5pt * var(--content-scale));
@@ -320,7 +332,7 @@ p {{ margin: 0; }}
     margin-bottom: 6mm;
 }}
 .cover .meta-line .sep {{
-    color: var(--brass);
+    color: var(--brass-text);
     padding: 0 0.5em;
 }}
 .cover .difficulty-box {{
@@ -337,7 +349,7 @@ p {{ margin: 0; }}
     margin-bottom: 8mm;
 }}
 .cover .difficulty-box .dl {{
-    color: var(--brass);
+    color: var(--brass-text);
     font-weight: 700;
     letter-spacing: 0.18em;
     margin-right: 0.7em;
@@ -376,7 +388,7 @@ p {{ margin: 0; }}
     left: 0;
     right: 0;
     top: 1.4mm;
-    border-top: 0.6pt solid var(--brass);
+    border-top: 0.75pt solid var(--brass);  /* <0.75pt hairlines vanish on laser */
 }}
 
 /* ----- Generic bordered box ----- */
@@ -417,7 +429,7 @@ p {{ margin: 0; }}
 .notice-box .notice-label {{
     font-family: var(--serif-stack);
     font-weight: 700;
-    color: var(--brass);
+    color: var(--brass-text);
     letter-spacing: 0.18em;
     margin-right: 0.8em;
 }}
@@ -432,7 +444,7 @@ p {{ margin: 0; }}
     line-height: 1.6;
 }}
 .instructions li::marker {{
-    color: var(--brass);
+    color: var(--brass-text);
     font-weight: 700;
 }}
 
@@ -511,7 +523,7 @@ table.score tr.summary td {{
 .ps-cell .ps-code {{
     font-family: var(--serif-stack);
     font-weight: 700;
-    color: var(--brass);
+    color: var(--brass-text);
     letter-spacing: 0.12em;
     margin-right: 0.7em;
 }}
@@ -600,7 +612,7 @@ coverend {{
 }}
 .passage .pg-tag {{
     font-family: var(--sans-stack);
-    color: var(--brass);
+    color: var(--brass-text);
     font-weight: 700;
     letter-spacing: 0.08em;
     font-size: calc(8.4pt * var(--content-scale));
@@ -656,7 +668,7 @@ coverend {{
     align-self: center;
 }}
 .q-label .killer {{
-    color: var(--brass);
+    color: var(--brass-text);
     margin-left: 0.5em;
     letter-spacing: 0.02em;
 }}
@@ -711,18 +723,19 @@ coverend {{
     flex: none;
 }}
 
-/* 서술형 답안란: a ruled writing area when an item has no options */
+/* 서술형 답안란: a ruled writing area when an item has no options.
+   괘선은 0.3mm(≈0.85pt) — 0.2mm 헤어라인은 흑백 레이저에서 사라진다. */
 .answer-blank {{
     margin: 1.5mm 0 1mm 0;
     min-height: 20mm;
-    border: 1px solid var(--rule, #D7D2C4);
+    border: 1px solid var(--rule, #B9B2A0);
     border-radius: 3px;
     background-image: repeating-linear-gradient(
         180deg,
         transparent 0,
         transparent 7.4mm,
-        var(--rule, #E4DFD2) 7.4mm,
-        var(--rule, #E4DFD2) 7.6mm
+        var(--rule, #B9B2A0) 7.4mm,
+        var(--rule, #B9B2A0) 7.7mm
     );
     background-position: 0 6mm;
     break-inside: avoid;
@@ -762,7 +775,7 @@ coverend {{
 }}
 .omr-bubbles {{ display: flex; gap: 2.4mm; }}
 .omr-bubbles .b {{
-    color: #9a958a;
+    color: {OMR_EMPTY};  /* 미기입 버블도 회색 인쇄에서 번호 판독 가능해야 함 */
     font-size: calc(11pt * var(--content-scale));
     line-height: 1;
 }}
@@ -779,7 +792,7 @@ coverend {{
 }}
 .omr-rule {{
     flex: 1;
-    border-bottom: 1px dotted #B9B3A6;
+    border-bottom: 1px dotted var(--rule);
     height: 0;
     margin-left: 2mm;
 }}
@@ -844,7 +857,7 @@ coverend {{
     font-size: calc(11pt * var(--content-scale));
 }}
 .ak-cell .ak-star {{
-    color: var(--brass);
+    color: var(--brass-text);
     font-size: calc(8pt * var(--content-scale));
 }}
 
