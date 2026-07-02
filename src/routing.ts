@@ -14,7 +14,7 @@ export type Tier = "light" | "standard" | "heavy";
 
 export const MODELS: Record<Tier, string> = {
   light: "claude-haiku-4-5",
-  standard: "claude-sonnet-4-6",
+  standard: "claude-sonnet-5",
   heavy: "claude-opus-4-8",
 };
 

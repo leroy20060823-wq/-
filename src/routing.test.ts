@@ -4,7 +4,7 @@ import { routeModel, routeTier, taskWeight, MODELS } from "./routing.js";
 
 test("default (standard) module → Sonnet", () => {
   assert.equal(routeModel("vocabulary").model, MODELS.standard);
-  assert.equal(routeModel("worksheet").model, "claude-sonnet-4-6");
+  assert.equal(routeModel("worksheet").model, "claude-sonnet-5");
 });
 
 test("complex modules → Opus", () => {

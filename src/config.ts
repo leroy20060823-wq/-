@@ -33,7 +33,7 @@ export const config = {
   // maxOutputTokens — a hard cost cap so a runaway module can't burn the budget.
   defaultMaxTokens: intFromEnv("DEFAULT_MAX_TOKENS", 4000),
   maxOutputTokens: intFromEnv("MAX_OUTPUT_TOKENS", 16000),
-  allowedModels: listFromEnv("ALLOWED_MODELS", ["claude-haiku-4-5", "claude-sonnet-4-6"]),
+  allowedModels: listFromEnv("ALLOWED_MODELS", ["claude-haiku-4-5", "claude-sonnet-5", "claude-opus-4-8"]),
   // Abuse protection (per client IP — needs trust proxy so req.ip is the real
   // client). Frequency limits stop bursts; daily caps bound total spend.
   rateLimitPerMin: intFromEnv("RATE_LIMIT_PER_MIN", 5),

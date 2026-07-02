@@ -115,6 +115,7 @@ const downloadDocxBtn = document.getElementById("download-docx");
 const downloadHwpxBtn = document.getElementById("download-hwpx");
 const downloadDocPdfBtn = document.getElementById("download-docpdf");
 const downloadDesignPdfBtn = document.getElementById("download-designpdf");
+const downloadXlsxBtn = document.getElementById("download-xlsx");
 const docExportNote = document.getElementById("doc-export-note");
 const docExportStatus = document.getElementById("doc-export-status");
 let docPaper = "a4"; // A4 | letter | b5
@@ -1774,18 +1775,21 @@ function showResultActions(moduleId) {
 // Document export controls (paper size + .docx / PDF). Shown for every document
 // module (not PPT) whenever there's content — including the static sample, so it
 // is fully testable without an API key.
-// Format policy: 자소서·이력서 → 편집용 Word/한글(.docx/.hwpx). 그 외 문서 모듈 →
-// 디자인된 PDF(서버 렌더). 시험지는 전용 B4 PDF 바, PPT는 .pptx.
+// Format policy: 자소서·이력서 → 편집용 Word/한글(.docx/.hwpx). 엑셀 → 진짜 .xlsx.
+// 그 외 문서 모듈 → 디자인된 PDF(서버 렌더). 시험지는 전용 B4 PDF 바, PPT는 .pptx.
 const WORD_MODULES = new Set(["resume", "cover-letter"]);
-const PDF_DOC_MODULES = new Set(["vocabulary", "study-notes", "quiz", "worksheet", "lesson-plan", "creative-writing", "excel"]);
+const XLSX_MODULES = new Set(["excel"]);
+const PDF_DOC_MODULES = new Set(["vocabulary", "study-notes", "quiz", "worksheet", "lesson-plan", "creative-writing"]);
 function showDocControls(moduleId) {
   if (!docExport) return;
   const show = isDocModule(moduleId) && raw.trim();
   docExport.hidden = !show;
   if (!show) return;
   const isWord = WORD_MODULES.has(moduleId);
+  const isXlsx = XLSX_MODULES.has(moduleId);
   const isPdfDoc = PDF_DOC_MODULES.has(moduleId);
   if (downloadDesignPdfBtn) downloadDesignPdfBtn.hidden = !isPdfDoc;
+  if (downloadXlsxBtn) downloadXlsxBtn.hidden = !isXlsx;
   if (downloadDocxBtn) downloadDocxBtn.hidden = !isWord;
   if (downloadHwpxBtn) downloadHwpxBtn.hidden = !isWord;
   if (downloadDocPdfBtn) downloadDocPdfBtn.hidden = !isWord; // browser-print stays a word-doc extra
@@ -1794,7 +1798,9 @@ function showDocControls(moduleId) {
   if (docExportNote)
     docExportNote.textContent = isWord
       ? "둘 다 편집할 수 있어요 — .docx는 Word·구글 문서에서, .hwpx는 한글(HWP)에서 열립니다."
-      : "주제에 어울리는 디자인으로 인쇄용 PDF를 만들어 드려요. (컬러·흑백 모두 선명)";
+      : isXlsx
+        ? "예시 데이터와 살아있는 수식이 들어간 진짜 엑셀 파일이에요 — 엑셀·구글 시트에서 바로 열립니다."
+        : "주제에 어울리는 디자인으로 인쇄용 PDF를 만들어 드려요. (컬러·흑백 모두 선명)";
 }
 
 function sanitizeFilename(s) {
@@ -2320,7 +2326,27 @@ async function runDocExport(btn, fn, kind) {
 }
 downloadDocxBtn?.addEventListener("click", () => runDocExport(downloadDocxBtn, exportDocx, "Word"));
 downloadHwpxBtn?.addEventListener("click", () => runDocExport(downloadHwpxBtn, exportHwpx, "한글"));
-// Designed PDF (server WeasyPrint) — 단어장·학습노트·퀴즈·학습지·지도안·소설·엑셀.
+// 진짜 엑셀 파일(.xlsx) — 예시 데이터 + 살아있는 수식 (클라이언트 네이티브 빌드).
+downloadXlsxBtn?.addEventListener("click", async () => {
+  if (!raw.trim()) return;
+  const label = downloadXlsxBtn.textContent;
+  downloadXlsxBtn.disabled = true;
+  docExportStatus.textContent = "엑셀 파일 만드는 중…";
+  try {
+    const { exportXlsx } = await import("./xlsx.js");
+    const title = docTitleFromRaw();
+    await exportXlsx(raw, title, sanitizeFilename(title));
+    docExportStatus.textContent = "내려받기 완료";
+    setTimeout(() => (docExportStatus.textContent = ""), 2500);
+  } catch (err) {
+    console.error("[xlsx] export failed:", err);
+    docExportStatus.textContent = "엑셀 파일을 만들지 못했어요. 잠시 후 다시 시도해 주세요.";
+  } finally {
+    downloadXlsxBtn.disabled = false;
+    downloadXlsxBtn.textContent = label;
+  }
+});
+// Designed PDF (server WeasyPrint) — 단어장·학습노트·퀴즈·학습지·지도안·소설.
 downloadDesignPdfBtn?.addEventListener("click", async () => {
   if (!raw.trim()) return;
   const moduleId = getCurrentModule()?.id;

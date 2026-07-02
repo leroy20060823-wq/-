@@ -23,7 +23,7 @@ const MODULE_DOC_TYPE: Record<string, string> = {
   worksheet: "worksheet",
   "lesson-plan": "doc",
   "creative-writing": "doc",
-  excel: "doc",
+  // excel은 PDF가 아니라 진짜 .xlsx로 내보냄 (클라이언트 public/xlsx.js).
 };
 
 const pdfLimiter = rateLimit({
