@@ -560,18 +560,19 @@ async function applyReviewFix() {
 // Each exposes a single value-bearing element carrying the gather attribute
 // (data-guide-key / data-opt-key) so gatherGuide/gatherOptions stay unchanged.
 
-function choiceChips(keyAttr, key, choices, def) {
+function choiceChips(keyAttr, key, choices, def, groupLabel) {
   const value = def != null ? def : choices[0]?.value ?? "";
   const chips = choices
     .map((c) => {
       const v = c.value;
       const lab = c.label ?? c.value;
       const ex = c.example ? `<span class="chip-ex">${escapeHtml(c.example)}</span>` : "";
-      return `<button type="button" class="chip${v === value ? " active" : ""}" data-chip="${escapeHtml(v)}">${escapeHtml(lab)}${ex}</button>`;
+      return `<button type="button" class="chip${v === value ? " active" : ""}" data-chip="${escapeHtml(v)}" aria-pressed="${v === value}">${escapeHtml(lab)}${ex}</button>`;
     })
     .join("");
+  const groupAria = groupLabel ? ` aria-label="${escapeHtml(groupLabel)}"` : "";
   return (
-    `<div class="chips" role="group">${chips}</div>` +
+    `<div class="chips" role="group"${groupAria}>${chips}</div>` +
     `<input type="hidden" ${keyAttr}="${escapeHtml(key)}" value="${escapeHtml(value)}">`
   );
 }
@@ -583,16 +584,17 @@ function numberStepper(keyAttr, key, opt, id) {
   const def = opt.default ?? min;
   const unit = opt.unit ? `<span class="stepper-unit">${escapeHtml(opt.unit)}</span>` : "";
   const idAttr = id ? ` id="${id}"` : "";
+  const aria = opt.label ? ` aria-label="${escapeHtml(opt.label)}"` : "";
   const presets =
     Array.isArray(opt.presets) && opt.presets.length
       ? `<div class="presets">` +
-        opt.presets.map((p) => `<button type="button" class="preset" data-preset="${escapeHtml(String(p))}">${escapeHtml(String(p))}</button>`).join("") +
+        opt.presets.map((p) => `<button type="button" class="preset" data-preset="${escapeHtml(String(p))}" aria-label="${escapeHtml(String(p))}${escapeHtml(opt.unit || "")}로 설정">${escapeHtml(String(p))}</button>`).join("") +
         `</div>`
       : "";
   return (
     `<div class="stepper" data-min="${min}" data-max="${max}" data-step="${step}">` +
     `<button type="button" class="step-btn" data-step-dir="-1" aria-label="줄이기">−</button>` +
-    `<input type="number" class="step-input"${idAttr} ${keyAttr}="${escapeHtml(key)}" value="${escapeHtml(String(def))}" min="${min}" max="${max}" step="${step}" inputmode="numeric">` +
+    `<input type="number" class="step-input"${idAttr} ${keyAttr}="${escapeHtml(key)}"${aria} value="${escapeHtml(String(def))}" min="${min}" max="${max}" step="${step}" inputmode="numeric">` +
     `<button type="button" class="step-btn" data-step-dir="1" aria-label="늘리기">+</button>` +
     unit +
     `</div>` +
@@ -611,7 +613,7 @@ function countsControl(keyAttr, key, field, id) {
         `<span class="count-label">${escapeHtml(it.label)}</span>` +
         `<div class="stepper" data-min="${it.min ?? 0}" data-max="${it.max ?? 999}" data-step="1">` +
         `<button type="button" class="step-btn" data-step-dir="-1" aria-label="줄이기">−</button>` +
-        `<input type="number" class="step-input count-item" data-count-item="${escapeHtml(it.key)}" data-count-label="${escapeHtml(it.label)}" value="${def}" min="${it.min ?? 0}" max="${it.max ?? 999}" inputmode="numeric">` +
+        `<input type="number" class="step-input count-item" data-count-item="${escapeHtml(it.key)}" data-count-label="${escapeHtml(it.label)}" aria-label="${escapeHtml(it.label)} 개수" value="${def}" min="${it.min ?? 0}" max="${it.max ?? 999}" inputmode="numeric">` +
         `<button type="button" class="step-btn" data-step-dir="1" aria-label="늘리기">+</button>` +
         `<span class="stepper-unit">${escapeHtml(unit)}</span>` +
         `</div></div>`
@@ -665,7 +667,10 @@ form.addEventListener("click", (e) => {
   const chip = e.target.closest(".chip[data-chip]");
   if (chip) {
     const group = chip.closest(".chips");
-    group?.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c === chip));
+    group?.querySelectorAll(".chip").forEach((c) => {
+      c.classList.toggle("active", c === chip);
+      c.setAttribute("aria-pressed", String(c === chip));
+    });
     const hidden = group?.parentElement.querySelector("input[type='hidden']");
     if (hidden) hidden.value = chip.dataset.chip;
     return;
@@ -712,7 +717,7 @@ function renderOptionControl(opt) {
   const help = opt.help ? `<span class="guide-help">${escapeHtml(opt.help)}</span>` : "";
   let control;
   if (opt.type === "select") {
-    control = choiceChips("data-opt-key", opt.key, opt.choices ?? [], opt.default);
+    control = choiceChips("data-opt-key", opt.key, opt.choices ?? [], opt.default, opt.label);
   } else if (opt.type === "number") {
     control = numberStepper("data-opt-key", opt.key, opt);
   } else {
@@ -749,7 +754,7 @@ function renderGuideControl(f) {
   let control;
   let tag = "label"; // text/textarea focus nicely inside a <label>
   if (f.type === "select") {
-    control = choiceChips("data-guide-key", f.key, f.choices ?? [], f.default);
+    control = choiceChips("data-guide-key", f.key, f.choices ?? [], f.default, f.label);
     tag = "div"; // interactive buttons shouldn't sit inside a <label>
   } else if (f.type === "number") {
     control = numberStepper("data-guide-key", f.key, f);
@@ -1253,9 +1258,9 @@ function renderWizardStep() {
   } else if (s.type === "counts") {
     control = countsControl("data-wiz", s.key, s, "wizard-input");
   } else if (s.type === "textarea") {
-    control = `<textarea class="wizard-input" id="wizard-input" maxlength="3000" placeholder="${escapeHtml(s.placeholder || "")}">${escapeHtml(String(cur))}</textarea>`;
+    control = `<textarea class="wizard-input" id="wizard-input" maxlength="3000" aria-label="${escapeHtml(s.question || s.label || "")}" placeholder="${escapeHtml(s.placeholder || "")}">${escapeHtml(String(cur))}</textarea>`;
   } else {
-    control = `<input class="wizard-input" id="wizard-input" type="text" maxlength="3000" placeholder="${escapeHtml(s.placeholder || "")}" value="${escapeHtml(String(cur))}">`;
+    control = `<input class="wizard-input" id="wizard-input" type="text" maxlength="3000" aria-label="${escapeHtml(s.question || s.label || "")}" placeholder="${escapeHtml(s.placeholder || "")}" value="${escapeHtml(String(cur))}">`;
   }
 
   wizardEl.innerHTML =
@@ -1439,7 +1444,7 @@ function cardHtml(m) {
   const tagline = THEME[m.id]?.tagline || m.purpose || m.description || "";
   return (
     `<button type="button" class="card" data-module="${escapeHtml(m.id)}">` +
-    `<span class="card-icon" style="background:${theme.tile};color:${theme.accent}">${icon}</span>` +
+    `<span class="card-icon" style="background:${theme.tile};color:${theme.accent}" aria-hidden="true">${icon}</span>` +
     `<span class="card-name">${escapeHtml(m.name)}</span>` +
     `<span class="card-desc">${escapeHtml(tagline)}</span>` +
     `<span class="card-sample" data-sample="${escapeHtml(m.id)}" role="button" tabindex="0">이런 게 나와요</span>` +
@@ -1886,7 +1891,12 @@ function setKeyedValue(scope, attr, key, value) {
   if (!el) return;
   el.value = value;
   const chips = el.parentElement && el.parentElement.querySelector(".chips");
-  if (chips) chips.querySelectorAll(".chip").forEach((b) => b.classList.toggle("active", b.dataset.chip === String(value)));
+  if (chips)
+    chips.querySelectorAll(".chip").forEach((b) => {
+      const on = b.dataset.chip === String(value);
+      b.classList.toggle("active", on);
+      b.setAttribute("aria-pressed", String(on));
+    });
 }
 function applyFormState(state) {
   if (!state) return;
