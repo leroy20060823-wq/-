@@ -3205,3 +3205,120 @@ body.sidebar-collapsed .sidebar {
 [hidden] {
   display: none !important;
 }
+
+/* ============================================================
+   인쇄용 스타일 (브라우저 인쇄 · PDF로 저장)
+   화면 전용 chrome(네비·사이드바·버튼·모달)은 숨기고, 내용만
+   흰 바탕·검정 글자로 — 토너를 아끼고 흑백에서도 잘 읽히게.
+   ============================================================ */
+@media print {
+  @page {
+    margin: 15mm;
+  }
+
+  /* --- 화면 전용 chrome 감추기 --- */
+  .sprig,
+  .topbar,
+  .sidebar,
+  .sidebar-backdrop,
+  .footer,
+  .hero-search,
+  .back,
+  .textsize,
+  button:not(.card),
+  .btn-primary,
+  .btn-ghost,
+  .card-sample,
+  .chips,
+  .actions,
+  .result-actions,
+  .output-actions,
+  .view-toggle,
+  .exam-pdf,
+  .exam-review,
+  .doc-export,
+  .loading,
+  .fb-nudge,
+  .modal,
+  .onboarding,
+  .sample-preview,
+  .draft-note,
+  .demo-banner,
+  .ppt-design,
+  .status,
+  .pptx-hint,
+  .help-contact {
+    display: none !important;
+  }
+
+  /* --- 흰 바탕 + 검정 글자 (그라디언트·그림자·라운드는 토너 낭비) --- */
+  html,
+  body {
+    height: auto;
+  }
+  body,
+  main,
+  .app-body,
+  .output,
+  .card-panel {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .app-shell {
+    display: block;
+    min-height: 0;
+  }
+  .card-panel,
+  .output,
+  .faq-item,
+  .doc-frame,
+  .deck-frame {
+    box-shadow: none !important;
+    border-radius: 0;
+  }
+  .faq-item {
+    background: #fff;
+  }
+  .faq-item summary,
+  .faq-item p,
+  .legal p,
+  .legal li,
+  .help-sub,
+  .hint {
+    color: #000;
+  }
+  a {
+    color: #000;
+  }
+
+  /* --- 결과물은 스크롤 상자가 아니라 여러 페이지로 흐르게 --- */
+  .output,
+  .deck,
+  .docpages {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .doc-frame,
+  .deck-frame,
+  .faq-item {
+    break-inside: avoid;
+  }
+
+  /* --- FAQ: 접힌 <details>도 인쇄에서는 모두 펼친다 --- */
+  /* Chromium 131+에서 닫힌 details 내용은 ::details-content 의사 요소에
+     content-visibility: hidden 으로 감춰져 있다 → 인쇄에서는 해제.
+     (::details-content 미지원 엔진은 이 규칙 전체를 무시하므로 단독 규칙으로 둔다) */
+  details::details-content {
+    content-visibility: visible !important;
+    display: block !important;
+  }
+  /* 보조 규칙: details 내용을 블록으로 강제 (지원 엔진에서만 효과) */
+  .faq-item > *:not(summary) {
+    display: block !important;
+  }
+  /* 모두 펼쳐 인쇄하므로 +/− 토글 표시는 무의미 ([open] 규칙보다 우선) */
+  .faq-item summary::after,
+  .faq-item[open] summary::after {
+    content: "" !important;
+  }
+}
