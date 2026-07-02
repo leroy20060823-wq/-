@@ -115,7 +115,7 @@ examRouter.post(
       return;
     }
     if (markdown.length > 200_000) {
-      res.status(400).json({ error: "내용이 너무 깁니다." });
+      res.status(400).json({ error: "내용이 너무 길어요." });
       return;
     }
 

@@ -208,7 +208,7 @@ router.post(
       return;
     }
     if (markdown.length > config.maxInputChars * 6) {
-      res.status(400).json({ error: "내용이 너무 깁니다." });
+      res.status(400).json({ error: "내용이 너무 길어요." });
       return;
     }
     const result = await reviewAndFix(markdown);
@@ -235,7 +235,7 @@ router.post(
       return;
     }
     if (markdown.length > config.maxInputChars * 6) {
-      res.status(400).json({ error: "내용이 너무 깁니다." });
+      res.status(400).json({ error: "내용이 너무 길어요." });
       return;
     }
     const result = await reviewArtifact(moduleId, markdown);

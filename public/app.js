@@ -1401,8 +1401,9 @@ function updateModuleDesc() {
 
   const hasGuide = (current?.guide ?? []).length > 0;
   inputLabel.textContent = hasGuide ? "더 부탁할 내용 (선택)" : "무엇을 만들까요?";
+  // 모듈과 무관하게 통하는 중립 예시 (이전 문구는 시험지 전용 예시가 모든 도구에 보였음)
   inputEl.placeholder = hasGuide
-    ? "예: 비교급 문법을 강조해 주세요 (없으면 비워 두셔도 돼요)"
+    ? "예: 조금 더 쉬운 말로 써 주세요 (없으면 비워 두셔도 돼요)"
     : current?.inputPlaceholder || defaultInputPlaceholder;
 
   // Plain-language action button: "시험지 만들기", "단어장 만들기" …
@@ -1660,7 +1661,7 @@ async function loadSample() {
     outputEl.hidden = false;
     renderNow();
     copyBtn.hidden = raw.length === 0;
-    setStatus("예시 미리보기 (실제 생성 결과가 아닙니다)");
+    setStatus("예시 미리보기 (실제 생성 결과는 아니에요)");
     if (raw.trim()) {
       await showPreview(id);
       showDocControls(id); // sample is exportable to .docx now (no API key needed)
@@ -1797,9 +1798,9 @@ function showDocControls(moduleId) {
   if (paperRow) paperRow.hidden = !isWord;
   if (docExportNote)
     docExportNote.textContent = isWord
-      ? "둘 다 편집할 수 있어요 — .docx는 Word·구글 문서에서, .hwpx는 한글(HWP)에서 열립니다."
+      ? "둘 다 편집할 수 있어요 — .docx는 Word·구글 문서에서, .hwpx는 한글(HWP)에서 열려요."
       : isXlsx
-        ? "예시 데이터와 살아있는 수식이 들어간 진짜 엑셀 파일이에요 — 엑셀·구글 시트에서 바로 열립니다."
+        ? "예시 데이터와 살아있는 수식이 들어간 진짜 엑셀 파일이에요 — 엑셀·구글 시트에서 바로 열려요."
         : "주제에 어울리는 디자인으로 인쇄용 PDF를 만들어 드려요. (컬러·흑백 모두 선명)";
 }
 

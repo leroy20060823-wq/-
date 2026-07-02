@@ -67,7 +67,7 @@ test("rejects input longer than maxInputChars", () => {
     20,
   );
   assert.equal(result.ok, false);
-  if (!result.ok) assert.match(result.error, /너무 깁니다/);
+  if (!result.ok) assert.match(result.error, /너무 길어요/);
 });
 
 test("sanitizeText drops control chars but keeps tab/newline/CR", () => {
@@ -93,7 +93,7 @@ test("rejects a per-field value longer than maxFieldChars", () => {
     20,
   );
   assert.equal(result.ok, false);
-  if (!result.ok) assert.match(result.error, /한 항목이 너무 깁니다/);
+  if (!result.ok) assert.match(result.error, /한 항목이 너무 길어요/);
 });
 
 test("normalizes valid option values (coerces numbers, keeps valid selects)", () => {

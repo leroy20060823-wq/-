@@ -178,10 +178,10 @@ export function parseGenerateRequest(
     return { ok: false, error: "내용을 입력하거나 자료(사진·본문)를 올려주세요." };
   }
   if (input.length > maxInputChars) {
-    return { ok: false, error: `입력이 너무 깁니다 (최대 ${maxInputChars}자).` };
+    return { ok: false, error: `입력이 너무 길어요. (최대 ${maxInputChars}자)` };
   }
   if (sourceText.length > caps.maxSourceChars) {
-    return { ok: false, error: `붙여넣은 본문이 너무 깁니다 (최대 ${caps.maxSourceChars}자).` };
+    return { ok: false, error: `붙여넣은 본문이 너무 길어요. (최대 ${caps.maxSourceChars}자)` };
   }
 
   if (model && !allowedModels.includes(model)) {
@@ -196,7 +196,7 @@ export function parseGenerateRequest(
   if (typeof body.options === "object" && body.options !== null) {
     for (const value of Object.values(body.options as Record<string, unknown>)) {
       if (typeof value === "string" && value.length > maxFieldChars) {
-        return { ok: false, error: `한 항목이 너무 깁니다 (최대 ${maxFieldChars}자).` };
+        return { ok: false, error: `한 항목이 너무 길어요. (최대 ${maxFieldChars}자)` };
       }
     }
   }

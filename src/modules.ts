@@ -451,7 +451,7 @@ const MODULES: GenerationModule[] = [
   },
   {
     id: "ppt",
-    name: "PPT",
+    name: "발표자료(PPT)",
     group: "work",
     description: "주제만 정하면 슬라이드별 제목·핵심 내용·발표 노트를 만들어 드려요.",
     purpose: "발표용 슬라이드 구성 (장별 핵심 + 발표 노트)",

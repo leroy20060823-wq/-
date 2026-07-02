@@ -14,14 +14,14 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="올인원 AI" />
     <meta property="og:title" content="올인원 AI — 질문에 답만 하면 완성" />
-    <meta property="og:description" content="처음이어도 괜찮아요. 질문에 답만 하면, 결과물이 완성됩니다." />
+    <meta property="og:description" content="처음이어도 괜찮아요. 질문에 답만 하면, 결과물이 완성돼요." />
     <meta property="og:image" content="/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:locale" content="ko_KR" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="올인원 AI — 질문에 답만 하면 완성" />
-    <meta name="twitter:description" content="질문에 답만 하면, 결과물이 완성됩니다." />
+    <meta name="twitter:description" content="질문에 답만 하면, 결과물이 완성돼요." />
     <meta name="twitter:image" content="/og.png" />
 
     <link rel="stylesheet" href="/styles.css" />
@@ -73,7 +73,7 @@
         <div class="hero">
           <p class="eyebrow">AI, 어렵지 않아요</p>
           <h1 class="hero-title">모든 영역의 실무를<br /><span class="hero-em">한 번에</span></h1>
-          <p class="hero-sub">질문에 답만 하면, 결과물이 완성됩니다.</p>
+          <p class="hero-sub">질문에 답만 하면, 결과물이 완성돼요.</p>
           <p class="hero-audience"><span>AI 처음이어도 괜찮아요. 초등학생부터 어르신까지.</span></p>
 
           <form id="hero-form" class="hero-search">
@@ -187,7 +187,7 @@
               id="input"
               rows="3"
               maxlength="8000"
-              placeholder="예: 환경 오염을 주제로, 비교급 문법을 강조해 주세요"
+              placeholder="예: 환경 오염을 주제로, 중학생 눈높이에 맞춰 주세요"
             ></textarea>
           </label>
 
@@ -258,7 +258,7 @@
               <button id="download-docpdf" type="button" class="btn-ghost">🖨 PDF로 저장</button>
               <span id="doc-export-status" class="hint"></span>
             </div>
-            <span class="doc-export-note" id="doc-export-note">둘 다 편집할 수 있어요 — .docx는 Word·구글 문서에서, .hwpx는 한글(HWP)에서 열립니다.</span>
+            <span class="doc-export-note" id="doc-export-note">둘 다 편집할 수 있어요 — .docx는 Word·구글 문서에서, .hwpx는 한글(HWP)에서 열려요.</span>
           </div>
           <div id="loading" class="loading" hidden>
             <span class="spinner" aria-hidden="true"></span>
@@ -281,17 +281,68 @@
         </section>
       </section>
 
-      <!-- Legal pages (placeholder content — fill in real text later) -->
+      <!-- Legal pages -->
       <section id="view-terms" class="view legal" hidden>
         <a class="back" href="#" data-nav="home">← 홈으로</a>
         <h1 class="legal-title">이용약관</h1>
-        <p class="legal-note">여기에 이용약관 내용을 채워 주세요. (플레이스홀더)</p>
+        <p class="legal-note">무료 베타 서비스의 이용 조건을 쉬운 말로 정리했어요.</p>
+
+        <h2>1. 서비스 소개</h2>
+        <p>‘올인원 AI’(이하 ‘서비스’)는 질문에 답하면 시험지·발표자료·자기소개서 같은 결과물을 AI로 만들어 주는 도구입니다. 현재 무료 베타로 제공되며, 회원가입 없이 사용할 수 있습니다.</p>
+
+        <h2>2. 이용 조건</h2>
+        <p>누구나 무료로 사용할 수 있습니다. 다만 안정적인 운영을 위해 하루 사용량에 제한이 있을 수 있습니다.</p>
+
+        <h2>3. 결과물의 이용과 주의</h2>
+        <ul>
+          <li>서비스로 만든 결과물은 자유롭게 사용하실 수 있습니다.</li>
+          <li>AI 특성상 결과물에 잘못된 내용이 섞일 수 있습니다. 시험 출제·제출 서류처럼 중요한 용도에는 반드시 내용을 직접 확인한 뒤 사용해 주세요.</li>
+          <li>서비스는 결과물의 정확성·완전성을 보증하지 않습니다.</li>
+        </ul>
+
+        <h2>4. 이용자의 약속</h2>
+        <ul>
+          <li>타인의 저작권 등 권리를 침해하는 자료를 올리지 않습니다.</li>
+          <li>법령에 어긋나는 목적으로 서비스를 사용하지 않습니다.</li>
+          <li>서비스에 부담을 주는 자동화된 대량 접근을 하지 않습니다.</li>
+        </ul>
+
+        <h2>5. 서비스의 변경·중단</h2>
+        <p>베타 서비스 특성상 기능이 예고 없이 바뀌거나 서비스가 일시 중단될 수 있습니다.</p>
+
+        <h2>6. 책임의 한계</h2>
+        <p>서비스는 무료로 제공되며, 고의 또는 중대한 과실이 없는 한 서비스 이용으로 생긴 손해에 책임을 지지 않습니다.</p>
+
+        <h2>7. 약관의 변경</h2>
+        <p>약관이 바뀌면 이 페이지에 게시합니다. 궁금한 점은 화면 아래 ‘문의’ 이메일로 보내 주세요.</p>
+
+        <p class="legal-date">시행일: 2026년 7월 2일</p>
       </section>
 
       <section id="view-privacy" class="view legal" hidden>
         <a class="back" href="#" data-nav="home">← 홈으로</a>
         <h1 class="legal-title">개인정보처리방침</h1>
-        <p class="legal-note">여기에 개인정보처리방침 내용을 채워 주세요. (플레이스홀더)</p>
+        <p class="legal-note">이 서비스가 정보를 어떻게 다루는지 쉬운 말로 정리했어요.</p>
+
+        <h2>1. 개인정보를 모으지 않아요</h2>
+        <p>회원가입·로그인이 없으며, 이름·연락처 같은 개인정보를 요구하거나 저장하지 않습니다.</p>
+
+        <h2>2. 입력한 내용은 이렇게 처리돼요</h2>
+        <p>‘만들기’를 누르면 입력한 글과 사진이 결과물을 만들기 위해 AI 모델(Anthropic Claude API)에 전송됩니다. 전송된 내용은 결과 생성 목적으로만 사용합니다. 개인정보가 담긴 자료는 올리지 않는 것을 권장합니다.</p>
+
+        <h2>3. 브라우저에만 저장되는 것</h2>
+        <p>작성 중이던 내용, 만든 기록, 글자 크기 같은 설정은 이용자의 브라우저(로컬 저장소)에만 저장되며 서버로 전송되지 않습니다. 브라우저의 사이트 데이터를 지우면 함께 삭제됩니다.</p>
+
+        <h2>4. 의견·설문은 익명이에요</h2>
+        <p>‘의견 남기기’와 첫 방문 설문은 익명으로 저장됩니다. 답변 내용과 시각만 기록하며, IP 주소나 이름 등은 저장하지 않습니다.</p>
+
+        <h2>5. 쿠키·추적</h2>
+        <p>광고나 추적 목적의 쿠키를 사용하지 않습니다.</p>
+
+        <h2>6. 문의</h2>
+        <p>정보 처리에 궁금한 점이 있으면 화면 아래 ‘문의’ 이메일로 보내 주세요.</p>
+
+        <p class="legal-date">시행일: 2026년 7월 2일</p>
       </section>
 
       <!-- Help / FAQ (B7) -->
@@ -455,7 +506,7 @@
     <div id="onboarding" class="onboarding" hidden role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
       <div class="onboarding-card">
         <h2 class="onboarding-title" id="onboarding-title">잠깐, 몇 가지만 여쭤볼게요</h2>
-        <p class="onboarding-sub">더 편하게 쓰실 수 있도록 도와드리려고요. 5개만 골라주세요.</p>
+        <p class="onboarding-sub">더 편하게 쓰실 수 있도록 도와드리려고요. 예·아니요로 5개만 답해 주세요.</p>
         <div id="onboarding-questions" class="onboarding-questions"></div>
         <button id="onboarding-start" class="btn-primary onboarding-start" type="button" disabled>시작하기</button>
         <button id="onboarding-skip" class="onboarding-skip" type="button">건너뛰기</button>
